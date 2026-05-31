@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/api";
@@ -12,20 +13,22 @@ export function ProductCard({ product }: { product: Product }) {
   const { t, lang } = useI18n();
   const { add } = useCart();
   const name = localized(product, lang);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover-lift hover:border-accent/40 hover:shadow-xl">
       <Link to={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-secondary">
-        {product.image_urls[0] ? (
+        {product.image_urls[0] && !imgError ? (
           <img
             src={product.image_urls[0]}
             alt={name}
             loading="lazy"
             decoding="async"
+            onError={() => setImgError(true)}
             className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
           />
         ) : (
-          <div className="grid h-full w-full place-items-center text-muted-foreground">
+          <div className="grid h-full w-full place-items-center text-4xl text-muted-foreground">
             ⚡
           </div>
         )}

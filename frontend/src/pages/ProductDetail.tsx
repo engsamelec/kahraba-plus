@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
 import { StarRating } from "@/components/StarRating";
+import { ProductReviews } from "@/components/ProductReviews";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 
