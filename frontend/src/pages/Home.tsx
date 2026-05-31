@@ -20,12 +20,18 @@ export default function Home() {
   useDocumentTitle(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+  const [loadingFeat, setLoadingFeat] = useState(true);
 
   useEffect(() => {
-    api.get("/categories").then((r) => setCategories(r.data));
+    api
+      .get("/categories")
+      .then((r) => setCategories(r.data))
+      .finally(() => setLoadingCats(false));
     api
       .get("/products", { params: { featured: "true", per_page: 8 } })
-      .then((r) => setFeatured(r.data.products));
+      .then((r) => setFeatured(r.data.products))
+      .finally(() => setLoadingFeat(false));
   }, []);
 
   const ArrowIcon = dir === "rtl" ? ArrowLeft : ArrowRight;
@@ -114,7 +120,18 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.map((c, i) => (
+          {loadingCats
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col items-center gap-3 rounded-xl border bg-card p-5"
+                >
+                  <div className="skeleton h-14 w-14 rounded-full" />
+                  <div className="skeleton h-3 w-16 rounded" />
+                  <div className="skeleton h-2.5 w-10 rounded" />
+                </div>
+              ))
+            : categories.map((c, i) => (
             <Link
               key={c.id}
               to={`/shop?category=${c.slug}`}
@@ -148,7 +165,21 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {featured.map((p, i) => (
+            {loadingFeat
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="overflow-hidden rounded-xl border bg-card"
+                  >
+                    <div className="skeleton aspect-square w-full" />
+                    <div className="space-y-2 p-3">
+                      <div className="skeleton h-3 w-1/3 rounded" />
+                      <div className="skeleton h-4 w-4/5 rounded" />
+                      <div className="skeleton h-5 w-1/2 rounded" />
+                    </div>
+                  </div>
+                ))
+              : featured.map((p, i) => (
               <div
                 key={p.id}
                 className="animate-fade-up"
