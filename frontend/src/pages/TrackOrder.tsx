@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, PackageSearch } from "lucide-react";
 import api, { type Order } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +11,7 @@ const STEPS = ["pending", "processing", "shipped", "delivered"];
 
 export default function TrackOrder() {
   const { t } = useI18n();
+  useDocumentTitle(t("track_title"));
   const [searchParams] = useSearchParams();
   const [number, setNumber] = useState(searchParams.get("order") || "");
   const [order, setOrder] = useState<Order | null>(null);

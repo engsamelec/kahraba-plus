@@ -4,9 +4,11 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Quote } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
+import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const COUNTRIES = [
@@ -28,6 +30,7 @@ export default function Checkout() {
   const { items, subtotal, clear } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  useDocumentTitle(t("checkout_title"));
 
   const [form, setForm] = useState({
     customer_name: user ? `${user.first_name} ${user.last_name}`.trim() : "",

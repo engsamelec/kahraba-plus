@@ -14,7 +14,9 @@ import { toast } from "sonner";
 import api, { type Category, type Order, type Product } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatPrice, classFor } from "@/lib/format";
+import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -31,6 +33,7 @@ export default function Admin() {
   const { t } = useI18n();
   const { user, loading: authLoading, isAdmin } = useAuth();
   const [tab, setTab] = useState<"dashboard" | "products" | "orders">("dashboard");
+  useDocumentTitle(t("admin_dashboard"));
 
   if (authLoading) {
     return (
@@ -123,7 +126,23 @@ function Dashboard() {
   );
 }
 
-const EMPTY_PRODUCT = {
+interface ProductForm {
+  id?: number;
+  name: string;
+  name_ar: string;
+  brand: string;
+  sku: string;
+  price: number | string;
+  compare_at_price: number | string;
+  stock_quantity: number | string;
+  category_id: number | string;
+  description: string;
+  description_ar: string;
+  image_url: string;
+  is_featured: boolean;
+}
+
+const EMPTY_PRODUCT: ProductForm = {
   name: "",
   name_ar: "",
   brand: "",
@@ -142,7 +161,7 @@ function ProductsAdmin() {
   const { t } = useI18n();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [editing, setEditing] = useState<any | null>(null);
+  const [editing, setEditing] = useState<ProductForm | null>(null);
   const [saving, setSaving] = useState(false);
 
   function load() {
@@ -179,8 +198,9 @@ function ProductsAdmin() {
   }
 
   async function save() {
+    if (!editing) return;
     setSaving(true);
-    const payload: any = {
+    const payload = {
       name: editing.name,
       name_ar: editing.name_ar,
       brand: editing.brand,
@@ -205,8 +225,8 @@ function ProductsAdmin() {
       toast.success(t("save_product"));
       setEditing(null);
       load();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || t("error_generic"));
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
     } finally {
       setSaving(false);
     }

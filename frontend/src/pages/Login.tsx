@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { getErrorMessage } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 
@@ -37,8 +39,8 @@ export default function Login() {
       }
       toast.success(t("brand"));
       navigate("/account");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || t("error_generic"));
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
     } finally {
       setLoading(false);
     }

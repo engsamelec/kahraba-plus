@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useI18n, localized } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 export default function Cart() {
   const { t, lang } = useI18n();
   const { items, subtotal, setQuantity, remove } = useCart();
+  useDocumentTitle(t("cart_title"));
 
   if (items.length === 0) {
     return (

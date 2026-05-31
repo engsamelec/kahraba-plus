@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import api, { type Order } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatPrice, classFor } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 export default function Account() {
   const { t } = useI18n();
   const { user, loading: authLoading, refresh } = useAuth();
+  useDocumentTitle(t("my_account"));
   const [tab, setTab] = useState<"orders" | "profile">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [profile, setProfile] = useState({
