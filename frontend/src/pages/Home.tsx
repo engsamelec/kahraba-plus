@@ -10,12 +10,14 @@ import {
 } from "lucide-react";
 import api, { type Category, type Product } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const { t, lang, dir } = useI18n();
+  useDocumentTitle(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featured, setFeatured] = useState<Product[]>([]);
 

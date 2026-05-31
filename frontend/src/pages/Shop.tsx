@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, X } from "lucide-react";
 import api, { type Category, type Product } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 
@@ -75,6 +76,8 @@ export default function Shop() {
           lang
         )
       : t("nav_shop");
+
+  useDocumentTitle(heading);
 
   const FilterPanel = (
     <div className="space-y-6">

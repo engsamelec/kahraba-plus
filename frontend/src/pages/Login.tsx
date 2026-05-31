@@ -12,6 +12,7 @@ export default function Login() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
+  useDocumentTitle(mode === "login" ? t("login_title") : t("register_title"));
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     email: "",

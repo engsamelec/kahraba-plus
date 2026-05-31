@@ -4,6 +4,7 @@ import { Check, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Product } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
