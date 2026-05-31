@@ -1,0 +1,23 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+*.db
+backend/src/kahraba_plus.db
+
+# Node
+frontend/node_modules/
+node_modules/
+
+# Note: backend/src/static/ holds the built frontend (committed so the
+# Flask backend serves the SPA out of the box). Rebuild with `pnpm build`.
+
+# Env / secrets
+.env
+*.local
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.log

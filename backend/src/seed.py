@@ -1,0 +1,396 @@
+"""Seed the database with realistic electronics catalog data for Kahraba Plus."""
+
+from src.models.catalog import Category, Product
+from src.models.user import User, db
+from src.routes.products import slugify, _unique_slug
+
+
+def _img(*urls):
+    return list(urls)
+
+
+CATEGORIES = [
+    {
+        "name": "Arduino & Microcontrollers",
+        "name_ar": "أردوينو والمتحكمات",
+        "icon": "Cpu",
+        "description": "Development boards and microcontrollers for prototyping and IoT.",
+    },
+    {
+        "name": "Sensors & Modules",
+        "name_ar": "حساسات ووحدات",
+        "icon": "Radar",
+        "description": "A wide range of sensors for temperature, motion, distance and more.",
+    },
+    {
+        "name": "Motors & Drivers",
+        "name_ar": "محركات وقيادة",
+        "icon": "Cog",
+        "description": "DC, stepper and servo motors with their driver modules.",
+    },
+    {
+        "name": "Solar & Energy",
+        "name_ar": "طاقة شمسية",
+        "icon": "Sun",
+        "description": "Solar panels, charge controllers and energy storage solutions.",
+    },
+    {
+        "name": "Power & Batteries",
+        "name_ar": "طاقة وبطاريات",
+        "icon": "BatteryCharging",
+        "description": "Power supplies, converters and rechargeable batteries.",
+    },
+    {
+        "name": "Components & Tools",
+        "name_ar": "مكونات وأدوات",
+        "icon": "Wrench",
+        "description": "Resistors, capacitors, wires, breadboards and electronics tools.",
+    },
+]
+
+# Product catalog inspired by typical electronics distributor listings
+PRODUCTS = [
+    # Arduino & Microcontrollers
+    {
+        "cat": "Arduino & Microcontrollers",
+        "name": "Arduino Uno R3 Development Board",
+        "name_ar": "لوحة أردوينو أونو R3",
+        "brand": "Arduino",
+        "sku": "ARD-UNO-R3",
+        "price": 12.50,
+        "compare_at_price": 16.00,
+        "stock": 120,
+        "featured": True,
+        "img": "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=600&q=80",
+        "desc": "The classic ATmega328P based board, perfect for beginners and rapid prototyping. 14 digital I/O pins, 6 analog inputs, USB connection.",
+        "desc_ar": "اللوحة الكلاسيكية المبنية على ATmega328P، مثالية للمبتدئين والنماذج الأولية السريعة. 14 منفذ رقمي و6 مداخل تماثلية ومنفذ USB.",
+        "specs": {"Microcontroller": "ATmega328P", "Operating Voltage": "5V", "Digital I/O": "14", "Analog Inputs": "6", "Flash Memory": "32 KB"},
+    },
+    {
+        "cat": "Arduino & Microcontrollers",
+        "name": "ESP32 WiFi + Bluetooth Dev Board",
+        "name_ar": "لوحة ESP32 واي فاي وبلوتوث",
+        "brand": "Espressif",
+        "sku": "ESP32-DEVKIT",
+        "price": 8.90,
+        "stock": 200,
+        "featured": True,
+        "img": "https://images.unsplash.com/photo-1608564697071-ddf911d81370?w=600&q=80",
+        "desc": "Dual-core 240MHz board with integrated WiFi and Bluetooth, ideal for IoT projects.",
+        "desc_ar": "لوحة ثنائية النواة بتردد 240 ميغاهرتز مع واي فاي وبلوتوث مدمجين، مثالية لمشاريع إنترنت الأشياء.",
+        "specs": {"Chip": "ESP32-WROOM-32", "Cores": "Dual-core", "Clock": "240 MHz", "WiFi": "802.11 b/g/n", "Bluetooth": "v4.2 BR/EDR + BLE"},
+    },
+    {
+        "cat": "Arduino & Microcontrollers",
+        "name": "Raspberry Pi Pico RP2040",
+        "name_ar": "راسبيري باي بيكو RP2040",
+        "brand": "Raspberry Pi",
+        "sku": "RPI-PICO",
+        "price": 5.50,
+        "stock": 150,
+        "img": "https://images.unsplash.com/photo-1580894908361-967195033215?w=600&q=80",
+        "desc": "Tiny, affordable microcontroller board built on the RP2040 chip with dual-core ARM Cortex-M0+.",
+        "desc_ar": "لوحة متحكم صغيرة واقتصادية مبنية على شريحة RP2040 بنواة ARM Cortex-M0+ ثنائية.",
+        "specs": {"Chip": "RP2040", "Cores": "Dual ARM Cortex-M0+", "Clock": "133 MHz", "RAM": "264 KB", "GPIO": "26"},
+    },
+    {
+        "cat": "Arduino & Microcontrollers",
+        "name": "Arduino Nano V3 (CH340)",
+        "name_ar": "أردوينو نانو V3",
+        "brand": "Arduino",
+        "sku": "ARD-NANO-V3",
+        "price": 6.75,
+        "stock": 90,
+        "img": "https://images.unsplash.com/photo-1606229365485-93a3b8ee0385?w=600&q=80",
+        "desc": "Compact breadboard-friendly version of the Uno, same ATmega328P in a small footprint.",
+        "desc_ar": "نسخة مدمجة مناسبة للبردبورد من الأونو، بنفس شريحة ATmega328P وحجم صغير.",
+        "specs": {"Microcontroller": "ATmega328P", "USB": "Mini-B (CH340)", "Operating Voltage": "5V", "Digital I/O": "22"},
+    },
+    # Sensors & Modules
+    {
+        "cat": "Sensors & Modules",
+        "name": "DHT22 Temperature & Humidity Sensor",
+        "name_ar": "حساس الحرارة والرطوبة DHT22",
+        "brand": "Aosong",
+        "sku": "SEN-DHT22",
+        "price": 4.20,
+        "stock": 180,
+        "featured": True,
+        "img": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&q=80",
+        "desc": "Digital temperature and humidity sensor with high accuracy and a wide measurement range.",
+        "desc_ar": "حساس رقمي للحرارة والرطوبة بدقة عالية ومدى قياس واسع.",
+        "specs": {"Temp Range": "-40 to 80°C", "Humidity Range": "0-100% RH", "Accuracy": "±0.5°C", "Interface": "Single-wire digital"},
+    },
+    {
+        "cat": "Sensors & Modules",
+        "name": "HC-SR04 Ultrasonic Distance Sensor",
+        "name_ar": "حساس المسافة بالموجات فوق الصوتية HC-SR04",
+        "brand": "Generic",
+        "sku": "SEN-HCSR04",
+        "price": 2.30,
+        "stock": 250,
+        "img": "https://images.unsplash.com/photo-1572177812156-58036aae439c?w=600&q=80",
+        "desc": "Measures distance from 2cm to 400cm using ultrasonic waves. Popular for robotics and obstacle avoidance.",
+        "desc_ar": "يقيس المسافة من 2 سم إلى 400 سم باستخدام الموجات فوق الصوتية. شائع في الروبوتات وتجنب العوائق.",
+        "specs": {"Range": "2cm - 400cm", "Resolution": "0.3cm", "Operating Voltage": "5V", "Angle": "15°"},
+    },
+    {
+        "cat": "Sensors & Modules",
+        "name": "PIR Motion Sensor HC-SR501",
+        "name_ar": "حساس الحركة PIR HC-SR501",
+        "brand": "Generic",
+        "sku": "SEN-PIR501",
+        "price": 1.95,
+        "stock": 210,
+        "img": "https://images.unsplash.com/photo-1535378620166-273708d44e4c?w=600&q=80",
+        "desc": "Passive infrared motion detector with adjustable sensitivity and delay. Great for alarms and automation.",
+        "desc_ar": "كاشف حركة بالأشعة تحت الحمراء مع حساسية وتأخير قابلين للضبط. ممتاز للإنذارات والأتمتة.",
+        "specs": {"Detection Range": "up to 7m", "Angle": "120°", "Operating Voltage": "4.5-20V", "Delay": "Adjustable"},
+    },
+    {
+        "cat": "Sensors & Modules",
+        "name": "MPU-6050 Gyroscope + Accelerometer",
+        "name_ar": "وحدة الجيروسكوب والتسارع MPU-6050",
+        "brand": "InvenSense",
+        "sku": "SEN-MPU6050",
+        "price": 3.40,
+        "stock": 140,
+        "img": "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=600&q=80",
+        "desc": "6-axis motion tracking module combining a 3-axis gyroscope and 3-axis accelerometer over I2C.",
+        "desc_ar": "وحدة تتبع حركة بـ6 محاور تجمع جيروسكوب ثلاثي ومقياس تسارع ثلاثي عبر I2C.",
+        "specs": {"Axes": "6 (gyro + accel)", "Interface": "I2C", "Gyro Range": "±250-2000°/s", "Accel Range": "±2-16g"},
+    },
+    # Motors & Drivers
+    {
+        "cat": "Motors & Drivers",
+        "name": "NEMA 17 Stepper Motor",
+        "name_ar": "محرك ستيبر NEMA 17",
+        "brand": "Generic",
+        "sku": "MOT-NEMA17",
+        "price": 11.00,
+        "stock": 75,
+        "featured": True,
+        "img": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
+        "desc": "High-torque bipolar stepper motor widely used in 3D printers and CNC machines.",
+        "desc_ar": "محرك ستيبر ثنائي القطب عالي العزم يُستخدم بكثرة في الطابعات ثلاثية الأبعاد وآلات CNC.",
+        "specs": {"Step Angle": "1.8°", "Holding Torque": "0.4 N·m", "Rated Current": "1.7A", "Phases": "2"},
+    },
+    {
+        "cat": "Motors & Drivers",
+        "name": "L298N Dual H-Bridge Motor Driver",
+        "name_ar": "وحدة قيادة المحركات L298N",
+        "brand": "Generic",
+        "sku": "MOT-L298N",
+        "price": 3.10,
+        "stock": 160,
+        "img": "https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=600&q=80",
+        "desc": "Drive two DC motors or one stepper motor with direction and speed control.",
+        "desc_ar": "قيادة محركين DC أو محرك ستيبر واحد مع التحكم بالاتجاه والسرعة.",
+        "specs": {"Channels": "2", "Max Current": "2A per channel", "Voltage": "5-35V", "Logic": "5V"},
+    },
+    {
+        "cat": "Motors & Drivers",
+        "name": "SG90 Micro Servo Motor",
+        "name_ar": "محرك سيرفو SG90",
+        "brand": "TowerPro",
+        "sku": "MOT-SG90",
+        "price": 1.80,
+        "stock": 300,
+        "img": "https://images.unsplash.com/photo-1612599316791-451087e8f877?w=600&q=80",
+        "desc": "Lightweight 9g servo with 180° rotation, ideal for robotics and RC projects.",
+        "desc_ar": "سيرفو خفيف 9 غرام بدوران 180°، مثالي للروبوتات ومشاريع التحكم عن بعد.",
+        "specs": {"Weight": "9g", "Rotation": "180°", "Torque": "1.8 kg·cm", "Voltage": "4.8-6V"},
+    },
+    # Solar & Energy
+    {
+        "cat": "Solar & Energy",
+        "name": "100W Monocrystalline Solar Panel",
+        "name_ar": "لوح طاقة شمسية أحادي 100 واط",
+        "brand": "SunPower",
+        "sku": "SOL-PANEL-100",
+        "price": 89.00,
+        "compare_at_price": 110.00,
+        "stock": 40,
+        "featured": True,
+        "img": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80",
+        "desc": "High-efficiency monocrystalline panel for off-grid systems, RVs and home backup.",
+        "desc_ar": "لوح أحادي البلورية عالي الكفاءة لأنظمة خارج الشبكة والكرفانات والطاقة الاحتياطية المنزلية.",
+        "specs": {"Power": "100W", "Type": "Monocrystalline", "Voltage": "18V", "Efficiency": "21%", "Dimensions": "1000x670mm"},
+    },
+    {
+        "cat": "Solar & Energy",
+        "name": "MPPT Solar Charge Controller 30A",
+        "name_ar": "منظم شحن شمسي MPPT 30 أمبير",
+        "brand": "EPEVER",
+        "sku": "SOL-MPPT-30A",
+        "price": 64.50,
+        "stock": 55,
+        "img": "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=600&q=80",
+        "desc": "Maximum power point tracking controller that boosts harvest efficiency up to 30% over PWM.",
+        "desc_ar": "منظم بتقنية تتبع نقطة القدرة العظمى يرفع كفاءة الحصاد حتى 30% مقارنة بـ PWM.",
+        "specs": {"Current": "30A", "System Voltage": "12V/24V auto", "Efficiency": "98%", "Display": "LCD"},
+    },
+    {
+        "cat": "Solar & Energy",
+        "name": "Pure Sine Wave Inverter 1000W",
+        "name_ar": "محول جيبي نقي 1000 واط",
+        "brand": "Generic",
+        "sku": "SOL-INV-1000",
+        "price": 120.00,
+        "stock": 30,
+        "img": "https://images.unsplash.com/photo-1497440001374-f26997328c1b?w=600&q=80",
+        "desc": "Converts 12V DC to clean 220V AC pure sine wave power for sensitive electronics.",
+        "desc_ar": "يحوّل 12 فولت DC إلى تيار 220 فولت AC جيبي نقي مناسب للأجهزة الحساسة.",
+        "specs": {"Power": "1000W", "Input": "12V DC", "Output": "220V AC", "Waveform": "Pure Sine", "Efficiency": "90%"},
+    },
+    # Power & Batteries
+    {
+        "cat": "Power & Batteries",
+        "name": "LM2596 DC-DC Buck Converter",
+        "name_ar": "محول خفض جهد LM2596",
+        "brand": "Generic",
+        "sku": "PWR-LM2596",
+        "price": 1.40,
+        "stock": 320,
+        "img": "https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=600&q=80",
+        "desc": "Adjustable step-down voltage regulator, 3A output. Essential for power management.",
+        "desc_ar": "منظم جهد خافض قابل للضبط بخرج 3 أمبير. أساسي لإدارة الطاقة.",
+        "specs": {"Input": "3.2-40V", "Output": "1.25-35V", "Max Current": "3A", "Efficiency": "92%"},
+    },
+    {
+        "cat": "Power & Batteries",
+        "name": "18650 Li-ion Battery 3000mAh",
+        "name_ar": "بطارية ليثيوم 18650 بسعة 3000 مللي أمبير",
+        "brand": "Samsung",
+        "sku": "PWR-18650-3000",
+        "price": 5.90,
+        "stock": 400,
+        "img": "https://images.unsplash.com/photo-1619641805634-b8c3d3f2f3b6?w=600&q=80",
+        "desc": "Rechargeable lithium-ion cell for power banks, flashlights and DIY battery packs.",
+        "desc_ar": "خلية ليثيوم أيون قابلة للشحن لبنوك الطاقة والمصابيح وحزم البطاريات.",
+        "specs": {"Capacity": "3000mAh", "Voltage": "3.7V", "Chemistry": "Li-ion", "Cycles": "500+"},
+    },
+    {
+        "cat": "Power & Batteries",
+        "name": "TP4056 Lithium Charger Module",
+        "name_ar": "وحدة شحن ليثيوم TP4056",
+        "brand": "Generic",
+        "sku": "PWR-TP4056",
+        "price": 0.95,
+        "stock": 500,
+        "img": "https://images.unsplash.com/photo-1563770660941-20978e870e26?w=600&q=80",
+        "desc": "USB-C lithium battery charging module with protection circuit, 1A charge current.",
+        "desc_ar": "وحدة شحن بطاريات ليثيوم بمنفذ USB-C مع دائرة حماية وتيار شحن 1 أمبير.",
+        "specs": {"Input": "USB-C 5V", "Charge Current": "1A", "Protection": "Over-charge/discharge", "Chemistry": "Li-ion"},
+    },
+    # Components & Tools
+    {
+        "cat": "Components & Tools",
+        "name": "830-Point Solderless Breadboard",
+        "name_ar": "بردبورد 830 نقطة",
+        "brand": "Generic",
+        "sku": "CMP-BB830",
+        "price": 2.50,
+        "stock": 260,
+        "img": "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600&q=80",
+        "desc": "Reusable prototyping board with 830 tie points for building circuits without soldering.",
+        "desc_ar": "لوحة نماذج قابلة لإعادة الاستخدام بـ830 نقطة توصيل لبناء الدوائر دون لحام.",
+        "specs": {"Tie Points": "830", "Material": "ABS", "Rows": "63", "Power Rails": "4"},
+    },
+    {
+        "cat": "Components & Tools",
+        "name": "Digital Multimeter DT830B",
+        "name_ar": "مالتيميتر رقمي DT830B",
+        "brand": "Generic",
+        "sku": "CMP-DMM-DT830",
+        "price": 7.20,
+        "compare_at_price": 9.50,
+        "stock": 110,
+        "img": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&q=80",
+        "desc": "Measure voltage, current, resistance and test diodes. A must-have on every workbench.",
+        "desc_ar": "قياس الجهد والتيار والمقاومة واختبار الثنائيات. أداة لا غنى عنها على طاولة العمل.",
+        "specs": {"DC Voltage": "up to 1000V", "AC Voltage": "up to 750V", "DC Current": "up to 10A", "Display": "3.5 digit LCD"},
+    },
+    {
+        "cat": "Components & Tools",
+        "name": "Jumper Wires Pack (120 pcs)",
+        "name_ar": "حزمة أسلاك توصيل (120 قطعة)",
+        "brand": "Generic",
+        "sku": "CMP-JUMP-120",
+        "price": 3.30,
+        "stock": 230,
+        "img": "https://images.unsplash.com/photo-1601737487795-dab272f52420?w=600&q=80",
+        "desc": "Assorted male-to-male, male-to-female and female-to-female jumper wires for breadboarding.",
+        "desc_ar": "أسلاك توصيل متنوعة ذكر-ذكر وذكر-أنثى وأنثى-أنثى لأعمال البردبورد.",
+        "specs": {"Count": "120", "Types": "M-M, M-F, F-F", "Length": "20cm", "Gauge": "24 AWG"},
+    },
+    {
+        "cat": "Components & Tools",
+        "name": "Soldering Iron Kit 60W Adjustable",
+        "name_ar": "طقم كاوية لحام 60 واط قابلة للضبط",
+        "brand": "Generic",
+        "sku": "CMP-SOLDER-60",
+        "price": 14.90,
+        "stock": 65,
+        "img": "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=600&q=80",
+        "desc": "Temperature-adjustable soldering iron with tips, stand, solder wire and desoldering pump.",
+        "desc_ar": "كاوية لحام قابلة لضبط الحرارة مع رؤوس وحامل وسلك قصدير ومضخة إزالة لحام.",
+        "specs": {"Power": "60W", "Temp Range": "200-450°C", "Includes": "5 tips, stand, pump", "Plug": "EU"},
+    },
+]
+
+
+def seed_database(admin_email="admin@kahrabaplus.com", admin_password="admin123"):
+    """Idempotent seed: only inserts data when the products table is empty."""
+    if Product.query.first():
+        return False  # already seeded
+
+    # categories
+    cat_map = {}
+    for c in CATEGORIES:
+        cat = Category(
+            name=c["name"],
+            name_ar=c["name_ar"],
+            slug=_unique_slug(slugify(c["name"]), Category),
+            description=c["description"],
+            icon=c["icon"],
+        )
+        db.session.add(cat)
+        db.session.flush()
+        cat_map[c["name"]] = cat
+
+    # products
+    for p in PRODUCTS:
+        product = Product(
+            name=p["name"],
+            name_ar=p.get("name_ar"),
+            slug=_unique_slug(slugify(p["name"]), Product),
+            sku=p.get("sku"),
+            brand=p.get("brand"),
+            description=p.get("desc"),
+            description_ar=p.get("desc_ar"),
+            price=p["price"],
+            compare_at_price=p.get("compare_at_price"),
+            currency="USD",
+            stock_quantity=p.get("stock", 0),
+            category_id=cat_map[p["cat"]].id,
+            is_featured=p.get("featured", False),
+            is_active=True,
+        )
+        product.image_urls = _img(p["img"])
+        product.technical_specs = p.get("specs", {})
+        db.session.add(product)
+
+    # admin user
+    if not User.query.filter_by(email=admin_email).first():
+        admin = User(
+            email=admin_email,
+            first_name="Store",
+            last_name="Admin",
+            role="admin",
+        )
+        admin.set_password(admin_password)
+        db.session.add(admin)
+
+    db.session.commit()
+    return True

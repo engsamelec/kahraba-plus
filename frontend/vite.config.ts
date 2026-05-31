@@ -9,5 +9,17 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
+  },
+  build: {
+    // Build straight into the Flask static folder so the backend can serve it.
+    outDir: path.resolve(__dirname, "../backend/src/static"),
+    emptyOutDir: true,
+  },
 })
-

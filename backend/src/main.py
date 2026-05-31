@@ -1,40 +1,79 @@
 import os
 import sys
+from datetime import timedelta
+
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory
+from flask import Flask, jsonify, send_from_directory
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+
 from src.models.user import db
-from src.routes.user import user_bp
+from src.routes.auth import auth_bp
+from src.routes.orders import orders_bp
+from src.routes.products import products_bp
 
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
-app.register_blueprint(user_bp, url_prefix='/api')
+def create_app():
+    app = Flask(
+        __name__, static_folder=os.path.join(os.path.dirname(__file__), "static")
+    )
 
-# uncomment if you need to use database
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USERNAME', 'root')}:{os.getenv('DB_PASSWORD', 'password')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME', 'mydb')}"
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# db.init_app(app)
-# with app.app_context():
-#     db.create_all()
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-change-me-in-production")
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jwt-dev-change-me")
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    static_folder_path = app.static_folder
-    if static_folder_path is None:
+    # Database: default to local SQLite so the store runs instantly.
+    # Set DATABASE_URL (e.g. mysql+pymysql://...) to use MySQL in production.
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        db_path = os.path.join(os.path.dirname(__file__), "kahraba_plus.db")
+        db_url = f"sqlite:///{db_path}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    JWTManager(app)
+    db.init_app(app)
+
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(products_bp, url_prefix="/api")
+    app.register_blueprint(orders_bp, url_prefix="/api")
+
+    @app.route("/api/health")
+    def health():
+        return jsonify({"status": "ok", "service": "kahraba-plus-api"})
+
+    with app.app_context():
+        # Import models so SQLAlchemy registers all tables
+        from src.models import catalog, order  # noqa: F401
+
+        db.create_all()
+        from src.seed import seed_database
+
+        if seed_database():
+            app.logger.info("Database seeded with initial catalog.")
+
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def serve(path):
+        static_folder_path = app.static_folder
+        if static_folder_path is None:
             return "Static folder not configured", 404
 
-    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
-        return send_from_directory(static_folder_path, path)
-    else:
-        index_path = os.path.join(static_folder_path, 'index.html')
+        if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
+            return send_from_directory(static_folder_path, path)
+        index_path = os.path.join(static_folder_path, "index.html")
         if os.path.exists(index_path):
-            return send_from_directory(static_folder_path, 'index.html')
-        else:
-            return "index.html not found", 404
+            return send_from_directory(static_folder_path, "index.html")
+        return "index.html not found", 404
+
+    return app
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+app = create_app()
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)

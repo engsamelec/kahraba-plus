@@ -1,27 +1,104 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
   :root {
-    --radius: 0.5rem
-  ;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    /* Kahraba Plus brand: deep navy + electric amber */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 16%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 16%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 38 92% 50%;
+    --radius: 0.65rem;
+
+    --sidebar-background: 222 47% 13%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 222 40% 20%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 40% 22%;
+    --sidebar-ring: 38 92% 50%;
+  }
+
   .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%
+    --background: 222 47% 9%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 12%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 12%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 222 40% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 222 40% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 40% 20%;
+    --input: 222 40% 20%;
+    --ring: 38 92% 50%;
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 222 40% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 222 40% 20%;
+    --sidebar-ring: 38 92% 50%;
   }
 }
 
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  /* RTL-aware font stack */
+  html[dir="rtl"] body {
+    font-family: "Cairo", "Tajawal", system-ui, -apple-system, sans-serif;
+  }
+  html[dir="ltr"] body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .electric-gradient {
+    background-image: linear-gradient(135deg, hsl(222 47% 16%) 0%, hsl(222 47% 24%) 100%);
+  }
+  .amber-glow {
+    box-shadow: 0 8px 30px -8px hsl(38 92% 50% / 0.45);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* keep number/price direction stable in RTL */
+  .ltr-nums {
+    direction: ltr;
+    unicode-bidi: embed;
+  }
+}

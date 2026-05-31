@@ -1,146 +1,116 @@
-# Kahraba Plus E-commerce Project: README
+# Kahraba Plus ⚡ — Electronics E-commerce Store
 
-## Project Overview
+**كهربا بلس** is a full-stack, bilingual (Arabic / English) e-commerce platform for
+selling electronics and electrical components — Arduino boards, sensors, motors,
+solar energy gear and more — to customers **locally and worldwide**.
 
-Kahraba Plus is a full-stack e-commerce platform designed for selling electrical components, electronics, and related products. This project provides a complete end-to-end solution with frontend, backend, and admin panel functionalities to operate as a fully functional online store.
+This is a fully working storefront, not just a plan: browse, search, filter, add
+to cart, checkout (cash on delivery), track orders, register/login, and manage
+the whole catalog from an admin dashboard.
 
-## Project Structure
+## ✨ Features
 
-The project follows a modern full-stack architecture with separate frontend and backend applications:
+- **Storefront** — hero landing page, category browsing, product grid with
+  search, price/stock filters, sorting and pagination.
+- **Product pages** — image gallery, technical specs, customer reviews & ratings,
+  related products, stock-aware add-to-cart.
+- **Cart & Checkout** — persistent cart, live shipping quote (domestic vs.
+  international), free shipping over $100, cash-on-delivery.
+- **Orders** — order confirmation, public order tracking with a visual status
+  timeline, per-user order history.
+- **Accounts** — JWT auth (register / login), profile editing.
+- **Admin dashboard** — sales stats, full product CRUD, order status management.
+- **Bilingual + RTL** — instant Arabic ⇄ English switch with full right-to-left
+  layout support and localized product data.
+
+## 🧱 Tech Stack
+
+| Layer    | Technology |
+|----------|-----------|
+| Frontend | React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, Axios |
+| Backend  | Flask, SQLAlchemy, Flask-JWT-Extended, Flask-CORS |
+| Database | SQLite out of the box · MySQL-ready via `DATABASE_URL` |
+
+## 📁 Project Structure
 
 ```
-kahraba_plus/
-├── backend/           # Flask backend application
-│   ├── venv/          # Python virtual environment
-│   ├── src/           # Source code
-│   │   ├── models/    # Database models
-│   │   ├── routes/    # API endpoints
-│   │   ├── static/    # Static assets
-│   │   └── main.py    # Main entry point
-│   └── requirements.txt # Python dependencies
-│
-├── frontend/          # React frontend application
-│   ├── public/        # Public assets
-│   ├── src/           # Source code
-│   │   ├── assets/    # Static assets
-│   │   ├── components/# React components
-│   │   ├── hooks/     # Custom React hooks
-│   │   └── lib/       # Utility functions
-│   └── package.json   # Node.js dependencies
-│
-└── docs/              # Project documentation
-    ├── requirements_analysis.md
-    ├── tech_stack_recommendations.md
-    ├── project_timeline_cost.md
-    ├── system_architecture.md
-    ├── database_schema.md
-    └── todo.md
+kahraba-plus/
+├── backend/
+│   ├── src/
+│   │   ├── models/      # User/Address, Category/Product/Review, Order/OrderItem
+│   │   ├── routes/      # auth, products, orders (+ admin), helpers
+│   │   ├── seed.py      # initial bilingual catalog + admin user
+│   │   ├── static/      # built frontend (served by Flask)
+│   │   └── main.py      # app factory, DB init, SPA serving
+│   └── requirements.txt
+├── frontend/
+│   └── src/
+│       ├── components/  # Navbar, Footer, ProductCard, Layout, ...
+│       ├── lib/         # api client, i18n, auth & cart contexts
+│       └── pages/       # Home, Shop, ProductDetail, Cart, Checkout, Admin, ...
+└── docs/                # requirements, architecture, schema, costs
 ```
 
-## Technology Stack
+## 🚀 Getting Started
 
-### Frontend
-- **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **State Management**: Redux Toolkit
-- **API Client**: Axios
-- **Form Handling**: React Hook Form
+### 1. Backend (Flask API)
 
-### Backend
-- **Framework**: Flask (Python)
-- **ORM**: SQLAlchemy
-- **Authentication**: JWT
-- **API**: RESTful endpoints
-- **Database**: MySQL
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python src/main.py          # runs on http://localhost:5000
+```
 
-## Setup Instructions
+On first run the database is created and seeded automatically with categories,
+~20 products, and an admin account:
 
-### Backend Setup
+> **Admin login:** `admin@kahrabaplus.com` / `admin123`
 
-1. Navigate to the backend directory:
-   ```
-   cd backend
-   ```
+### 2. Frontend (React app)
 
-2. Activate the virtual environment:
-   ```
-   source venv/bin/activate
-   ```
+```bash
+cd frontend
+pnpm install
+pnpm dev                    # runs on http://localhost:5173, proxies /api → :5000
+```
 
-3. Install dependencies (already installed):
-   ```
-   pip install -r requirements.txt
-   ```
+### 3. Production build
 
-4. Enable database functionality by uncommenting the database code in `src/main.py`
+`pnpm build` compiles the frontend straight into `backend/src/static/`, so the
+Flask server serves the whole app (SPA + API) from a single origin on port 5000.
 
-5. Run the development server:
-   ```
-   python src/main.py
-   ```
+## 🔧 Configuration
 
-### Frontend Setup
+| Env var | Default | Purpose |
+|---------|---------|---------|
+| `DATABASE_URL` | SQLite file | Use MySQL: `mysql+pymysql://user:pass@host/db` |
+| `SECRET_KEY` | dev value | Flask secret — **set in production** |
+| `JWT_SECRET_KEY` | dev value | JWT signing key — **set in production** |
 
-1. Navigate to the frontend directory:
-   ```
-   cd frontend
-   ```
+## 🌍 Local & International Selling
 
-2. Install dependencies:
-   ```
-   pnpm install
-   ```
+- **Shipping** is computed per destination (domestic vs. international) with a
+  free-shipping threshold, in `backend/src/routes/orders.py`.
+- **Payment** ships with Cash on Delivery; card/PayPal gateways are stubbed and
+  ready to wire in.
+- **Currency / VAT** are modeled on products and orders for future expansion.
 
-3. Run the development server:
-   ```
-   pnpm run dev
-   ```
+## 🔌 Key API Endpoints
 
-## Development Guidelines
+```
+POST /api/auth/register · POST /api/auth/login · GET /api/auth/me
+GET  /api/categories
+GET  /api/products            (search, category, price, sort, pagination)
+GET  /api/products/<slug>
+POST /api/orders             · GET /api/orders/track/<number>
+POST /api/orders/quote       (live shipping/total quote)
+GET  /api/admin/stats        · GET/PUT /api/admin/orders     (admin)
+POST/PUT/DELETE /api/products                                  (admin)
+```
 
-### Backend Development
+## 📚 Documentation
 
-- Follow RESTful API design principles
-- Use Flask blueprints for modular code organization
-- Implement proper error handling and validation
-- Document all API endpoints
-- Write unit tests for critical functionality
-
-### Frontend Development
-
-- Use TypeScript for type safety
-- Follow component-based architecture
-- Implement responsive design for all device sizes
-- Use proper state management
-- Implement form validation
-
-## Deployment
-
-The application can be deployed using various methods:
-
-1. **Docker Containers**: Containerize both frontend and backend
-2. **Cloud Hosting**: Deploy to AWS, Google Cloud, or Azure
-3. **Traditional Hosting**: Deploy to VPS or shared hosting
-
-## Documentation
-
-Detailed documentation is available in the `docs` directory:
-
-- `requirements_analysis.md`: Detailed project requirements
-- `tech_stack_recommendations.md`: Technology stack details
-- `project_timeline_cost.md`: Project timeline and cost estimates
-- `system_architecture.md`: System architecture design
-- `database_schema.md`: Database schema and relationships
-- `todo.md`: Project task checklist
-
-## Next Steps
-
-1. Implement database models based on the schema design
-2. Develop API endpoints for product and user management
-3. Create frontend components for product display and shopping cart
-4. Implement authentication and authorization
-5. Integrate payment processing
-6. Develop admin dashboard
-7. Implement testing and quality assurance
-8. Deploy to production environment
+Detailed planning docs live in [`docs/`](docs/): requirements analysis, system
+architecture, database schema, tech-stack rationale, and timeline/cost estimates.
