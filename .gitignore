@@ -9,8 +9,13 @@ backend/src/kahraba_plus.db
 frontend/node_modules/
 node_modules/
 
-# Note: backend/src/static/ holds the built frontend (committed so the
-# Flask backend serves the SPA out of the box). Rebuild with `pnpm build`.
+# Note: frontend/dist holds the built SPA (committed so Flask serves it and
+# Capacitor uses it as webDir). Rebuild with `pnpm build`.
+
+# Capacitor native projects are generated from capacitor.config.ts + dist.
+# Regenerate with: npx cap add android  /  npx cap add ios  (then cap sync).
+frontend/android/
+frontend/ios/
 
 # Env / secrets
 .env

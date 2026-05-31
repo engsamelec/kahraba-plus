@@ -1,9 +1,16 @@
 import axios from "axios";
 
-// In dev, Vite proxies /api to the Flask backend (see vite.config.ts).
-// In production the Flask app serves the built frontend from the same origin.
+// Base URL resolution:
+// - Web (dev): relative "/api" → Vite proxies to Flask (see vite.config.ts).
+// - Web (prod): relative "/api" → Flask serves SPA + API on the same origin.
+// - Mobile (Capacitor): the app runs from capacitor://localhost, so it MUST
+//   call an absolute backend URL. Set VITE_API_URL at build time, e.g.
+//   VITE_API_URL=https://api.kahrabaplus.com/api
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_URL as string | undefined) || "/api";
+
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: API_BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 

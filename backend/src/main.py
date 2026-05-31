@@ -16,9 +16,12 @@ from src.routes.products import products_bp
 
 
 def create_app():
-    app = Flask(
-        __name__, static_folder=os.path.join(os.path.dirname(__file__), "static")
+    # The built frontend (Vite) lives in frontend/dist; Flask serves it as the
+    # SPA. Capacitor uses the same dist/ as its webDir for the mobile apps.
+    static_dir = os.path.join(
+        os.path.dirname(__file__), "..", "..", "frontend", "dist"
     )
+    app = Flask(__name__, static_folder=os.path.abspath(static_dir))
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-change-me-in-production")
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jwt-dev-change-me")

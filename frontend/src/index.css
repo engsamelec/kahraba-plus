@@ -101,4 +101,11 @@
     direction: ltr;
     unicode-bidi: embed;
   }
+  /* safe-area helpers for notched devices (Capacitor / iOS / Android) */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
