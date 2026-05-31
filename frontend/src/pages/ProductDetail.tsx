@@ -144,7 +144,7 @@ export default function ProductDetail() {
         </div>
 
         {/* info */}
-        <div className="space-y-5">
+        <div className="animate-fade-up space-y-5">
           {product.brand && (
             <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
               {product.brand}

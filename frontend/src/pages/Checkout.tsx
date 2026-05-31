@@ -80,8 +80,8 @@ export default function Checkout() {
       const { data } = await api.post("/orders", payload);
       clear();
       navigate(`/order-confirmation/${data.order_number}`);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || t("error_generic"));
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
     } finally {
       setSubmitting(false);
     }

@@ -109,6 +109,7 @@ const translations: Dict = {
   contact_info: { ar: "معلومات التواصل", en: "Contact Information" },
   shipping_info: { ar: "عنوان الشحن", en: "Shipping Address" },
   full_name: { ar: "الاسم الكامل", en: "Full Name" },
+  last_name: { ar: "الاسم الأخير", en: "Last Name" },
   email: { ar: "البريد الإلكتروني", en: "Email" },
   phone: { ar: "رقم الهاتف", en: "Phone" },
   address: { ar: "العنوان", en: "Address" },
