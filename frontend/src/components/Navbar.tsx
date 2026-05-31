@@ -4,19 +4,23 @@ import {
   Globe,
   LogOut,
   Menu,
+  Moon,
   Search,
   ShoppingCart,
+  Sun,
   User as UserIcon,
   X,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 
 export function Navbar() {
   const { t, toggleLang, lang } = useI18n();
+  const { theme, toggleTheme } = useTheme();
   const { count } = useCart();
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
@@ -80,6 +84,20 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-1 ltr:ml-auto rtl:mr-auto lg:ml-0 lg:mr-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"

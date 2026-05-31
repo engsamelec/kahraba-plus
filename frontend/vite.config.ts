@@ -83,5 +83,16 @@ export default defineConfig({
     // Standard dist/ — consumed by Capacitor (webDir) and served by Flask.
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Split heavy vendor libs into their own cacheable chunks so the
+        // initial app payload stays small.
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          charts: ["recharts"],
+          icons: ["lucide-react"],
+        },
+      },
+    },
   },
 })

@@ -14,14 +14,15 @@ export function ProductCard({ product }: { product: Product }) {
   const name = localized(product, lang);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-lg">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover-lift hover:border-accent/40 hover:shadow-xl">
       <Link to={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-secondary">
         {product.image_urls[0] ? (
           <img
             src={product.image_urls[0]}
             alt={name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-muted-foreground">
@@ -70,7 +71,8 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
           <Button
             size="icon"
-            className="h-9 w-9 rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+            aria-label={t("add_to_cart")}
+            className="h-9 w-9 rounded-full bg-accent text-accent-foreground transition-transform hover:bg-accent/90 hover:scale-110 active:scale-95 disabled:opacity-40"
             disabled={!product.in_stock}
             onClick={() => {
               add(product);

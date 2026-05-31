@@ -226,8 +226,15 @@ export default function Shop() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-[3/4] animate-pulse rounded-xl bg-secondary"
-                />
+                  className="overflow-hidden rounded-xl border bg-card"
+                >
+                  <div className="skeleton aspect-square w-full" />
+                  <div className="space-y-2 p-3">
+                    <div className="skeleton h-3 w-1/3 rounded" />
+                    <div className="skeleton h-4 w-4/5 rounded" />
+                    <div className="skeleton h-5 w-1/2 rounded" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : products.length === 0 ? (
@@ -237,8 +244,14 @@ export default function Shop() {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {products.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                {products.map((p, i) => (
+                  <div
+                    key={p.id}
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+                  >
+                    <ProductCard product={p} />
+                  </div>
                 ))}
               </div>
 

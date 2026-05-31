@@ -24,8 +24,25 @@
       rel="stylesheet"
     />
     <title>كهربا بلس | Kahraba Plus — Electronics Store</title>
-    <script type="module" crossorigin src="/assets/index-0nrpDqTs.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DGOVjnvT.css">
+    <script>
+      // Apply the saved theme before paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var t = localStorage.getItem("kahraba_theme");
+          if (!t) {
+            t = window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+          if (t === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-ekfAOcq3.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-vendor-DQJAa1sR.js">
+    <link rel="modulepreload" crossorigin href="/assets/icons-stemae8T.js">
+    <link rel="modulepreload" crossorigin href="/assets/charts-BYGi2897.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-zLvkjgYM.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
