@@ -110,6 +110,56 @@ GET  /api/admin/stats        · GET/PUT /api/admin/orders     (admin)
 POST/PUT/DELETE /api/products                                  (admin)
 ```
 
+## 📱 Mobile Apps (Android & iOS)
+
+The web app, the installable PWA, and the native apps **all run from the same
+React codebase** via [Capacitor](https://capacitorjs.com) — so the Kahraba Plus
+theme stays identical everywhere.
+
+### PWA (works today, no stores)
+After `pnpm build`, the app is installable from the browser ("Add to Home
+Screen"), works offline for browsing, and uses the branded icon + splash.
+
+### Native build
+
+Native projects (`android/`, `ios/`) are **generated artifacts** (gitignored).
+Recreate them on a machine with the platform SDKs:
+
+```bash
+cd frontend
+pnpm install
+pnpm build
+
+# point the app at your deployed backend (mobile can't use a relative /api)
+echo "VITE_API_URL=https://api.kahrabaplus.com/api" > .env.production
+pnpm build
+
+# add platforms (once)
+pnpm cap:add:android      # needs Android Studio + SDK
+pnpm cap:add:ios          # needs macOS + Xcode + CocoaPods
+
+# generate branded icons & splash into the native projects
+pnpm cap:assets
+
+# sync web build into native and open the IDE
+pnpm cap:sync
+pnpm cap:open:android     # → build / run / generate signed APK/AAB
+pnpm cap:open:ios         # → run on simulator / archive for App Store
+```
+
+| Setting | Value |
+|---------|-------|
+| App ID  | `com.kahrabaplus.app` |
+| App name | Kahraba Plus |
+| Theme / splash | `#1e293b` (navy) with amber bolt |
+
+Icon & splash sources live in [`frontend/assets/`](frontend/assets); the PWA
+icons in [`frontend/public/icons/`](frontend/public/icons). Regenerate all of
+them from brand colors with `python scripts/generate_icons.py`.
+
+> **Note:** the mobile apps are thin native shells around the web UI; the
+> backend must be deployed and reachable over HTTPS at `VITE_API_URL`.
+
 ## 📚 Documentation
 
 Detailed planning docs live in [`docs/`](docs/): requirements analysis, system
