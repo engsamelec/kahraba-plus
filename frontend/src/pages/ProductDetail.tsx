@@ -102,6 +102,8 @@ export default function ProductDetail() {
       ? {
           ...prod,
           id: prod.id * 100000 + variant.id,
+          base_product_id: prod.id,
+          variant_id: variant.id,
           price: effectivePrice,
           name: `${name} — ${variant.label}`,
           name_ar: prod.name_ar ? `${prod.name_ar} — ${variant.label}` : prod.name_ar,

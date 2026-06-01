@@ -62,7 +62,8 @@ export default function Checkout() {
     if (items.length === 0) return;
     const payload = {
       items: items.map((l) => ({
-        product_id: l.product.id,
+        product_id: l.product.base_product_id ?? l.product.id,
+        variant_id: l.product.variant_id,
         quantity: l.quantity,
       })),
       country: form.shipping_country,

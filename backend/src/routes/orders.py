@@ -81,6 +81,8 @@ def store_config():
 
 
 def _compute_totals(items, country, coupon_code=None):
+    from src.models.catalog import ProductVariant
+
     subtotal = 0.0
     resolved = []
     for item in items:
@@ -88,14 +90,42 @@ def _compute_totals(items, country, coupon_code=None):
         if not product or not product.is_active:
             return {"error": f"Product {item.get('product_id')} unavailable"}
         qty = max(1, int(item.get("quantity") or 1))
-        if qty > product.stock_quantity:
+
+        # Resolve the optional variant — price and stock are taken from the
+        # variant (server-authoritative), never trusted from the client.
+        variant = None
+        variant_id = item.get("variant_id")
+        if variant_id:
+            variant = db.session.get(ProductVariant, variant_id)
+            if (
+                not variant
+                or variant.product_id != product.id
+                or not variant.is_available
+            ):
+                return {
+                    "error": f"Selected option unavailable for {product.name}",
+                    "product_id": product.id,
+                }
+            unit_price = product.price + variant.additional_price
+            available = variant.stock_quantity
+        elif product.variants:
+            # A product with variants requires a variant choice.
+            return {
+                "error": f"Please choose an option for {product.name}",
+                "product_id": product.id,
+            }
+        else:
+            unit_price = product.price
+            available = product.stock_quantity
+
+        if qty > available:
             return {
                 "error": f"Insufficient stock for {product.name}",
                 "product_id": product.id,
             }
-        line = product.price * qty
+        line = unit_price * qty
         subtotal += line
-        resolved.append((product, qty, line))
+        resolved.append((product, variant, qty, unit_price, line))
 
     # Optional coupon discount on the subtotal.
     discount = 0.0
@@ -179,7 +209,9 @@ def create_order():
     db.session.add(order)
     db.session.flush()
 
-    for product, qty, line in totals["_resolved"]:
+    from src.models.catalog import ProductVariant
+
+    for product, variant, qty, unit_price, line in totals["_resolved"]:
         db.session.add(
             OrderItem(
                 order_id=order.id,
@@ -188,23 +220,33 @@ def create_order():
                 product_name_ar=product.name_ar,
                 product_name_he=product.name_he,
                 product_image=product.image_urls[0] if product.image_urls else None,
+                variant_id=variant.id if variant else None,
+                variant_label=variant.label if variant else None,
                 quantity=qty,
-                unit_price=product.price,
+                unit_price=unit_price,
                 unit_cost=product.cost,
                 subtotal=round(line, 2),
             )
         )
         # Atomic, guarded stock decrement: only succeeds if enough remains.
-        # Prevents overselling under concurrent checkout of the same product.
-        updated = (
-            Product.query.filter(
+        # Prevents overselling under concurrent checkout. Stock is tracked on
+        # the variant when one is chosen, otherwise on the product.
+        if variant is not None:
+            updated = ProductVariant.query.filter(
+                ProductVariant.id == variant.id,
+                ProductVariant.stock_quantity >= qty,
+            ).update(
+                {ProductVariant.stock_quantity: ProductVariant.stock_quantity - qty},
+                synchronize_session=False,
+            )
+        else:
+            updated = Product.query.filter(
                 Product.id == product.id,
                 Product.stock_quantity >= qty,
             ).update(
                 {Product.stock_quantity: Product.stock_quantity - qty},
                 synchronize_session=False,
             )
-        )
         if not updated:
             db.session.rollback()
             return (

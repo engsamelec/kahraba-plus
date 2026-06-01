@@ -64,3 +64,36 @@ def test_track_order_public(client):
     res = client.get(f"/api/orders/track/{num}")
     assert res.status_code == 200
     assert res.get_json()["order_number"] == num
+
+
+def test_variant_checkout_uses_variant_price_and_stock(client, auth):
+    # Give product 1 a variant priced +5 with its own stock.
+    base = client.get("/api/products?ids=1").get_json()["products"][0]
+    v = client.post(
+        f"/api/products/{base['id']}/variants",
+        json={"name": "Red / L", "additional_price": 5, "stock_quantity": 3},
+        headers=auth,
+    ).get_json()
+
+    # A product with variants now REQUIRES a variant choice.
+    res = _order(client, [{"product_id": base["id"], "quantity": 1}])
+    assert res.status_code == 400
+
+    # Ordering the variant succeeds, charges base+additional, records the
+    # variant, and decrements the variant's stock (not the product's).
+    res = _order(
+        client, [{"product_id": base["id"], "variant_id": v["id"], "quantity": 2}]
+    )
+    assert res.status_code == 201
+    order = res.get_json()
+    item = order["items"][0]
+    assert item["variant_id"] == v["id"]
+    assert item["unit_price"] == base["price"] + 5
+    after = client.get(f"/api/products/{base['id']}", headers=auth).get_json()
+    assert after["variants"][0]["stock_quantity"] == 1
+
+    # Over-ordering the variant beyond its stock is rejected.
+    res = _order(
+        client, [{"product_id": base["id"], "variant_id": v["id"], "quantity": 50}]
+    )
+    assert res.status_code in (400, 409)

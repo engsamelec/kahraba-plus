@@ -50,6 +50,11 @@ export interface Category {
 export interface Product {
   id: number;
   product_number?: string;
+  // Set on cart lines that represent a chosen variant: `id` becomes a synthetic
+  // per-variant key, while these preserve the real product id and variant id so
+  // checkout can send them to the server.
+  base_product_id?: number;
+  variant_id?: number;
   name: string;
   name_ar?: string | null;
   name_he?: string | null;
