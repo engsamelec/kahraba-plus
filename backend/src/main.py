@@ -12,6 +12,7 @@ from flask_jwt_extended import JWTManager
 from src.models.user import db
 from src.routes.auth import auth_bp
 from src.routes.geo import geo_bp
+from src.routes.imports import imports_bp
 from src.routes.orders import orders_bp
 from src.routes.products import products_bp
 from src.routes.uploads import uploads_bp
@@ -49,6 +50,7 @@ def create_app():
     app.register_blueprint(geo_bp, url_prefix="/api")
     app.register_blueprint(visual_bp, url_prefix="/api")
     app.register_blueprint(uploads_bp, url_prefix="/api")
+    app.register_blueprint(imports_bp, url_prefix="/api")
 
     @app.route("/api/health")
     def health():

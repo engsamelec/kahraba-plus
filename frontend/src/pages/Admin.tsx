@@ -20,6 +20,7 @@ import { getErrorMessage } from "@/lib/utils";
 import type { SalesPoint, TopProduct } from "@/components/AdminCharts";
 import { ImageUploader } from "@/components/ImageUploader";
 import { VariantsEditor } from "@/components/VariantsEditor";
+import { ImportAdmin } from "@/components/ImportAdmin";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -40,7 +41,9 @@ const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancel
 export default function Admin() {
   const { t } = useI18n();
   const { user, loading: authLoading, isAdmin } = useAuth();
-  const [tab, setTab] = useState<"dashboard" | "products" | "orders">("dashboard");
+  const [tab, setTab] = useState<
+    "dashboard" | "products" | "orders" | "import"
+  >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
   if (authLoading) {
@@ -67,6 +70,7 @@ export default function Admin() {
           { id: "dashboard", label: t("admin_dashboard") },
           { id: "products", label: t("admin_products") },
           { id: "orders", label: t("admin_orders") },
+          { id: "import", label: t("import_csv") },
         ].map((tb) => (
           <button
             key={tb.id}
@@ -85,6 +89,7 @@ export default function Admin() {
       {tab === "dashboard" && <Dashboard />}
       {tab === "products" && <ProductsAdmin />}
       {tab === "orders" && <OrdersAdmin />}
+      {tab === "import" && <ImportAdmin />}
     </div>
   );
 }
