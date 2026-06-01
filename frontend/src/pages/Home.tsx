@@ -13,6 +13,7 @@ import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import { ProductCard } from "@/components/ProductCard";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -200,6 +201,8 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      <RecentlyViewed />
     </div>
   );
 }

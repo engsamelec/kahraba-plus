@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { FavoritesProvider } from "@/lib/favorites";
+import { ConfigProvider } from "@/lib/config";
 import { initNative } from "@/lib/native";
 import { Layout } from "@/components/Layout";
 import { PageLoader } from "@/components/PageLoader";
@@ -62,6 +63,7 @@ function App() {
       <ThemeProvider>
         <I18nProvider>
           <AuthProvider>
+            <ConfigProvider>
             <CartProvider>
               <FavoritesProvider>
                 <BrowserRouter>
@@ -92,6 +94,7 @@ function App() {
                 <Toaster position="top-center" richColors />
               </FavoritesProvider>
             </CartProvider>
+            </ConfigProvider>
           </AuthProvider>
         </I18nProvider>
       </ThemeProvider>

@@ -26,6 +26,25 @@ def _unique_slug(base, model):
     return slug
 
 
+def _bestseller_ids(limit=6):
+    """Return the set of product ids that are genuine best sellers, by total
+    quantity actually ordered. Empty until there are real sales — we never
+    fake it."""
+    from sqlalchemy import func
+
+    from src.models.order import OrderItem
+
+    rows = (
+        db.session.query(OrderItem.product_id, func.sum(OrderItem.quantity))
+        .filter(OrderItem.product_id.isnot(None))
+        .group_by(OrderItem.product_id)
+        .order_by(func.sum(OrderItem.quantity).desc())
+        .limit(limit)
+        .all()
+    )
+    return {r[0] for r in rows if r[1] and r[1] > 0}
+
+
 # ---------------- Categories ----------------
 @products_bp.route("/categories", methods=["GET"])
 def get_categories():
@@ -128,9 +147,16 @@ def get_products():
     per_page = min(request.args.get("per_page", 12, type=int), 60)
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
+    bestseller_ids = _bestseller_ids()
+
+    def _serialize(p):
+        d = p.to_dict()
+        d["is_bestseller"] = p.id in bestseller_ids
+        return d
+
     return jsonify(
         {
-            "products": [p.to_dict() for p in pagination.items],
+            "products": [_serialize(p) for p in pagination.items],
             "total": pagination.total,
             "page": page,
             "per_page": per_page,

@@ -36,11 +36,23 @@ export function ProductCard({ product }: { product: Product }) {
             ⚡
           </div>
         )}
-        {product.discount_percent > 0 && (
-          <span className="absolute top-2 ltr:left-2 rtl:right-2 rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
-            -{product.discount_percent}%
-          </span>
-        )}
+        <div className="absolute top-2 ltr:left-2 rtl:right-2 flex flex-col items-start gap-1">
+          {product.is_bestseller && (
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              ★ {t("bestseller")}
+            </span>
+          )}
+          {product.discount_percent > 0 && (
+            <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
+              -{product.discount_percent}%
+            </span>
+          )}
+          {product.low_stock && product.in_stock && (
+            <span className="rounded-full bg-orange-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+              {t("low_stock_left")}
+            </span>
+          )}
+        </div>
         {!product.in_stock && (
           <span className="absolute inset-0 grid place-items-center bg-background/70 text-sm font-semibold">
             {t("out_of_stock")}

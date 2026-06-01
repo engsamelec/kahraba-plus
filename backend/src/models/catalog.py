@@ -126,6 +126,11 @@ class Product(db.Model):
         return self.stock_quantity > 0
 
     @property
+    def low_stock(self):
+        """True when stock is genuinely running low (honest scarcity signal)."""
+        return 0 < self.stock_quantity <= 5
+
+    @property
     def discount_percent(self):
         if self.compare_at_price and self.compare_at_price > self.price:
             return round((1 - self.price / self.compare_at_price) * 100)
@@ -155,6 +160,7 @@ class Product(db.Model):
             "rating_avg": round(self.rating_avg or 0, 1),
             "rating_count": self.rating_count,
             "has_variants": len(self.variants) > 0,
+            "low_stock": self.low_stock,
         }
         if full:
             data["description"] = self.description

@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useMoney } from "@/lib/currency";
 import { getErrorMessage } from "@/lib/utils";
+import { TrustBadges } from "@/components/TrustBadges";
 import { Button } from "@/components/ui/button";
 
 const COUNTRIES = [
@@ -289,6 +290,9 @@ export default function Checkout() {
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("place_order")}
             </Button>
+            <div className="mt-4">
+              <TrustBadges />
+            </div>
           </div>
         </div>
       </form>

@@ -74,6 +74,8 @@ export interface Product {
   is_active: boolean;
   rating_avg: number;
   rating_count: number;
+  low_stock?: boolean;
+  is_bestseller?: boolean;
   description?: string;
   description_ar?: string;
   description_he?: string;

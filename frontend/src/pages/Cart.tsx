@@ -4,6 +4,7 @@ import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useMoney } from "@/lib/currency";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
 import { Button } from "@/components/ui/button";
 
 export default function Cart() {
@@ -100,7 +101,8 @@ export default function Cart() {
         </div>
 
         {/* summary */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-4">
+          <FreeShippingBar subtotalUsd={subtotal} />
           <div className="sticky top-28 rounded-xl border bg-card p-6">
             <h3 className="mb-4 font-bold">{t("order_summary")}</h3>
             <div className="space-y-2 text-sm">

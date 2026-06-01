@@ -50,6 +50,21 @@ def quote_order():
     return jsonify(result)
 
 
+@orders_bp.route("/config", methods=["GET"])
+def store_config():
+    """Public store config used by the storefront (free-shipping bar etc.).
+    Amounts are the canonical USD values; the client converts for display."""
+    return jsonify(
+        {
+            "free_shipping_threshold": FREE_SHIPPING_THRESHOLD,
+            "domestic_shipping": SHIPPING_RATES["domestic"],
+            "international_shipping": SHIPPING_RATES["international"],
+            "home_country": HOME_COUNTRY,
+        }
+    )
+
+
+
 def _compute_totals(items, country):
     subtotal = 0.0
     resolved = []

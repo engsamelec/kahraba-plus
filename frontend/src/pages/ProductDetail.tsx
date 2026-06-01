@@ -8,8 +8,10 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useMoney } from "@/lib/currency";
+import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { StarRating } from "@/components/StarRating";
 import { VariantSelector } from "@/components/VariantSelector";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { ProductCard } from "@/components/ProductCard";
 import type { ProductVariant } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -38,7 +40,10 @@ export default function ProductDetail() {
     setVariant(null);
     api
       .get(`/products/${slug}`)
-      .then((r) => setProduct(r.data))
+      .then((r) => {
+        setProduct(r.data);
+        pushRecentlyViewed(r.data);
+      })
       .catch(() => setProduct(null))
       .finally(() => setLoading(false));
     window.scrollTo(0, 0);
@@ -406,6 +411,8 @@ export default function ProductDetail() {
           </div>
         </div>
       )}
+
+      <RecentlyViewed excludeId={product.id} bare />
     </div>
   );
 }
