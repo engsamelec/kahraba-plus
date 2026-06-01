@@ -143,6 +143,70 @@
   .group:hover .card-media {
     transform: scale(1.04);
   }
+
+  /* ---- scroll reveal (used by <Reveal/> + useReveal) ---- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal[data-dir="down"] {
+    transform: translateY(-24px);
+  }
+  .reveal[data-dir="left"] {
+    transform: translateX(24px);
+  }
+  .reveal[data-dir="right"] {
+    transform: translateX(-24px);
+  }
+  .reveal[data-dir="none"] {
+    transform: none;
+  }
+  .reveal-show {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  /* ---- animated hero backdrop ---- */
+  /* Soft radial glows painted directly on the layer (no blur filter, so it
+     composites reliably and stays performant). */
+  .hero-aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background-image:
+      radial-gradient(
+        40% 55% at 85% 15%,
+        hsl(38 92% 50% / 0.28) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        45% 60% at 10% 90%,
+        hsl(210 90% 55% / 0.22) 0%,
+        transparent 60%
+      );
+    animation: aurora-drift 16s ease-in-out infinite alternate;
+  }
+  @keyframes aurora-drift {
+    to {
+      background-position: 6% 4%, -6% -4%;
+    }
+  }
+  /* subtle float for the hero showcase */
+  .float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+  }
+  @keyframes float-slow {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
 }
 
 @layer base {
@@ -158,6 +222,11 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.001ms !important;
       scroll-behavior: auto !important;
+    }
+    /* never hide content behind a reveal when motion is reduced */
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
   /* themed, slimmer scrollbar */

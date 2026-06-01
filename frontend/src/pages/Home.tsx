@@ -14,6 +14,8 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { CategoryIcon } from "@/lib/categoryIcons";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { HeroShowcase } from "@/components/HeroShowcase";
+import { Reveal } from "@/components/Reveal";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -48,23 +50,24 @@ export default function Home() {
     <div>
       {/* Hero */}
       <section className="electric-gradient relative overflow-hidden text-primary-foreground">
+        <div className="hero-aurora" />
         <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_2px_2px,white_1px,transparent_0)] [background-size:32px_32px]" />
         <div className="container relative grid gap-8 py-16 md:grid-cols-2 md:py-24">
           <div className="flex flex-col justify-center gap-6">
-            <span className="w-fit rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent">
+            <span className="animate-fade-in w-fit rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent ring-1 ring-accent/30">
               {t("tagline")}
             </span>
-            <h1 className="text-balance text-4xl font-extrabold leading-tight md:text-5xl">
+            <h1 className="animate-fade-in text-balance text-4xl font-extrabold leading-tight [animation-delay:80ms] md:text-5xl">
               {t("hero_title")}
             </h1>
-            <p className="max-w-md text-lg text-primary-foreground/80">
+            <p className="animate-fade-in max-w-md text-lg text-primary-foreground/80 [animation-delay:160ms]">
               {t("hero_subtitle")}
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="animate-fade-in flex flex-wrap gap-3 [animation-delay:240ms]">
               <Link to="/shop">
                 <Button
                   size="lg"
-                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 amber-glow"
+                  className="gap-2 bg-accent text-accent-foreground transition-transform hover:bg-accent/90 hover:-translate-y-0.5 amber-glow"
                 >
                   {t("hero_cta")}
                   <ArrowIcon className="h-4 w-4" />
@@ -81,32 +84,30 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <div className="hidden items-center justify-center md:flex">
-            <img
-              src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=700&q=80"
-              alt="electronics"
-              fetchPriority="high"
-              className="max-h-80 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10"
-            />
-          </div>
+          <HeroShowcase />
         </div>
       </section>
 
       {/* Features */}
       <section className="container -mt-8 relative z-10">
-        <div className="grid gap-4 rounded-2xl border bg-card p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((f) => (
-            <div key={f.title} className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent/15 text-accent">
-                <f.icon className="h-5 w-5" />
-              </span>
-              <div>
-                <h3 className="text-sm font-semibold">{f.title}</h3>
-                <p className="text-xs text-muted-foreground">{f.desc}</p>
+        <Reveal>
+          <div className="grid gap-4 rounded-2xl border bg-card p-6 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="group flex items-start gap-3 rounded-xl p-2 transition-colors hover:bg-accent/5"
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent/15 text-accent transition-transform group-hover:scale-110">
+                  <f.icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-semibold">{f.title}</h3>
+                  <p className="text-xs text-muted-foreground">{f.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* Categories */}
@@ -132,22 +133,23 @@ export default function Home() {
                   <div className="skeleton h-2.5 w-10 rounded" />
                 </div>
               ))
-            : categories.map((c) => (
-            <Link
-              key={c.id}
-              to={`/shop?category=${c.slug}`}
-              className="group flex flex-col items-center gap-3 rounded-xl border bg-card p-5 text-center transition-colors hover:border-accent hover:bg-accent/5"
-            >
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-secondary text-primary transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
-                <CategoryIcon name={c.icon} />
-              </span>
-              <span className="text-sm font-semibold leading-tight">
-                {localized(c, lang)}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {c.product_count} {t("items_count")}
-              </span>
-            </Link>
+            : categories.map((c, i) => (
+            <Reveal key={c.id} delay={i * 60}>
+              <Link
+                to={`/shop?category=${c.slug}`}
+                className="group flex h-full flex-col items-center gap-3 rounded-xl border bg-card p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:bg-accent/5 hover:shadow-md"
+              >
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-secondary text-primary transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
+                  <CategoryIcon name={c.icon} />
+                </span>
+                <span className="text-sm font-semibold leading-tight">
+                  {localized(c, lang)}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {c.product_count} {t("items_count")}
+                </span>
+              </Link>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -179,27 +181,34 @@ export default function Home() {
                     </div>
                   </div>
                 ))
-              : featured.map((p) => <ProductCard key={p.id} product={p} />)}
+              : featured.map((p, i) => (
+                  <Reveal key={p.id} delay={(i % 4) * 70}>
+                    <ProductCard product={p} />
+                  </Reveal>
+                ))}
           </div>
         </div>
       </section>
 
       {/* Why us banner */}
       <section className="container py-14">
-        <div className="electric-gradient flex flex-col items-center gap-4 rounded-2xl px-6 py-10 text-center text-primary-foreground">
-          <h2 className="text-2xl font-bold">{t("why_us")}</h2>
-          <p className="max-w-xl text-primary-foreground/80">
-            {t("hero_subtitle")}
-          </p>
-          <Link to="/shop">
-            <Button
-              size="lg"
-              className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              {t("hero_cta")} <ArrowIcon className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
+        <Reveal>
+          <div className="electric-gradient relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl px-6 py-10 text-center text-primary-foreground">
+            <div className="hero-aurora" />
+            <h2 className="relative text-2xl font-bold">{t("why_us")}</h2>
+            <p className="relative max-w-xl text-primary-foreground/80">
+              {t("hero_subtitle")}
+            </p>
+            <Link to="/shop" className="relative">
+              <Button
+                size="lg"
+                className="gap-2 bg-accent text-accent-foreground transition-transform hover:-translate-y-0.5 hover:bg-accent/90"
+              >
+                {t("hero_cta")} <ArrowIcon className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </Reveal>
       </section>
 
       <RecentlyViewed />
