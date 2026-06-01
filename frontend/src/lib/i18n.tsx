@@ -257,6 +257,7 @@ const translations: Dict = {
   },
   recently_viewed: { ar: "شاهدت مؤخراً", en: "Recently Viewed", he: "נצפו לאחרונה" },
   brand_label: { ar: "العلامة", en: "Brand", he: "מותג" },
+  all_brands: { ar: "كل العلامات", en: "All brands", he: "כל המותגים" },
   sku_label: { ar: "رمز المنتج", en: "SKU", he: 'מק"ט' },
   product_number: { ar: "رقم المنتج", en: "Product No.", he: "מספר מוצר" },
   watch_video: { ar: "شاهد الفيديو", en: "Watch video", he: "צפה בסרטון" },

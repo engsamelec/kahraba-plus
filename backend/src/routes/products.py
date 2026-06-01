@@ -188,6 +188,19 @@ def get_products():
     )
 
 
+@products_bp.route("/products/brands", methods=["GET"])
+def list_brands():
+    """Distinct, non-empty brand names for the storefront brand filter."""
+    rows = (
+        db.session.query(Product.brand)
+        .filter(Product.brand.isnot(None), Product.brand != "", Product.is_active == True)  # noqa: E712
+        .distinct()
+        .order_by(Product.brand)
+        .all()
+    )
+    return jsonify([r[0] for r in rows])
+
+
 @products_bp.route("/products/<slug>", methods=["GET"])
 def get_product(slug):
     if slug.isdigit():

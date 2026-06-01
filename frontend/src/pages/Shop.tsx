@@ -15,6 +15,7 @@ export default function Shop() {
   const money = useMoney();
   const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
@@ -26,10 +27,12 @@ export default function Shop() {
   const sort = searchParams.get("sort") || "newest";
   const inStock = searchParams.get("in_stock") === "true";
   const maxPrice = searchParams.get("max_price") || "";
+  const brand = searchParams.get("brand") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
 
   useEffect(() => {
     api.get("/categories").then((r) => setCategories(r.data));
+    api.get("/products/brands").then((r) => setBrands(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function Shop() {
     if (search) params.search = search;
     if (inStock) params.in_stock = "true";
     if (maxPrice) params.max_price = maxPrice;
+    if (brand) params.brand = brand;
 
     api
       .get("/products", { params })
@@ -52,7 +56,7 @@ export default function Shop() {
         setPages(r.data.pages);
       })
       .finally(() => setLoading(false));
-  }, [category, search, sort, inStock, maxPrice, page]);
+  }, [category, search, sort, inStock, maxPrice, brand, page]);
 
   function update(key: string, value: string | null) {
     const next = new URLSearchParams(searchParams);
@@ -63,8 +67,10 @@ export default function Shop() {
   }
 
   const activeFilters = useMemo(
-    () => [category, search, inStock ? "stock" : "", maxPrice].filter(Boolean).length,
-    [category, search, inStock, maxPrice]
+    () =>
+      [category, search, inStock ? "stock" : "", maxPrice, brand].filter(Boolean)
+        .length,
+    [category, search, inStock, maxPrice, brand]
   );
 
   const heading = search
@@ -131,6 +137,25 @@ export default function Shop() {
           <span>{money(Number(maxPrice) || 200)}+</span>
         </div>
       </div>
+
+      {/* brand */}
+      {brands.length > 0 && (
+        <div>
+          <h4 className="mb-2 text-sm font-semibold">{t("brand_label")}</h4>
+          <select
+            value={brand}
+            onChange={(e) => update("brand", e.target.value || null)}
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="">{t("all_brands")}</option>
+            {brands.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* in stock */}
       <label className="flex cursor-pointer items-center gap-2 text-sm">
