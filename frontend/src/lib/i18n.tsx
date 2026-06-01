@@ -100,6 +100,12 @@ const translations: Dict = {
   active_visible: { ar: "ظاهر في المتجر", en: "Visible in store", he: "מוצג בחנות" },
   hidden_label: { ar: "مخفي", en: "Hidden", he: "מוסתר" },
   admin_users: { ar: "المستخدمون", en: "Users", he: "משתמשים" },
+  admin_subscribers: { ar: "المشتركون", en: "Subscribers", he: "מנויים" },
+  no_subscribers: {
+    ar: "لا مشتركين بعد",
+    en: "No subscribers yet",
+    he: "אין מנויים עדיין",
+  },
   admin_users_search: { ar: "ابحث بالاسم أو البريد", en: "Search name or email", he: "חיפוש שם/אימייל" },
   role_admin: { ar: "مدير", en: "Admin", he: "מנהל" },
   role_customer: { ar: "عميل", en: "Customer", he: "לקוח" },

@@ -27,6 +27,7 @@ import { Accounting } from "@/components/Accounting";
 import { PromotionsAdmin } from "@/components/PromotionsAdmin";
 import { CategoriesAdmin } from "@/components/CategoriesAdmin";
 import { UsersAdmin } from "@/components/UsersAdmin";
+import { SubscribersAdmin } from "@/components/SubscribersAdmin";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -58,6 +59,7 @@ export default function Admin() {
     | "promos"
     | "categories"
     | "users"
+    | "subscribers"
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
@@ -75,6 +77,7 @@ export default function Admin() {
           { id: "coupons", label: t("coupons") },
           { id: "promos", label: t("promos_title") },
           { id: "users", label: t("admin_users") },
+          { id: "subscribers", label: t("admin_subscribers") },
         ].map((tb) => (
           <button
             key={tb.id}
@@ -100,6 +103,7 @@ export default function Admin() {
       {tab === "promos" && <PromotionsAdmin />}
       {tab === "categories" && <CategoriesAdmin />}
       {tab === "users" && <UsersAdmin />}
+      {tab === "subscribers" && <SubscribersAdmin />}
     </div>
   );
 }
