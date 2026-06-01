@@ -3,7 +3,7 @@ import re
 from flask import Blueprint, jsonify, request
 from sqlalchemy import or_
 
-from src.models.catalog import Category, Product, Review
+from src.models.catalog import Category, Product, ProductVariant, Review
 from src.models.user import User, db
 from src.routes.helpers import admin_required
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -239,6 +239,70 @@ def delete_product(product_id):
     if not product:
         return jsonify({"error": "Product not found"}), 404
     db.session.delete(product)
+    db.session.commit()
+    return "", 204
+
+
+# ---------------- Variants ----------------
+_VARIANT_FIELDS = (
+    "size", "color", "color_hex", "material", "sku", "image_url",
+)
+
+
+def _apply_variant(variant, data):
+    for f in _VARIANT_FIELDS:
+        if f in data:
+            setattr(variant, f, data[f] or None)
+    if "additional_price" in data:
+        variant.additional_price = float(data["additional_price"] or 0)
+    if "stock_quantity" in data:
+        variant.stock_quantity = int(data["stock_quantity"] or 0)
+    if "is_available" in data:
+        variant.is_available = bool(data["is_available"])
+    if "sort_order" in data:
+        variant.sort_order = int(data["sort_order"] or 0)
+
+
+@products_bp.route("/products/<int:product_id>/variants", methods=["GET"])
+def list_variants(product_id):
+    product = db.session.get(Product, product_id)
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+    return jsonify([v.to_dict() for v in product.variants])
+
+
+@products_bp.route("/products/<int:product_id>/variants", methods=["POST"])
+@admin_required
+def create_variant(product_id):
+    product = db.session.get(Product, product_id)
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+    data = request.get_json(silent=True) or {}
+    variant = ProductVariant(product_id=product_id)
+    _apply_variant(variant, data)
+    db.session.add(variant)
+    db.session.commit()
+    return jsonify(variant.to_dict()), 201
+
+
+@products_bp.route("/variants/<int:variant_id>", methods=["PUT"])
+@admin_required
+def update_variant(variant_id):
+    variant = db.session.get(ProductVariant, variant_id)
+    if not variant:
+        return jsonify({"error": "Variant not found"}), 404
+    _apply_variant(variant, request.get_json(silent=True) or {})
+    db.session.commit()
+    return jsonify(variant.to_dict())
+
+
+@products_bp.route("/variants/<int:variant_id>", methods=["DELETE"])
+@admin_required
+def delete_variant(variant_id):
+    variant = db.session.get(ProductVariant, variant_id)
+    if not variant:
+        return jsonify({"error": "Variant not found"}), 404
+    db.session.delete(variant)
     db.session.commit()
     return "", 204
 

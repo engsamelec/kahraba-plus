@@ -51,6 +51,7 @@ export interface Product {
   id: number;
   name: string;
   name_ar?: string | null;
+  name_he?: string | null;
   slug: string;
   sku?: string | null;
   brand?: string | null;
@@ -66,6 +67,8 @@ export interface Product {
   image_hashes?: (number | string)[];
   match_score?: number;
   match_distance?: number;
+  has_variants?: boolean;
+  variants?: ProductVariant[];
   is_featured: boolean;
   is_active: boolean;
   rating_avg: number;
@@ -75,6 +78,23 @@ export interface Product {
   technical_specs?: Record<string, string>;
   reviews?: Review[];
   related?: Product[];
+}
+
+export interface ProductVariant {
+  id: number;
+  product_id: number;
+  size?: string | null;
+  color?: string | null;
+  color_hex?: string | null;
+  material?: string | null;
+  additional_price: number;
+  stock_quantity: number;
+  sku?: string | null;
+  image_url?: string | null;
+  is_available: boolean;
+  in_stock: boolean;
+  sort_order: number;
+  label: string;
 }
 
 export interface Review {

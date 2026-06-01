@@ -9,7 +9,9 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useMoney } from "@/lib/currency";
 import { StarRating } from "@/components/StarRating";
+import { VariantSelector } from "@/components/VariantSelector";
 import { ProductCard } from "@/components/ProductCard";
+import type { ProductVariant } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 
 export default function ProductDetail() {
@@ -25,6 +27,7 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState<"desc" | "specs" | "reviews">("desc");
   const [activeImg, setActiveImg] = useState(0);
+  const [variant, setVariant] = useState<ProductVariant | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
 
@@ -32,6 +35,7 @@ export default function ProductDetail() {
     setLoading(true);
     setQty(1);
     setActiveImg(0);
+    setVariant(null);
     api
       .get(`/products/${slug}`)
       .then((r) => setProduct(r.data))
@@ -66,12 +70,45 @@ export default function ProductDetail() {
     );
   }
 
-  const name = localized(product, lang);
+  const prod = product; // non-null below this point
+  const name = localized(prod, lang);
   const desc =
-    lang === "ar" && product.description_ar
-      ? product.description_ar
-      : product.description;
-  const specs = product.technical_specs ?? {};
+    lang === "ar" && prod.description_ar
+      ? prod.description_ar
+      : prod.description;
+  const specs = prod.technical_specs ?? {};
+
+  const variants = prod.variants ?? [];
+  const hasVariants = variants.length > 0;
+  // Price reflects the chosen variant's surcharge; selection is required to
+  // buy when a product has variants.
+  const effectivePrice = prod.price + (variant?.additional_price ?? 0);
+  const needsVariant = hasVariants && !variant;
+  const canBuy = variant
+    ? variant.in_stock
+    : hasVariants
+      ? false
+      : prod.in_stock;
+
+  function addToCart() {
+    // Encode the chosen variant into the cart line by adjusting price and id
+    // so different variants are tracked as separate lines.
+    const item = variant
+      ? {
+          ...prod,
+          id: prod.id * 100000 + variant.id,
+          price: effectivePrice,
+          name: `${name} — ${variant.label}`,
+          name_ar: prod.name_ar ? `${prod.name_ar} — ${variant.label}` : prod.name_ar,
+          name_he: prod.name_he ? `${prod.name_he} — ${variant.label}` : prod.name_he,
+          stock_quantity: variant.stock_quantity,
+        }
+      : prod;
+    add(item, qty);
+    toast.success(t("add_to_cart"), {
+      description: variant ? `${name} — ${variant.label}` : name,
+    });
+  }
 
   async function submitReview() {
     if (!user) {
@@ -167,9 +204,9 @@ export default function ProductDetail() {
 
           <div className="flex items-end gap-3 ltr-nums">
             <span className="text-3xl font-extrabold text-foreground">
-              {money(product.price)}
+              {money(effectivePrice)}
             </span>
-            {product.compare_at_price && (
+            {product.compare_at_price && !variant && (
               <>
                 <span className="text-lg text-muted-foreground line-through">
                   {money(product.compare_at_price)}
@@ -181,10 +218,27 @@ export default function ProductDetail() {
             )}
           </div>
 
+          {hasVariants && (
+            <VariantSelector
+              variants={variants}
+              selected={variant}
+              onSelect={setVariant}
+            />
+          )}
+
           <div className="flex items-center gap-2 text-sm">
-            {product.in_stock ? (
+            {canBuy ? (
               <span className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400">
-                <Check className="h-4 w-4" /> {t("in_stock")} ({product.stock_quantity})
+                <Check className="h-4 w-4" /> {t("in_stock")}
+                {variant
+                  ? ` (${variant.stock_quantity})`
+                  : !hasVariants
+                    ? ` (${product.stock_quantity})`
+                    : ""}
+              </span>
+            ) : needsVariant ? (
+              <span className="font-medium text-muted-foreground">
+                {t("select_options")}
               </span>
             ) : (
               <span className="flex items-center gap-1 font-medium text-destructive">
@@ -194,7 +248,7 @@ export default function ProductDetail() {
           </div>
 
           {/* qty + actions */}
-          {product.in_stock && (
+          {(canBuy || needsVariant) && (
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <div className="flex items-center rounded-lg border">
                 <button
@@ -207,7 +261,12 @@ export default function ProductDetail() {
                 <button
                   className="grid h-10 w-10 place-items-center hover:bg-secondary"
                   onClick={() =>
-                    setQty((q) => Math.min(product.stock_quantity, q + 1))
+                    setQty((q) =>
+                      Math.min(
+                        variant ? variant.stock_quantity : product.stock_quantity,
+                        q + 1
+                      )
+                    )
                   }
                 >
                   <Plus className="h-4 w-4" />
@@ -215,19 +274,19 @@ export default function ProductDetail() {
               </div>
               <Button
                 size="lg"
-                className="flex-1 gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
-                onClick={() => {
-                  add(product, qty);
-                  toast.success(t("add_to_cart"), { description: name });
-                }}
+                disabled={!canBuy}
+                className="flex-1 gap-2 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
+                onClick={addToCart}
               >
-                <ShoppingCart className="h-5 w-5" /> {t("add_to_cart")}
+                <ShoppingCart className="h-5 w-5" />{" "}
+                {needsVariant ? t("select_options") : t("add_to_cart")}
               </Button>
               <Button
                 size="lg"
                 variant="outline"
+                disabled={!canBuy}
                 onClick={() => {
-                  add(product, qty);
+                  addToCart();
                   navigate("/cart");
                 }}
               >

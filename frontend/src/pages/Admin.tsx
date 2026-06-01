@@ -19,6 +19,7 @@ import { formatPrice, classFor } from "@/lib/format";
 import { getErrorMessage } from "@/lib/utils";
 import type { SalesPoint, TopProduct } from "@/components/AdminCharts";
 import { ImageUploader } from "@/components/ImageUploader";
+import { VariantsEditor } from "@/components/VariantsEditor";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -459,6 +460,14 @@ function ProductsAdmin() {
                 />
                 {t("featured")}
               </label>
+
+              {editing.id ? (
+                <VariantsEditor productId={editing.id} />
+              ) : (
+                <p className="sm:col-span-2 rounded-lg border border-dashed p-3 text-center text-xs text-muted-foreground">
+                  {t("save_first_for_variants")}
+                </p>
+              )}
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setEditing(null)}>

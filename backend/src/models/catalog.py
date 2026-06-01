@@ -70,6 +70,13 @@ class Product(db.Model):
     reviews = db.relationship(
         "Review", backref="product", lazy=True, cascade="all, delete-orphan"
     )
+    variants = db.relationship(
+        "ProductVariant",
+        backref="product",
+        lazy=True,
+        cascade="all, delete-orphan",
+        order_by="ProductVariant.sort_order",
+    )
 
     # --- JSON helpers ---
     @property
@@ -143,12 +150,14 @@ class Product(db.Model):
             "is_active": self.is_active,
             "rating_avg": round(self.rating_avg or 0, 1),
             "rating_count": self.rating_count,
+            "has_variants": len(self.variants) > 0,
         }
         if full:
             data["description"] = self.description
             data["description_ar"] = self.description_ar
             data["description_he"] = self.description_he
             data["technical_specs"] = self.technical_specs
+            data["variants"] = [v.to_dict() for v in self.variants]
         return data
 
 
@@ -175,4 +184,56 @@ class Review(db.Model):
             "rating": self.rating,
             "comment": self.comment,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+class ProductVariant(db.Model):
+    """A purchasable variation of a product (e.g. size L / color black).
+
+    `additional_price` is added to the product's base price. Stock is tracked
+    per variant so the bot/store can answer "do you have L in black?".
+    """
+
+    __tablename__ = "product_variants"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey("products.id"), nullable=False, index=True
+    )
+    size = db.Column(db.String(40), nullable=True)
+    color = db.Column(db.String(60), nullable=True)
+    color_hex = db.Column(db.String(9), nullable=True)  # e.g. #000000
+    material = db.Column(db.String(80), nullable=True)
+    additional_price = db.Column(db.Float, nullable=False, default=0.0)
+    stock_quantity = db.Column(db.Integer, nullable=False, default=0)
+    sku = db.Column(db.String(80), nullable=True)
+    image_url = db.Column(db.String(500), nullable=True)
+    is_available = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)
+
+    @property
+    def label(self):
+        parts = [p for p in (self.size, self.color, self.material) if p]
+        return " / ".join(parts) if parts else (self.sku or f"#{self.id}")
+
+    @property
+    def in_stock(self):
+        return self.is_available and self.stock_quantity > 0
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "size": self.size,
+            "color": self.color,
+            "color_hex": self.color_hex,
+            "material": self.material,
+            "additional_price": self.additional_price,
+            "stock_quantity": self.stock_quantity,
+            "sku": self.sku,
+            "image_url": self.image_url,
+            "is_available": self.is_available,
+            "in_stock": self.in_stock,
+            "sort_order": self.sort_order,
+            "label": self.label,
         }
