@@ -4,6 +4,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 import api, { type Category, type Product } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useMoney } from "@/lib/currency";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ const PER_PAGE = 12;
 
 export default function Shop() {
   const { t, lang } = useI18n();
+  const money = useMoney();
   const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -125,8 +127,8 @@ export default function Shop() {
           className="w-full accent-[hsl(var(--accent))]"
         />
         <div className="mt-1 flex justify-between text-xs text-muted-foreground ltr-nums">
-          <span>$0</span>
-          <span>${maxPrice || 200}+</span>
+          <span>{money(0)}</span>
+          <span>{money(Number(maxPrice) || 200)}+</span>
         </div>
       </div>
 

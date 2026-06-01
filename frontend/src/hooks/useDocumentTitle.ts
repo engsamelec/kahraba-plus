@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const BASE_TITLE = "كهربا بلس | Kahraba Plus";
+const BASE_TITLE = "كهربا بلس | Electrical Plus";
 
 /**
  * Sets the document title for the current page and restores the base title on

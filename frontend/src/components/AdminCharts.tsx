@@ -46,7 +46,7 @@ export default function AdminCharts({
   sales: SalesPoint[];
   top: TopProduct[];
 }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const hasSales = sales.some((s) => s.orders > 0 || s.revenue > 0);
 
   return (
@@ -54,7 +54,7 @@ export default function AdminCharts({
       {/* revenue area — spans 2 cols on desktop */}
       <div className="rounded-xl border bg-card p-5 lg:col-span-2">
         <h3 className="mb-4 text-sm font-semibold">
-          {lang === "ar" ? "المبيعات (آخر 14 يوم)" : "Sales (last 14 days)"}
+          {t("sales_14d")}
         </h3>
         {hasSales ? (
           <ResponsiveContainer width="100%" height={240}>
@@ -108,7 +108,7 @@ export default function AdminCharts({
           </ResponsiveContainer>
         ) : (
           <p className="grid h-[240px] place-items-center text-sm text-muted-foreground">
-            {lang === "ar" ? "لا توجد مبيعات بعد" : "No sales yet"}
+            {t("no_sales_yet")}
           </p>
         )}
       </div>
@@ -116,7 +116,7 @@ export default function AdminCharts({
       {/* top products */}
       <div className="rounded-xl border bg-card p-5">
         <h3 className="mb-4 text-sm font-semibold">
-          {lang === "ar" ? "الأكثر مبيعاً" : "Top products"}
+          {t("top_products")}
         </h3>
         {top.length > 0 ? (
           <ResponsiveContainer width="100%" height={240}>
@@ -156,7 +156,7 @@ export default function AdminCharts({
           </ResponsiveContainer>
         ) : (
           <p className="grid h-[240px] place-items-center text-sm text-muted-foreground">
-            {lang === "ar" ? "لا توجد بيانات" : "No data"}
+            {t("no_data")}
           </p>
         )}
       </div>

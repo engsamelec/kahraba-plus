@@ -188,11 +188,23 @@ export default function ProductDetail() {
 
         {/* info */}
         <div className="space-y-5">
-          {product.brand && (
-            <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-              {product.brand}
-            </span>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {product.brand && (
+              <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                {product.brand}
+              </span>
+            )}
+            {product.is_bestseller && (
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                ★ {t("bestseller")}
+              </span>
+            )}
+            {product.low_stock && product.in_stock && (
+              <span className="rounded-full bg-orange-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                {t("low_stock_left")}
+              </span>
+            )}
+          </div>
           <h1 className="text-balance text-3xl font-bold leading-tight">{name}</h1>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">

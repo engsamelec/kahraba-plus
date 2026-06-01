@@ -5,6 +5,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useMoney } from "@/lib/currency";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { Button } from "@/components/ui/button";
 
 export default function Cart() {
@@ -137,6 +138,8 @@ export default function Cart() {
           </div>
         </div>
       </div>
+
+      <RecentlyViewed />
     </div>
   );
 }

@@ -20,7 +20,7 @@ type Dict = Record<string, Entry>;
 
 const translations: Dict = {
   // Brand / general
-  brand: { ar: "كهربا بلس", en: "Kahraba Plus", he: "כהרבא פלוס" },
+  brand: { ar: "كهربا بلس", en: "Electrical Plus", he: "כהרבא פלוס" },
   tagline: {
     ar: "كل ما تحتاجه من إلكترونيات وقطع كهربائية",
     en: "Everything you need in electronics & components",
@@ -60,7 +60,7 @@ const translations: Dict = {
   },
   featured: { ar: "منتجات مميزة", en: "Featured Products", he: "מוצרים מובחרים" },
   view_all: { ar: "عرض الكل", en: "View All", he: "הצג הכול" },
-  why_us: { ar: "لماذا كهربا بلس؟", en: "Why Kahraba Plus?", he: "למה כהרבא פלוס?" },
+  why_us: { ar: "لماذا كهربا بلس؟", en: "Why Electrical Plus?", he: "למה כהרבא פלוס?" },
   feat_shipping: {
     ar: "شحن محلي ودولي",
     en: "Local & Global Shipping",
@@ -254,6 +254,10 @@ const translations: Dict = {
   pending_orders: { ar: "طلبات معلقة", en: "Pending Orders", he: "הזמנות ממתינות" },
   total_products: { ar: "المنتجات", en: "Products", he: "מוצרים" },
   total_customers: { ar: "العملاء", en: "Customers", he: "לקוחות" },
+  sales_14d: { ar: "المبيعات (آخر 14 يوم)", en: "Sales (last 14 days)", he: "מכירות (14 ימים)" },
+  no_sales_yet: { ar: "لا توجد مبيعات بعد", en: "No sales yet", he: "אין מכירות עדיין" },
+  top_products: { ar: "الأكثر مبيعاً", en: "Top products", he: "המוצרים המובילים" },
+  no_data: { ar: "لا توجد بيانات", en: "No data", he: "אין נתונים" },
   add_product: { ar: "إضافة منتج", en: "Add Product", he: "הוסף מוצר" },
   images: { ar: "الصور", en: "Images", he: "תמונות" },
   images_uploaded: { ar: "تم رفع الصور", en: "Images uploaded", he: "התמונות הועלו" },
@@ -342,7 +346,7 @@ const translations: Dict = {
   footer_about: { ar: "عن المتجر", en: "About", he: "אודות" },
   footer_about_d: {
     ar: "كهربا بلس متجرك المتخصص بالإلكترونيات والقطع الكهربائية، نخدم العملاء محلياً ودولياً.",
-    en: "Kahraba Plus is your specialized store for electronics and electrical components, serving customers locally and worldwide.",
+    en: "Electrical Plus is your specialized store for electronics and electrical components, serving customers locally and worldwide.",
     he: "כהרבא פלוס היא חנות מתמחה באלקטרוניקה וברכיבי חשמל, המשרתת לקוחות מקומית ובעולם.",
   },
   footer_links: { ar: "روابط سريعة", en: "Quick Links", he: "קישורים מהירים" },

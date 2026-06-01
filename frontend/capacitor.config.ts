@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.kahrabaplus.app",
-  appName: "Kahraba Plus",
+  appName: "Electrical Plus",
   webDir: "dist",
   backgroundColor: "#1e293b",
   plugins: {

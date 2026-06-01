@@ -10,21 +10,30 @@ import { useAuth } from "@/lib/auth";
 import { useMoney } from "@/lib/currency";
 import { getErrorMessage } from "@/lib/utils";
 import { TrustBadges } from "@/components/TrustBadges";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
 import { Button } from "@/components/ui/button";
 
-const COUNTRIES = [
-  "Syria",
-  "Lebanon",
-  "Jordan",
-  "Iraq",
-  "Saudi Arabia",
-  "UAE",
-  "Egypt",
-  "Turkey",
-  "Germany",
-  "United States",
-  "United Kingdom",
+// Value stays in English (stored on the order); the label is localized.
+const COUNTRIES: { value: string; ar: string; he: string }[] = [
+  { value: "Syria", ar: "سوريا", he: "סוריה" },
+  { value: "Palestine", ar: "فلسطين", he: "פלסטין" },
+  { value: "Lebanon", ar: "لبنان", he: "לבנון" },
+  { value: "Jordan", ar: "الأردن", he: "ירדן" },
+  { value: "Iraq", ar: "العراق", he: "עיראק" },
+  { value: "Saudi Arabia", ar: "السعودية", he: "ערב הסעודית" },
+  { value: "UAE", ar: "الإمارات", he: 'איחוד האמירויות' },
+  { value: "Egypt", ar: "مصر", he: "מצרים" },
+  { value: "Turkey", ar: "تركيا", he: "טורקיה" },
+  { value: "Germany", ar: "ألمانيا", he: "גרמניה" },
+  { value: "United States", ar: "الولايات المتحدة", he: 'ארה"ב' },
+  { value: "United Kingdom", ar: "المملكة المتحدة", he: "בריטניה" },
 ];
+
+function countryLabel(c: { value: string; ar: string; he: string }, lang: string) {
+  if (lang === "ar") return c.ar;
+  if (lang === "he") return c.he;
+  return c.value;
+}
 
 export default function Checkout() {
   const { t, lang } = useI18n();
@@ -175,8 +184,8 @@ export default function Checkout() {
                   onChange={(e) => set("shipping_country", e.target.value)}
                 >
                   {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                    <option key={c.value} value={c.value}>
+                      {countryLabel(c, lang)}
                     </option>
                   ))}
                 </select>
@@ -228,7 +237,8 @@ export default function Checkout() {
         </div>
 
         {/* summary */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-4">
+          <FreeShippingBar subtotalUsd={quote?.subtotal ?? subtotal} />
           <div className="sticky top-28 rounded-xl border bg-card p-6">
             <h3 className="mb-4 font-bold">{t("order_summary")}</h3>
             <div className="mb-4 max-h-48 space-y-3 overflow-y-auto">
