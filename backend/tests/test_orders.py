@@ -66,6 +66,44 @@ def test_track_order_public(client):
     assert res.get_json()["order_number"] == num
 
 
+def test_cancelling_order_restocks_inventory(client, auth):
+    before = client.get("/api/products?ids=3").get_json()["products"][0][
+        "stock_quantity"
+    ]
+    order = _order(client, [{"product_id": 3, "quantity": 2}]).get_json()
+    mid = client.get("/api/products?ids=3").get_json()["products"][0][
+        "stock_quantity"
+    ]
+    assert mid == before - 2
+
+    # Cancel → stock returns.
+    res = client.put(
+        f"/api/admin/orders/{order['id']}", json={"status": "cancelled"}, headers=auth
+    )
+    assert res.status_code == 200
+    after = client.get("/api/products?ids=3").get_json()["products"][0][
+        "stock_quantity"
+    ]
+    assert after == before
+
+    # Re-saving "cancelled" must not restock again.
+    client.put(
+        f"/api/admin/orders/{order['id']}", json={"status": "cancelled"}, headers=auth
+    )
+    again = client.get("/api/products?ids=3").get_json()["products"][0][
+        "stock_quantity"
+    ]
+    assert again == before
+
+
+def test_invalid_order_status_rejected(client, auth):
+    order = _order(client, [{"product_id": 1, "quantity": 1}]).get_json()
+    res = client.put(
+        f"/api/admin/orders/{order['id']}", json={"status": "bogus"}, headers=auth
+    )
+    assert res.status_code == 400
+
+
 def test_variant_checkout_uses_variant_price_and_stock(client, auth):
     # Give product 1 a variant priced +5 with its own stock.
     base = client.get("/api/products?ids=1").get_json()["products"][0]

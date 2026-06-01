@@ -21,6 +21,9 @@ FREE_SHIPPING_THRESHOLD = 100.0
 TAX_RATE = 0.0  # configurable VAT rate
 HOME_COUNTRY = "Syria"
 
+ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
+PAYMENT_STATUSES = {"unpaid", "paid", "refunded"}
+
 
 def _generate_order_number():
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
@@ -319,14 +322,42 @@ def admin_list_orders():
 @orders_bp.route("/admin/orders/<int:order_id>", methods=["PUT"])
 @admin_required
 def admin_update_order(order_id):
+    from src.models.catalog import ProductVariant
+
     order = db.session.get(Order, order_id)
     if not order:
         return jsonify({"error": "Order not found"}), 404
     data = request.get_json(silent=True) or {}
+
     if "status" in data:
-        order.status = data["status"]
+        new_status = data["status"]
+        if new_status not in ORDER_STATUSES:
+            return jsonify({"error": "Invalid status"}), 400
+        # Cancelling a live order returns its items to stock (once). Guard on
+        # the transition so re-saving "cancelled" doesn't restock twice.
+        if new_status == "cancelled" and order.status != "cancelled":
+            for it in order.items:
+                if it.variant_id:
+                    ProductVariant.query.filter_by(id=it.variant_id).update(
+                        {
+                            ProductVariant.stock_quantity: (
+                                ProductVariant.stock_quantity + it.quantity
+                            )
+                        },
+                        synchronize_session=False,
+                    )
+                elif it.product_id:
+                    Product.query.filter_by(id=it.product_id).update(
+                        {Product.stock_quantity: Product.stock_quantity + it.quantity},
+                        synchronize_session=False,
+                    )
+        order.status = new_status
+
     if "payment_status" in data:
+        if data["payment_status"] not in PAYMENT_STATUSES:
+            return jsonify({"error": "Invalid payment status"}), 400
         order.payment_status = data["payment_status"]
+
     db.session.commit()
     return jsonify(order.to_dict())
 
