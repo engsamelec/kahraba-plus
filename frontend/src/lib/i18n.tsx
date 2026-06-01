@@ -339,6 +339,17 @@ const translations: Dict = {
   // Account
   my_account: { ar: "حسابي", en: "My Account", he: "החשבון שלי" },
   my_orders: { ar: "طلباتي", en: "My Orders", he: "ההזמנות שלי" },
+  reorder: { ar: "اطلب مرة أخرى", en: "Order again", he: "הזמן שוב" },
+  reorder_done: {
+    ar: "أُضيفت منتجات الطلب إلى السلة",
+    en: "The order's items were added to your cart",
+    he: "פריטי ההזמנה נוספו לעגלה",
+  },
+  reorder_unavailable: {
+    ar: "منتجات هذا الطلب غير متوفرة حالياً",
+    en: "This order's products aren't available right now",
+    he: "מוצרי ההזמנה אינם זמינים כעת",
+  },
   profile: { ar: "الملف الشخصي", en: "Profile", he: "פרופיל" },
   no_orders: { ar: "لا توجد طلبات بعد", en: "No orders yet", he: "אין הזמנות עדיין" },
   save: { ar: "حفظ", en: "Save", he: "שמור" },

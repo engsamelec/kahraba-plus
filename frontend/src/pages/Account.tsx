@@ -1,19 +1,55 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Order } from "@/lib/api";
 import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { classFor } from "@/lib/format";
 import { useMoney } from "@/lib/currency";
+import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export default function Account() {
   const { t, lang } = useI18n();
   const { user, loading: authLoading, refresh } = useAuth();
+  const { add } = useCart();
+  const navigate = useNavigate();
   const money = useMoney();
+  const [reordering, setReordering] = useState<number | null>(null);
+
+  // Re-add a past order's items to the cart (fetches current product data so
+  // prices/stock are live), then go to the cart.
+  async function reorder(order: Order) {
+    setReordering(order.id);
+    try {
+      const ids = order.items.map((i) => i.product_id).filter(Boolean).join(",");
+      const { data } = await api.get("/products", {
+        params: { ids, per_page: 100 },
+      });
+      const byId = new Map(data.products.map((p: { id: number }) => [p.id, p]));
+      let added = 0;
+      for (const it of order.items) {
+        const prod = byId.get(it.product_id);
+        if (prod && (prod as { in_stock?: boolean }).in_stock) {
+          add(prod as never, it.quantity);
+          added++;
+        }
+      }
+      if (added) {
+        toast.success(t("reorder_done"));
+        navigate("/cart");
+      } else {
+        toast.error(t("reorder_unavailable"));
+      }
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    } finally {
+      setReordering(null);
+    }
+  }
   useDocumentTitle(t("my_account"));
   const [tab, setTab] = useState<"orders" | "profile">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -124,7 +160,17 @@ export default function Account() {
                   <span>{t("total")}</span>
                   <span className="ltr-nums">{money(o.total_amount)}</span>
                 </div>
-                <div className="mt-2 flex justify-end">
+                <div className="mt-2 flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => reorder(o)}
+                    disabled={reordering === o.id}
+                    className="flex items-center gap-1 text-xs font-medium text-accent hover:underline disabled:opacity-50"
+                  >
+                    {reordering === o.id && (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    )}
+                    {t("reorder")}
+                  </button>
                   <Link
                     to={`/invoice/${o.order_number}`}
                     className="text-xs font-medium text-accent hover:underline"
