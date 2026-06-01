@@ -37,34 +37,36 @@
   }
 
   .dark {
-    --background: 222 47% 9%;
-    --foreground: 210 40% 96%;
-    --card: 222 47% 12%;
-    --card-foreground: 210 40% 96%;
-    --popover: 222 47% 12%;
-    --popover-foreground: 210 40% 96%;
+    /* Deeper base so raised surfaces (cards) clearly stand out, brighter
+       borders/text for legibility. */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 40% 13%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 40% 13%;
+    --popover-foreground: 210 40% 98%;
     --primary: 38 92% 50%;
     --primary-foreground: 222 47% 11%;
-    --secondary: 222 40% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 222 40% 18%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 38 92% 50%;
+    --secondary: 222 33% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 33% 20%;
+    --muted-foreground: 217 24% 74%;
+    --accent: 38 95% 55%;
     --accent-foreground: 222 47% 11%;
-    --destructive: 0 62% 45%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 40% 20%;
-    --input: 222 40% 20%;
-    --ring: 38 92% 50%;
+    --border: 222 28% 28%;
+    --input: 222 28% 28%;
+    --ring: 38 95% 55%;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 96%;
+    --sidebar-background: 222 47% 10%;
+    --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 38 92% 50%;
     --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 40% 18%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 222 40% 20%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-accent: 222 33% 20%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 28% 26%;
+    --sidebar-ring: 38 95% 55%;
   }
 }
 
@@ -77,11 +79,14 @@
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-  /* RTL-aware font stack */
-  html[dir="rtl"] body {
+  /* Language-aware font stack */
+  html[lang="ar"] body {
     font-family: "Cairo", "Tajawal", system-ui, -apple-system, sans-serif;
   }
-  html[dir="ltr"] body {
+  html[lang="he"] body {
+    font-family: "Heebo", system-ui, -apple-system, sans-serif;
+  }
+  html[lang="en"] body {
     font-family: "Inter", system-ui, -apple-system, sans-serif;
   }
 }

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Globe,
   Heart,
   LogOut,
   Menu,
@@ -13,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo } from "./Logo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -21,7 +21,7 @@ import { useFavorites } from "@/lib/favorites";
 import { useAuth } from "@/lib/auth";
 
 export function Navbar() {
-  const { t, toggleLang, lang } = useI18n();
+  const { t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const { count } = useCart();
   const { count: favCount } = useFavorites();
@@ -48,11 +48,7 @@ export function Navbar() {
       {/* top strip */}
       <div className="electric-gradient text-primary-foreground">
         <div className="container flex h-8 items-center justify-center text-xs">
-          <span>
-            {lang === "ar"
-              ? "🚚 شحن مجاني للطلبات فوق 100$ — محلياً ودولياً"
-              : "🚚 Free shipping on orders over $100 — local & worldwide"}
-          </span>
+          <span>{t("free_ship_banner")}</span>
         </div>
       </div>
 
@@ -102,18 +98,7 @@ export function Navbar() {
             )}
           </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleLang}
-            className="gap-1.5"
-            title="Language"
-          >
-            <Globe className="h-4 w-4" />
-            <span className="text-xs font-semibold">
-              {lang === "ar" ? "EN" : "ع"}
-            </span>
-          </Button>
+          <LanguageSwitcher />
 
           {user ? (
             <>

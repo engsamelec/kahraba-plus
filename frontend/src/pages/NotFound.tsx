@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   return (
     <div className="container flex min-h-[60vh] flex-col items-center justify-center py-16 text-center">
       <div className="relative mb-6">
@@ -13,13 +13,9 @@ export default function NotFound() {
         </span>
         <Zap className="absolute inset-0 m-auto h-16 w-16 animate-pulse-soft text-accent" />
       </div>
-      <h1 className="mb-2 text-2xl font-bold">
-        {lang === "ar" ? "الصفحة غير موجودة" : "Page not found"}
-      </h1>
+      <h1 className="mb-2 text-2xl font-bold">{t("not_found_title")}</h1>
       <p className="mb-6 max-w-sm text-muted-foreground">
-        {lang === "ar"
-          ? "يبدو أن هذا الرابط مقطوع أو أن الصفحة لم تعد متاحة."
-          : "This link looks broken or the page is no longer available."}
+        {t("not_found_desc")}
       </p>
       <div className="flex flex-wrap justify-center gap-3">
         <Link to="/">

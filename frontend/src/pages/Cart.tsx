@@ -112,7 +112,7 @@ export default function Cart() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("shipping")}</span>
                 <span className="text-xs text-muted-foreground">
-                  {lang === "ar" ? "يُحسب عند الدفع" : "Calculated at checkout"}
+                  {t("calc_at_checkout")}
                 </span>
               </div>
             </div>

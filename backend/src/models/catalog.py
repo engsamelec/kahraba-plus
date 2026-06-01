@@ -9,6 +9,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     name_ar = db.Column(db.String(120), nullable=True)
+    name_he = db.Column(db.String(120), nullable=True)
     slug = db.Column(db.String(140), unique=True, nullable=False, index=True)
     description = db.Column(db.Text, nullable=True)
     icon = db.Column(db.String(60), nullable=True)  # lucide icon name
@@ -25,6 +26,7 @@ class Category(db.Model):
             "id": self.id,
             "name": self.name,
             "name_ar": self.name_ar,
+            "name_he": self.name_he,
             "slug": self.slug,
             "description": self.description,
             "icon": self.icon,
@@ -41,11 +43,13 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False, index=True)
     name_ar = db.Column(db.String(200), nullable=True)
+    name_he = db.Column(db.String(200), nullable=True)
     slug = db.Column(db.String(220), unique=True, nullable=False, index=True)
     sku = db.Column(db.String(60), unique=True, nullable=True)
     brand = db.Column(db.String(120), nullable=True)
     description = db.Column(db.Text, nullable=True)
     description_ar = db.Column(db.Text, nullable=True)
+    description_he = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False, default=0.0)
     compare_at_price = db.Column(db.Float, nullable=True)  # original price for discounts
     currency = db.Column(db.String(8), nullable=False, default="USD")
@@ -106,6 +110,7 @@ class Product(db.Model):
             "id": self.id,
             "name": self.name,
             "name_ar": self.name_ar,
+            "name_he": self.name_he,
             "slug": self.slug,
             "sku": self.sku,
             "brand": self.brand,
@@ -126,6 +131,7 @@ class Product(db.Model):
         if full:
             data["description"] = self.description
             data["description_ar"] = self.description_ar
+            data["description_he"] = self.description_he
             data["technical_specs"] = self.technical_specs
         return data
 

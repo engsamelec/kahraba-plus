@@ -144,7 +144,7 @@ export default function Home() {
                 {localized(c, lang)}
               </span>
               <span className="text-xs text-muted-foreground">
-                {c.product_count} {lang === "ar" ? "منتج" : "items"}
+                {c.product_count} {t("items_count")}
               </span>
             </Link>
           ))}

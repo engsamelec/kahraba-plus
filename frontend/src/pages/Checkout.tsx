@@ -206,7 +206,7 @@ export default function Checkout() {
                   <span className="font-medium">{m.label}</span>
                   {m.id === "card" && (
                     <span className="ltr:ml-auto rtl:mr-auto text-xs text-muted-foreground">
-                      {lang === "ar" ? "قريباً" : "Soon"}
+                      {t("soon")}
                     </span>
                   )}
                 </label>
