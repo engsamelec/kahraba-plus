@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Check, Minus, Play, Plus, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +35,23 @@ export default function ProductDetail() {
   const [variant, setVariant] = useState<ProductVariant | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
+  // Sticky mobile buy bar: shown once the primary CTA scrolls out of view.
+  const buyRef = useRef<HTMLDivElement>(null);
+  const [showStickyBuy, setShowStickyBuy] = useState(false);
+
+  useEffect(() => {
+    const el = buyRef.current;
+    if (!el) {
+      setShowStickyBuy(false);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      ([entry]) => setShowStickyBuy(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [product]);
 
   useEffect(() => {
     setLoading(true);
@@ -278,7 +295,7 @@ export default function ProductDetail() {
 
           {/* qty + actions */}
           {(canBuy || needsVariant) && (
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div ref={buyRef} className="flex flex-wrap items-center gap-3 pt-2">
               <div className="flex items-center rounded-lg border">
                 <button
                   className="grid h-10 w-10 place-items-center hover:bg-secondary"
@@ -467,6 +484,32 @@ export default function ProductDetail() {
       )}
 
       <RecentlyViewed excludeId={product.id} bare />
+
+      {/* Sticky mobile buy bar — appears once the main CTA is scrolled away.
+          Sits just above the mobile tab bar; hidden on desktop. */}
+      {showStickyBuy && (canBuy || needsVariant) && (
+        <div
+          className="fixed inset-x-0 z-40 border-t bg-background/95 px-4 py-2.5 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.35)] backdrop-blur lg:hidden"
+          style={{ bottom: "calc(3.75rem + env(safe-area-inset-bottom))" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{name}</p>
+              <p className="text-base font-extrabold text-accent ltr-nums">
+                {money(effectivePrice)}
+              </p>
+            </div>
+            <Button
+              disabled={!canBuy}
+              onClick={addToCart}
+              className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {needsVariant ? t("select_options") : t("add_to_cart")}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
