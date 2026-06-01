@@ -58,6 +58,13 @@ def create_app():
         if seed_database():
             app.logger.info("Database seeded with initial catalog.")
 
+    def _no_store(resp):
+        """Never cache: the browser must always fetch the latest copy."""
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
+
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def serve(path):
@@ -65,11 +72,22 @@ def create_app():
         if static_folder_path is None:
             return "Static folder not configured", 404
 
+        # Serve real files directly. Content-hashed build assets (under
+        # /assets/, with a hash in the filename) are safe to cache forever
+        # because a new build produces a new filename. Everything else
+        # (index.html, manifest, icons, sw cleanup) must revalidate so a fresh
+        # deploy is picked up immediately — no manual cache clearing.
         if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
-            return send_from_directory(static_folder_path, path)
+            resp = send_from_directory(static_folder_path, path)
+            if path.startswith("assets/"):
+                resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+            else:
+                resp = _no_store(resp)
+            return resp
+
         index_path = os.path.join(static_folder_path, "index.html")
         if os.path.exists(index_path):
-            return send_from_directory(static_folder_path, "index.html")
+            return _no_store(send_from_directory(static_folder_path, "index.html"))
         return "index.html not found", 404
 
     return app
