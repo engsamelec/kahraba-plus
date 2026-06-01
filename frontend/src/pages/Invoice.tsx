@@ -5,6 +5,7 @@ import api, { type Order } from "@/lib/api";
 import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useMoney } from "@/lib/currency";
+import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -67,7 +68,7 @@ export default function Invoice() {
               <span className="text-xl font-extrabold">{t("brand")}</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              info@electricalplus.com · Damascus, Syria
+              {BRAND.email} · {BRAND.address}
             </p>
           </div>
           <div className="text-end">
