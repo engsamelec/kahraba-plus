@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Order, type Product } from "@/lib/api";
+import { AddressBook } from "@/components/AddressBook";
 import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -70,7 +71,7 @@ export default function Account() {
     }
   }
   useDocumentTitle(t("my_account"));
-  const [tab, setTab] = useState<"orders" | "profile">("orders");
+  const [tab, setTab] = useState<"orders" | "addresses" | "profile">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [profile, setProfile] = useState({
     first_name: "",
@@ -122,6 +123,7 @@ export default function Account() {
       <div className="mb-6 flex gap-1 border-b">
         {[
           { id: "orders", label: t("my_orders") },
+          { id: "addresses", label: t("saved_addresses") },
           { id: "profile", label: t("profile") },
         ].map((tb) => (
           <button
@@ -201,6 +203,8 @@ export default function Account() {
             ))}
           </div>
         ))}
+
+      {tab === "addresses" && <AddressBook />}
 
       {tab === "profile" && (
         <div className="max-w-md space-y-4 rounded-xl border bg-card p-6">

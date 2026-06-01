@@ -95,6 +95,15 @@ def add_address():
     if missing:
         return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
 
+    make_default = bool(data.get("is_default"))
+    # First address is default automatically.
+    if not user.addresses:
+        make_default = True
+    if make_default:
+        Address.query.filter_by(user_id=user.id).update(
+            {Address.is_default: False}, synchronize_session=False
+        )
+
     address = Address(
         user_id=user.id,
         full_name=data["full_name"],
@@ -105,8 +114,32 @@ def add_address():
         state=data.get("state"),
         postal_code=data.get("postal_code"),
         country=data["country"],
-        is_default=bool(data.get("is_default")),
+        is_default=make_default,
     )
     db.session.add(address)
     db.session.commit()
     return jsonify(address.to_dict()), 201
+
+
+@auth_bp.route("/me/addresses/<int:address_id>", methods=["DELETE"])
+@jwt_required()
+def delete_address(address_id):
+    user_id = int(get_jwt_identity())
+    # IDOR-safe: an address is only deletable by its owner.
+    address = Address.query.filter_by(id=address_id, user_id=user_id).first()
+    if not address:
+        return jsonify({"error": "Address not found"}), 404
+    was_default = address.is_default
+    db.session.delete(address)
+    db.session.flush()
+    # If we removed the default, promote the most recent remaining address.
+    if was_default:
+        nxt = (
+            Address.query.filter_by(user_id=user_id)
+            .order_by(Address.created_at.desc())
+            .first()
+        )
+        if nxt:
+            nxt.is_default = True
+    db.session.commit()
+    return "", 204

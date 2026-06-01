@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Loader2, Tag } from "lucide-react";
+import { Check, Loader2, MapPin, Tag } from "lucide-react";
 import { toast } from "sonner";
-import api, { type Quote } from "@/lib/api";
+import api, { type Address, type Quote } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
@@ -57,6 +57,33 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [addresses, setAddresses] = useState<Address[]>([]);
+
+  function applyAddress(a: Address) {
+    setForm((f) => ({
+      ...f,
+      customer_name: a.full_name || f.customer_name,
+      customer_phone: a.phone || f.customer_phone,
+      shipping_address: [a.address_line1, a.address_line2].filter(Boolean).join(", "),
+      shipping_city: a.city || f.shipping_city,
+      shipping_country: a.country || f.shipping_country,
+    }));
+  }
+
+  // Logged-in customers: load saved addresses and prefill the default one so
+  // repeat checkout is one tap.
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get("/auth/me/addresses")
+      .then((r) => {
+        setAddresses(r.data);
+        const def = r.data.find((a: Address) => a.is_default) ?? r.data[0];
+        if (def) applyAddress(def);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -122,6 +149,30 @@ export default function Checkout() {
       <form onSubmit={submit} className="mt-5 grid gap-8 lg:grid-cols-3">
         {/* form */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Saved addresses — one tap to fill the form */}
+          {addresses.length > 0 && (
+            <section className="rounded-xl border bg-card p-4">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                <MapPin className="h-4 w-4 text-accent" /> {t("saved_addresses")}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {addresses.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => applyAddress(a)}
+                    className="rounded-lg border px-3 py-2 text-start text-xs transition-colors hover:border-accent hover:bg-accent/5"
+                  >
+                    <span className="block font-medium">{a.full_name}</span>
+                    <span className="block text-muted-foreground">
+                      {a.city}, {a.country}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="rounded-xl border bg-card p-6">
             <h3 className="mb-4 font-semibold">{t("contact_info")}</h3>
             <div className="grid gap-4 sm:grid-cols-2">

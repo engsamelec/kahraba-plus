@@ -53,6 +53,33 @@ def test_non_admin_cannot_reach_admin_endpoints(client):
     assert client.get("/api/admin/users", headers=headers).status_code == 403
 
 
+def test_saved_addresses_crud_and_idor(client):
+    client.post("/api/auth/register", json={"email": "addr@x.com", "password": "secret123"})
+    tok = client.post(
+        "/api/auth/login", json={"email": "addr@x.com", "password": "secret123"}
+    ).get_json()["token"]
+    h = {"Authorization": f"Bearer {tok}"}
+    # first address becomes default automatically
+    res = client.post(
+        "/api/auth/me/addresses",
+        json={"full_name": "Sam", "address_line1": "St 1", "city": "Damascus", "country": "Syria"},
+        headers=h,
+    )
+    assert res.status_code == 201 and res.get_json()["is_default"] is True
+    addrs = client.get("/api/auth/me/addresses", headers=h).get_json()
+    assert len(addrs) == 1
+    aid = addrs[0]["id"]
+    # another user cannot delete it (IDOR-safe)
+    client.post("/api/auth/register", json={"email": "other@x.com", "password": "secret123"})
+    otok = client.post(
+        "/api/auth/login", json={"email": "other@x.com", "password": "secret123"}
+    ).get_json()["token"]
+    oh = {"Authorization": f"Bearer {otok}"}
+    assert client.delete(f"/api/auth/me/addresses/{aid}", headers=oh).status_code == 404
+    # owner can
+    assert client.delete(f"/api/auth/me/addresses/{aid}", headers=h).status_code == 204
+
+
 def test_admin_user_management(client, auth):
     # list includes the seeded admin
     users = client.get("/api/admin/users", headers=auth).get_json()

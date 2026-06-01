@@ -188,6 +188,19 @@ export interface Quote {
   shipping_scope: string;
 }
 
+export interface Address {
+  id: number;
+  full_name: string;
+  phone?: string | null;
+  address_line1: string;
+  address_line2?: string | null;
+  city: string;
+  state?: string | null;
+  postal_code?: string | null;
+  country: string;
+  is_default: boolean;
+}
+
 export interface Promotion {
   id: number;
   title: string;
