@@ -17,7 +17,7 @@ interface Appliance {
  * (sun hours, system losses, depth of discharge) — clearly an estimate.
  */
 export default function SolarCalculator() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   useDocumentTitle(t("solar_title"));
 
   const [rows, setRows] = useState<Appliance[]>([
@@ -163,7 +163,7 @@ export default function SolarCalculator() {
       </div>
 
       <p className="mt-3 text-center text-xs text-muted-foreground ltr-nums">
-        {t("solar_daily")}: {result.wh} Wh/{lang === "en" ? "day" : "يوم"}
+        {t("solar_daily")}: {result.wh} Wh / {t("solar_per_day")}
       </p>
 
       <div className="mt-5 text-center">

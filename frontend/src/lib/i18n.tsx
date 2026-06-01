@@ -53,6 +53,8 @@ const translations: Dict = {
   solar_battery: { ar: "البطارية", en: "Battery", he: "סוללה" },
   solar_controller: { ar: "منظّم الشحن", en: "Charge controller", he: "בקר טעינה" },
   solar_daily: { ar: "الاستهلاك اليومي", en: "Daily use", he: "צריכה יומית" },
+  solar_per_day: { ar: "يوم", en: "day", he: "יום" },
+  scroll_top: { ar: "العودة للأعلى", en: "Scroll to top", he: "חזרה למעלה" },
   solar_shop: { ar: "تسوّق منتجات الطاقة الشمسية", en: "Shop solar products", he: "קנה מוצרים סולאריים" },
   solar_disclaimer: {
     ar: "نتيجة تقريبية للإرشاد فقط — تواصل معنا لتصميم دقيق.",
