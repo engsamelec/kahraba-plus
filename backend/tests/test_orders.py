@@ -96,6 +96,38 @@ def test_cancelling_order_restocks_inventory(client, auth):
     assert again == before
 
 
+def test_invalid_email_rejected(client):
+    res = _order(client, [{"product_id": 1, "quantity": 1}], customer_email="not-an-email")
+    assert res.status_code == 400
+
+
+def test_whitespace_only_fields_rejected(client):
+    res = client.post(
+        "/api/orders",
+        json={**GUEST, "customer_name": "   ", "items": [{"product_id": 1, "quantity": 1}]},
+    )
+    assert res.status_code == 400
+
+
+def test_duplicate_submit_is_idempotent(client):
+    items = [{"product_id": 1, "quantity": 1}]
+    first = _order(client, items)
+    assert first.status_code == 201
+    num = first.get_json()["order_number"]
+    # Immediate identical resubmit returns the same order, not a new one.
+    second = _order(client, items)
+    assert second.status_code == 200
+    assert second.get_json()["order_number"] == num
+
+
+def test_bad_quantity_does_not_500(client):
+    res = client.post(
+        "/api/orders",
+        json={**GUEST, "items": [{"product_id": 1, "quantity": "abc"}]},
+    )
+    assert res.status_code == 400  # global handler turns ValueError into 400
+
+
 def test_unit_cost_hidden_from_customers_visible_to_admin(client, auth):
     num = _order(client, [{"product_id": 1, "quantity": 1}]).get_json()[
         "order_number"

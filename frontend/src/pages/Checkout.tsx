@@ -92,7 +92,8 @@ export default function Checkout() {
         ...form,
         coupon_code: appliedCoupon || undefined,
         items: items.map((l) => ({
-          product_id: l.product.id,
+          product_id: l.product.base_product_id ?? l.product.id,
+          variant_id: l.product.variant_id,
           quantity: l.quantity,
         })),
       };

@@ -31,6 +31,55 @@ def test_product_detail_full_fields(client, product):
     assert "bundle" in d  # frequently-bought-together
 
 
+def test_duplicate_sku_returns_friendly_error_not_500(client, auth):
+    client.post(
+        "/api/products",
+        json={"name": "A", "price": 1, "sku": "DUP-SKU-1"},
+        headers=auth,
+    )
+    res = client.post(
+        "/api/products",
+        json={"name": "B", "price": 2, "sku": "DUP-SKU-1"},
+        headers=auth,
+    )
+    assert res.status_code == 409  # not a raw 500
+
+
+def test_negative_stock_is_clamped(client, auth):
+    res = client.post(
+        "/api/products",
+        json={"name": "NegStock", "price": 5, "stock_quantity": -10},
+        headers=auth,
+    )
+    assert res.status_code == 201
+    assert res.get_json()["stock_quantity"] == 0
+
+
+def test_delete_product_with_sales_archives_it(client, auth):
+    pid = client.post(
+        "/api/products",
+        json={"name": "Sellable", "price": 5, "stock_quantity": 5},
+        headers=auth,
+    ).get_json()["id"]
+    # place an order for it
+    client.post(
+        "/api/orders",
+        json={
+            "customer_name": "G", "customer_email": "g@x.com",
+            "shipping_address": "s", "shipping_city": "Damascus",
+            "shipping_country": "Syria", "payment_method": "cod",
+            "items": [{"product_id": pid, "quantity": 1}],
+        },
+    )
+    # deleting must archive (preserve history), not 500 / not hard-delete
+    res = client.delete(f"/api/products/{pid}", headers=auth)
+    assert res.status_code == 200
+    assert res.get_json().get("archived") is True
+    # it disappears from the active catalog
+    listed = client.get("/api/products?per_page=100").get_json()["products"]
+    assert all(p["id"] != pid for p in listed)
+
+
 def test_cost_is_hidden_from_public_but_visible_to_admin(client, product, auth):
     # Public callers must never see the confidential unit cost (COGS),
     # neither in the list nor the detail response.

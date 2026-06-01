@@ -1,6 +1,7 @@
+import re
 import secrets
 import string
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
@@ -23,6 +24,9 @@ HOME_COUNTRY = "Syria"
 
 ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
 PAYMENT_STATUSES = {"unpaid", "paid", "refunded"}
+
+# Pragmatic email check — rejects obvious typos without over-restricting.
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def _generate_order_number():
@@ -180,9 +184,14 @@ def create_order():
         return jsonify({"error": "Cart is empty"}), 400
 
     required = ["customer_name", "customer_email", "shipping_address", "shipping_city", "shipping_country"]
-    missing = [f for f in required if not data.get(f)]
+    # Strip first so whitespace-only values don't pass as "filled".
+    missing = [f for f in required if not (data.get(f) or "").strip()]
     if missing:
         return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
+
+    # Validate the email — it's the only contact channel for a guest order.
+    if not _EMAIL_RE.match((data.get("customer_email") or "").strip()):
+        return jsonify({"error": "Please enter a valid email address"}), 400
 
     totals = _compute_totals(
         items, data.get("shipping_country"), data.get("coupon_code")
@@ -191,6 +200,24 @@ def create_order():
         return jsonify(totals), 400
 
     user_id = _optional_user_id()
+
+    # Idempotency: a refresh / double-submit / network retry shouldn't create a
+    # second identical order (and decrement stock again). If an order with the
+    # same email, total, and item count landed in the last 90s, return it.
+    email = data["customer_email"].strip().lower()
+    recent_cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=90)
+    dup = (
+        Order.query.filter(
+            db.func.lower(Order.customer_email) == email,
+            Order.total_amount == totals["total_amount"],
+            Order.created_at >= recent_cutoff,
+        )
+        .order_by(Order.created_at.desc())
+        .first()
+    )
+    if dup and len(dup.items) == len(items):
+        return jsonify(dup.to_dict()), 200
+
     order = Order(
         order_number=_generate_order_number(),
         user_id=user_id,

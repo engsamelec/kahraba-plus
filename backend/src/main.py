@@ -81,6 +81,38 @@ def create_app():
     def health():
         return jsonify({"status": "ok", "service": "kahraba-plus-api"})
 
+    # --- API error handlers: never leak a raw HTML 500; always JSON, and roll
+    # back the session so one bad request can't poison the next. ---
+    from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+    from werkzeug.exceptions import HTTPException
+
+    @app.errorhandler(IntegrityError)
+    def _handle_integrity(e):
+        db.session.rollback()
+        # Almost always a unique-constraint hit (duplicate SKU/slug/code) from
+        # admin input — surface a friendly 409 instead of a 500.
+        return jsonify({"error": "A record with these details already exists"}), 409
+
+    @app.errorhandler(ValueError)
+    def _handle_value_error(e):
+        db.session.rollback()
+        return jsonify({"error": "Invalid input"}), 400
+
+    @app.errorhandler(SQLAlchemyError)
+    def _handle_db_error(e):
+        db.session.rollback()
+        app.logger.exception("Database error")
+        return jsonify({"error": "A database error occurred"}), 500
+
+    @app.errorhandler(Exception)
+    def _handle_unexpected(e):
+        # Let Flask/Werkzeug HTTP errors (404/401/403/405…) pass through.
+        if isinstance(e, HTTPException):
+            return e
+        db.session.rollback()
+        app.logger.exception("Unhandled error")
+        return jsonify({"error": "Something went wrong"}), 500
+
     with app.app_context():
         # Import models so SQLAlchemy registers all tables
         from src.models import (  # noqa: F401

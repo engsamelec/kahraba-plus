@@ -260,7 +260,7 @@ def create_product():
             else None
         ),
         currency=data.get("currency", "USD"),
-        stock_quantity=int(data.get("stock_quantity") or 0),
+        stock_quantity=max(0, int(data.get("stock_quantity") or 0)),
         category_id=data.get("category_id"),
         is_featured=bool(data.get("is_featured")),
         is_active=data.get("is_active", True),
@@ -299,9 +299,13 @@ def update_product(product_id):
     if "cost" in data:
         product.cost = _money(data["cost"]) if data["cost"] not in (None, "") else None
     if "compare_at_price" in data:
-        product.compare_at_price = data["compare_at_price"]
+        product.compare_at_price = (
+            _money(data["compare_at_price"])
+            if data["compare_at_price"] not in (None, "")
+            else None
+        )
     if "stock_quantity" in data:
-        product.stock_quantity = int(data["stock_quantity"])
+        product.stock_quantity = max(0, int(data["stock_quantity"] or 0))
     if "category_id" in data:
         product.category_id = data["category_id"]
     if "is_featured" in data:
@@ -322,9 +326,33 @@ def update_product(product_id):
 @products_bp.route("/products/<int:product_id>", methods=["DELETE"])
 @admin_required
 def delete_product(product_id):
+    from src.models.notify import StockNotification
+    from src.models.order import OrderItem
+    from src.models.question import Question
+
     product = db.session.get(Product, product_id)
     if not product:
         return jsonify({"error": "Product not found"}), 404
+
+    # If the product has sales history, hard-deleting it would break order
+    # records and accounting (or hit a FK error on Postgres). Archive it
+    # instead — the storefront/admin list filters is_active, so it disappears
+    # like a delete while the order snapshots and COGS stay intact.
+    has_sales = (
+        db.session.query(OrderItem.id).filter_by(product_id=product_id).first()
+        is not None
+    )
+    if has_sales:
+        product.is_active = False
+        db.session.commit()
+        return jsonify({"archived": True}), 200
+
+    # No sales: safe to hard-delete. Reviews and variants cascade; clean up the
+    # non-cascading transient dependents first to avoid orphans / FK errors.
+    Question.query.filter_by(product_id=product_id).delete(synchronize_session=False)
+    StockNotification.query.filter_by(product_id=product_id).delete(
+        synchronize_session=False
+    )
     db.session.delete(product)
     db.session.commit()
     return "", 204
