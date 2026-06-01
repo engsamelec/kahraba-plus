@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ProductDetail() {
   const { slug } = useParams();
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
   const { add } = useCart();
   const { user } = useAuth();
   const money = useMoney();
@@ -38,6 +38,23 @@ export default function ProductDetail() {
   // Sticky mobile buy bar: shown once the primary CTA scrolls out of view.
   const buyRef = useRef<HTMLDivElement>(null);
   const [showStickyBuy, setShowStickyBuy] = useState(false);
+  // Swipeable image gallery (scroll-snap carousel).
+  const galleryRef = useRef<HTMLDivElement>(null);
+
+  function scrollToImg(i: number) {
+    const el = galleryRef.current;
+    if (!el) return;
+    // In RTL the carousel scrolls in the negative direction.
+    el.scrollTo({ left: (dir === "rtl" ? -1 : 1) * i * el.offsetWidth, behavior: "smooth" });
+    setActiveImg(i);
+  }
+
+  function onGalleryScroll() {
+    const el = galleryRef.current;
+    if (!el || !el.offsetWidth) return;
+    const i = Math.round(Math.abs(el.scrollLeft) / el.offsetWidth);
+    setActiveImg((cur) => (cur === i ? cur : i));
+  }
 
   useEffect(() => {
     const el = buyRef.current;
@@ -178,26 +195,58 @@ export default function ProductDetail() {
       </nav>
 
       <div className="grid gap-10 md:grid-cols-2">
-        {/* gallery */}
+        {/* gallery — swipeable scroll-snap carousel */}
         <div>
-          <div className="aspect-square overflow-hidden rounded-2xl border bg-secondary">
-            {product.image_urls[activeImg] ? (
-              <img
-                src={product.image_urls[activeImg]}
-                alt={name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="grid h-full w-full place-items-center text-6xl">⚡</div>
+          <div className="relative">
+            <div
+              ref={galleryRef}
+              onScroll={onGalleryScroll}
+              className="no-scrollbar flex aspect-square snap-x snap-mandatory overflow-x-auto rounded-2xl border bg-secondary"
+            >
+              {(product.image_urls.length ? product.image_urls : [null]).map(
+                (url, i) => (
+                  <div key={i} className="aspect-square w-full shrink-0 snap-center">
+                    {url ? (
+                      <img
+                        src={url}
+                        alt={`${name} ${i + 1}`}
+                        className="h-full w-full object-cover"
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center text-6xl">
+                        ⚡
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
+            {product.image_urls.length > 1 && (
+              <>
+                <span className="pointer-events-none absolute top-3 ltr:right-3 rtl:left-3 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white ltr-nums">
+                  {activeImg + 1} / {product.image_urls.length}
+                </span>
+                <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                  {product.image_urls.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all ${
+                        activeImg === i ? "w-4 bg-accent" : "w-1.5 bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
           {product.image_urls.length > 1 && (
-            <div className="mt-3 flex gap-2">
+            <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
               {product.image_urls.map((url, i) => (
                 <button
                   key={i}
-                  onClick={() => setActiveImg(i)}
-                  className={`h-16 w-16 overflow-hidden rounded-lg border-2 ${
+                  onClick={() => scrollToImg(i)}
+                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 ${
                     activeImg === i ? "border-accent" : "border-transparent"
                   }`}
                 >
