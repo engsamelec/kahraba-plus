@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
             loading="lazy"
             decoding="async"
             onError={() => setImgError(true)}
-            className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+            className="card-media h-full w-full object-cover"
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-4xl text-muted-foreground">

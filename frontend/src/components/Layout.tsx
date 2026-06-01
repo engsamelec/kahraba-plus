@@ -1,10 +1,11 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { MobileTabBar } from "./MobileTabBar";
 import { ScrollToTopButton } from "./ScrollToTopButton";
 
 export function Layout() {
+  const { pathname } = useLocation();
   return (
     <div className="flex min-h-screen flex-col">
       <a
@@ -14,7 +15,12 @@ export function Layout() {
         تخطّي إلى المحتوى / Skip to content
       </a>
       <Navbar />
-      <main id="main-content" className="flex-1 pb-16 lg:pb-0">
+      {/* key on path so each navigation gently fades the new page in */}
+      <main
+        id="main-content"
+        key={pathname}
+        className="page-enter flex-1 pb-16 lg:pb-0"
+      >
         <Outlet />
       </main>
       <Footer />
