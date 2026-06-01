@@ -15,6 +15,10 @@ from __future__ import annotations
 
 from PIL import Image, ImageFilter
 
+# Guard against decompression-bomb images: a small file that decodes to an
+# enormous bitmap. PIL raises DecompressionBombError above this pixel count.
+Image.MAX_IMAGE_PIXELS = 24_000_000  # ~24 MP
+
 HASH_SIZE = 8  # produces a 64-bit hash (HASH_SIZE x HASH_SIZE)
 
 

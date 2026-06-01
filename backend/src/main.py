@@ -30,8 +30,18 @@ def create_app():
     )
     app = Flask(__name__, static_folder=os.path.abspath(static_dir))
 
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-change-me-in-production")
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jwt-dev-change-me")
+    # Secrets: real values must come from the environment. Dev defaults are
+    # only allowed when FLASK_ENV/ENVIRONMENT isn't "production" — in prod we
+    # fail fast rather than run with a forgeable, well-known key.
+    is_prod = os.getenv("ENVIRONMENT", os.getenv("FLASK_ENV", "")).lower() == "production"
+    secret_key = os.getenv("SECRET_KEY")
+    jwt_secret = os.getenv("JWT_SECRET_KEY")
+    if is_prod and (not secret_key or not jwt_secret):
+        raise RuntimeError(
+            "SECRET_KEY and JWT_SECRET_KEY must be set when ENVIRONMENT=production"
+        )
+    app.config["SECRET_KEY"] = secret_key or "dev-change-me-in-production"
+    app.config["JWT_SECRET_KEY"] = jwt_secret or "jwt-dev-change-me"
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 
     # Database: default to local SQLite so the store runs instantly.
@@ -43,7 +53,14 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # Restrict CORS in production to the configured origin(s); allow all in dev.
+    cors_origins = os.getenv("CORS_ORIGINS")
+    origins = (
+        [o.strip() for o in cors_origins.split(",") if o.strip()]
+        if cors_origins
+        else "*"
+    )
+    CORS(app, resources={r"/api/*": {"origins": origins}})
     JWTManager(app)
     db.init_app(app)
 

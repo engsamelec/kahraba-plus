@@ -194,12 +194,49 @@ def create_order():
                 subtotal=round(line, 2),
             )
         )
-        product.stock_quantity -= qty  # decrement inventory
+        # Atomic, guarded stock decrement: only succeeds if enough remains.
+        # Prevents overselling under concurrent checkout of the same product.
+        updated = (
+            Product.query.filter(
+                Product.id == product.id,
+                Product.stock_quantity >= qty,
+            ).update(
+                {Product.stock_quantity: Product.stock_quantity - qty},
+                synchronize_session=False,
+            )
+        )
+        if not updated:
+            db.session.rollback()
+            return (
+                jsonify(
+                    {
+                        "error": f"Insufficient stock for {product.name}",
+                        "product_id": product.id,
+                    }
+                ),
+                409,
+            )
 
-    # Count a coupon redemption.
+    # Count a coupon redemption atomically, honoring the usage cap so it can't
+    # be exceeded by concurrent checkouts.
     coupon = totals.get("_coupon")
     if coupon is not None:
-        coupon.used_count = (coupon.used_count or 0) + 1
+        from src.models.coupon import Coupon
+
+        cond = [Coupon.id == coupon.id]
+        if coupon.max_uses is not None:
+            cond.append(Coupon.used_count < coupon.max_uses)
+        bumped = Coupon.query.filter(*cond).update(
+            {Coupon.used_count: Coupon.used_count + 1},
+            synchronize_session=False,
+        )
+        if not bumped and coupon.max_uses is not None:
+            # Coupon got exhausted between quote and commit — drop the discount.
+            order.discount = 0.0
+            order.coupon_code = None
+            order.total_amount = round(
+                order.total_amount + (totals.get("discount") or 0), 2
+            )
 
     db.session.commit()
     return jsonify(order.to_dict()), 201

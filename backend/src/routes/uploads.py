@@ -61,6 +61,10 @@ def _decode_data_url(raw: str):
 
 @uploads_bp.route("/uploads/<path:filename>", methods=["GET"])
 def serve_upload(filename):
+    # Defense-in-depth: only allow simple, safe filenames (send_from_directory
+    # already blocks traversal, but we reject anything unexpected outright).
+    if not all(c.isalnum() or c in "._-" for c in filename):
+        return jsonify({"error": "Invalid filename"}), 400
     resp = send_from_directory(_uploads_dir(), filename)
     resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     return resp

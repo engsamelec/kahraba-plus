@@ -94,12 +94,16 @@ def create_coupon():
     if dtype not in ("percent", "fixed"):
         dtype = "percent"
 
+    value = max(0.0, float(data.get("value") or 0))
+    # A percentage discount can't exceed 100%.
+    if dtype == "percent":
+        value = min(value, 100.0)
     coupon = Coupon(
         code=code,
         discount_type=dtype,
-        value=float(data.get("value") or 0),
-        min_subtotal=float(data.get("min_subtotal") or 0),
-        max_uses=int(data["max_uses"]) if data.get("max_uses") else None,
+        value=value,
+        min_subtotal=max(0.0, float(data.get("min_subtotal") or 0)),
+        max_uses=max(1, int(data["max_uses"])) if data.get("max_uses") else None,
         expires_at=_parse_expiry(data.get("expires_at")),
         is_active=bool(data.get("is_active", True)),
     )

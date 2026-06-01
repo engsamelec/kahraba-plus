@@ -26,6 +26,17 @@ def _unique_slug(base, model):
     return slug
 
 
+def _money(value, default=0.0):
+    """Parse a non-negative monetary value, capped to a sane maximum."""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return default
+    if v != v or v < 0:  # NaN or negative
+        return default
+    return min(v, 1_000_000.0)
+
+
 def _bestseller_ids(limit=6):
     """Return the set of product ids that are genuine best sellers, by total
     quantity actually ordered. Empty until there are real sales — we never
@@ -214,9 +225,13 @@ def create_product():
         description=data.get("description"),
         description_ar=data.get("description_ar"),
         description_he=data.get("description_he"),
-        price=float(data.get("price") or 0),
-        cost=float(data["cost"]) if data.get("cost") not in (None, "") else None,
-        compare_at_price=data.get("compare_at_price"),
+        price=_money(data.get("price")),
+        cost=_money(data["cost"]) if data.get("cost") not in (None, "") else None,
+        compare_at_price=(
+            _money(data["compare_at_price"])
+            if data.get("compare_at_price") not in (None, "")
+            else None
+        ),
         currency=data.get("currency", "USD"),
         stock_quantity=int(data.get("stock_quantity") or 0),
         category_id=data.get("category_id"),
@@ -249,9 +264,9 @@ def update_product(product_id):
         if field in data:
             setattr(product, field, data[field])
     if "price" in data:
-        product.price = float(data["price"])
+        product.price = _money(data["price"])
     if "cost" in data:
-        product.cost = float(data["cost"]) if data["cost"] not in (None, "") else None
+        product.cost = _money(data["cost"]) if data["cost"] not in (None, "") else None
     if "compare_at_price" in data:
         product.compare_at_price = data["compare_at_price"]
     if "stock_quantity" in data:

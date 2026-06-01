@@ -26,12 +26,14 @@ visual_bp = Blueprint("visual", __name__)
 # tolerates heavy blur / recompression while still rejecting unrelated images.
 MATCH_THRESHOLD = 16
 MAX_RESULTS = 8
+# This endpoint is public, so bound the input it will decode.
+MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB
 
 
 def _read_image_bytes():
     """Pull raw image bytes from a multipart upload or a base64 data URL."""
     if "image" in request.files:
-        return request.files["image"].read()
+        return request.files["image"].read(MAX_UPLOAD_BYTES + 1)
     data = request.get_json(silent=True) or {}
     raw = data.get("image")
     if isinstance(raw, str) and raw:
@@ -49,6 +51,8 @@ def visual_search():
     img_bytes = _read_image_bytes()
     if not img_bytes:
         return jsonify({"error": "No image provided"}), 400
+    if len(img_bytes) > MAX_UPLOAD_BYTES:
+        return jsonify({"error": "Image too large"}), 413
 
     query_hash = hash_from_bytes(img_bytes)
     if query_hash is None:
