@@ -31,14 +31,22 @@ MAX_UPLOAD_BYTES = 8 * 1024 * 1024  # 8 MB
 
 
 def _read_image_bytes():
-    """Pull raw image bytes from a multipart upload or a base64 data URL."""
+    """Pull raw image bytes from a multipart upload or a base64 data URL.
+
+    Returns "TOO_LARGE" when the input exceeds the limit so the caller can
+    respond 413 rather than a generic error.
+    """
     if "image" in request.files:
-        return request.files["image"].read(MAX_UPLOAD_BYTES + 1)
+        blob = request.files["image"].read(MAX_UPLOAD_BYTES + 1)
+        return "TOO_LARGE" if len(blob) > MAX_UPLOAD_BYTES else blob
     data = request.get_json(silent=True) or {}
     raw = data.get("image")
     if isinstance(raw, str) and raw:
         if "," in raw and raw.strip().startswith("data:"):
             raw = raw.split(",", 1)[1]
+        # Cap the encoded payload up front (base64 is ~4/3 the decoded size).
+        if len(raw) > (MAX_UPLOAD_BYTES * 4 // 3) + 1024:
+            return "TOO_LARGE"
         try:
             return base64.b64decode(raw)
         except Exception:
@@ -49,6 +57,8 @@ def _read_image_bytes():
 @visual_bp.route("/visual-search", methods=["POST"])
 def visual_search():
     img_bytes = _read_image_bytes()
+    if img_bytes == "TOO_LARGE":
+        return jsonify({"error": "Image too large"}), 413
     if not img_bytes:
         return jsonify({"error": "No image provided"}), 400
     if len(img_bytes) > MAX_UPLOAD_BYTES:

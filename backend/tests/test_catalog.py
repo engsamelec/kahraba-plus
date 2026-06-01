@@ -1,0 +1,108 @@
+"""Catalog: products, categories, search, filters, localization, variants."""
+
+
+def test_health(client):
+    res = client.get("/api/health")
+    assert res.status_code == 200
+    assert res.get_json()["status"] == "ok"
+
+
+def test_products_list_and_pagination(client):
+    res = client.get("/api/products", query_string={"per_page": 5})
+    data = res.get_json()
+    assert res.status_code == 200
+    assert len(data["products"]) == 5
+    assert data["total"] >= 21
+
+
+def test_product_has_trilingual_names_and_number(client, product):
+    assert product["name"]
+    assert product["name_ar"]
+    assert product["name_he"]
+    assert product["product_number"].startswith("KP-")
+
+
+def test_product_detail_full_fields(client, product):
+    res = client.get(f"/api/products/{product['slug']}")
+    d = res.get_json()
+    assert res.status_code == 200
+    assert "technical_specs" in d
+    assert "reviews" in d
+    assert "bundle" in d  # frequently-bought-together
+
+
+def test_search_and_category_filter(client):
+    res = client.get("/api/products", query_string={"search": "arduino"})
+    assert res.status_code == 200
+    assert res.get_json()["total"] >= 1
+
+    cats = client.get("/api/categories").get_json()
+    assert len(cats) >= 1
+    slug = cats[0]["slug"]
+    res = client.get("/api/products", query_string={"category": slug})
+    assert res.status_code == 200
+
+
+def test_ids_filter_returns_only_requested(client):
+    res = client.get("/api/products", query_string={"ids": "1,2,3"})
+    ids = sorted(p["id"] for p in res.get_json()["products"])
+    assert ids == [1, 2, 3]
+
+
+def test_ids_filter_rejects_garbage(client):
+    # Unknown ids must return nothing, never the whole catalog.
+    res = client.get("/api/products", query_string={"ids": "abc,xyz"})
+    assert res.get_json()["total"] == 0
+
+
+def test_create_requires_admin(client):
+    res = client.post("/api/products", json={"name": "x", "price": 1})
+    assert res.status_code in (401, 422)
+
+
+def test_admin_create_update_delete_product(client, auth):
+    # create
+    res = client.post(
+        "/api/products",
+        json={"name": "Test Widget", "price": 9.5, "stock_quantity": 7},
+        headers=auth,
+    )
+    assert res.status_code == 201
+    pid = res.get_json()["id"]
+    assert res.get_json()["product_number"].startswith("KP-")
+
+    # update
+    res = client.put(f"/api/products/{pid}", json={"price": 12.0}, headers=auth)
+    assert res.status_code == 200
+    assert res.get_json()["price"] == 12.0
+
+    # delete
+    res = client.delete(f"/api/products/{pid}", headers=auth)
+    assert res.status_code == 204
+
+
+def test_negative_price_is_clamped(client, auth):
+    res = client.post(
+        "/api/products",
+        json={"name": "Neg", "price": -50, "stock_quantity": 1},
+        headers=auth,
+    )
+    assert res.get_json()["price"] == 0.0
+
+
+def test_variant_crud_and_detail(client, auth):
+    res = client.post(
+        "/api/products/1/variants",
+        json={"size": "L", "color": "Black", "additional_price": 2, "stock_quantity": 4},
+        headers=auth,
+    )
+    assert res.status_code == 201
+    vid = res.get_json()["id"]
+
+    detail = client.get("/api/products/1/variants").get_json()
+    assert any(v["id"] == vid for v in detail)
+
+    res = client.put(f"/api/variants/{vid}", json={"stock_quantity": 9}, headers=auth)
+    assert res.get_json()["stock_quantity"] == 9
+
+    assert client.delete(f"/api/variants/{vid}", headers=auth).status_code == 204
