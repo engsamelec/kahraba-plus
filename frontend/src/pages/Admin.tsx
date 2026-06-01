@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
   DollarSign,
@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatPrice, classFor } from "@/lib/format";
 import { getErrorMessage } from "@/lib/utils";
+import type { SalesPoint, TopProduct } from "@/components/AdminCharts";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -25,7 +26,12 @@ interface Stats {
   pending_orders: number;
   total_products: number;
   total_customers: number;
+  sales_series?: SalesPoint[];
+  top_products?: TopProduct[];
 }
+
+// Lazy so recharts only loads when an admin opens the dashboard.
+const AdminCharts = lazy(() => import("@/components/AdminCharts"));
 
 const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"];
 
@@ -110,18 +116,35 @@ function Dashboard() {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {cards.map((c) => (
-        <div key={c.label} className="rounded-xl border bg-card p-6">
-          <div className="flex items-center justify-between">
-            <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent/15 text-accent">
-              <c.icon className="h-5 w-5" />
-            </span>
+    <div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
+          <div key={c.label} className="rounded-xl border bg-card p-6 transition-shadow hover:shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent/15 text-accent">
+                <c.icon className="h-5 w-5" />
+              </span>
+            </div>
+            <p className="mt-4 text-2xl font-bold ltr-nums">{c.value}</p>
+            <p className="text-sm text-muted-foreground">{c.label}</p>
           </div>
-          <p className="mt-4 text-2xl font-bold ltr-nums">{c.value}</p>
-          <p className="text-sm text-muted-foreground">{c.label}</p>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {stats && (
+        <Suspense
+          fallback={
+            <div className="mt-6 grid place-items-center rounded-xl border bg-card py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-accent" />
+            </div>
+          }
+        >
+          <AdminCharts
+            sales={stats.sales_series ?? []}
+            top={stats.top_products ?? []}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

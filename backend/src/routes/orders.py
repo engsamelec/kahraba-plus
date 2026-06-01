@@ -190,6 +190,8 @@ def admin_update_order(order_id):
 @orders_bp.route("/admin/stats", methods=["GET"])
 @admin_required
 def admin_stats():
+    from datetime import timedelta
+
     from sqlalchemy import func
 
     total_orders = db.session.query(func.count(Order.id)).scalar() or 0
@@ -210,6 +212,41 @@ def admin_stats():
         db.session.query(func.count(User.id)).filter(User.role == "customer").scalar()
         or 0
     )
+
+    # Last-14-days sales series (orders + revenue per day), zero-filled so the
+    # chart always shows a continuous axis even on quiet days.
+    today = datetime.now(timezone.utc).date()
+    start = today - timedelta(days=13)
+    rows = (
+        db.session.query(
+            func.date(Order.created_at).label("day"),
+            func.count(Order.id),
+            func.sum(Order.total_amount),
+        )
+        .filter(func.date(Order.created_at) >= start.isoformat())
+        .group_by("day")
+        .all()
+    )
+    by_day = {str(r[0]): {"orders": r[1], "revenue": round(r[2] or 0, 2)} for r in rows}
+    sales_series = []
+    for i in range(14):
+        d = (start + timedelta(days=i)).isoformat()
+        entry = by_day.get(d, {"orders": 0, "revenue": 0})
+        sales_series.append({"date": d, **entry})
+
+    # Top 5 products by quantity sold.
+    top_rows = (
+        db.session.query(
+            OrderItem.product_name,
+            func.sum(OrderItem.quantity).label("qty"),
+        )
+        .group_by(OrderItem.product_name)
+        .order_by(func.sum(OrderItem.quantity).desc())
+        .limit(5)
+        .all()
+    )
+    top_products = [{"name": r[0], "quantity": int(r[1] or 0)} for r in top_rows]
+
     return jsonify(
         {
             "total_orders": total_orders,
@@ -217,5 +254,7 @@ def admin_stats():
             "pending_orders": pending,
             "total_products": total_products,
             "total_customers": total_customers,
+            "sales_series": sales_series,
+            "top_products": top_products,
         }
     )
