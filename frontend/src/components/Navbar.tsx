@@ -45,6 +45,7 @@ export function Navbar() {
   const links = [
     { to: "/", label: t("nav_home") },
     { to: "/shop", label: t("nav_shop") },
+    { to: "/offers", label: t("offers_title") },
     { to: "/solar-calculator", label: t("nav_solar") },
     { to: "/favorites", label: t("favorites") },
     { to: "/track", label: t("nav_track") },

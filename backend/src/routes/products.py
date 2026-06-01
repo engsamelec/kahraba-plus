@@ -139,6 +139,13 @@ def get_products():
     if request.args.get("featured") == "true":
         query = query.filter_by(is_featured=True)
 
+    # on-sale only (a real discount: compare-at price above current price)
+    if request.args.get("sale") == "true":
+        query = query.filter(
+            Product.compare_at_price.isnot(None),
+            Product.compare_at_price > Product.price,
+        )
+
     # brand
     brand = request.args.get("brand")
     if brand:

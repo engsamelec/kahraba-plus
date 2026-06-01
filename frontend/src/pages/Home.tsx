@@ -15,6 +15,7 @@ import { CategoryIcon } from "@/lib/categoryIcons";
 import { ProductCard } from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { HeroShowcase } from "@/components/HeroShowcase";
+import { PromoBanner } from "@/components/PromoBanner";
 import { Reveal } from "@/components/Reveal";
 import { Button } from "@/components/ui/button";
 
@@ -48,6 +49,7 @@ export default function Home() {
 
   return (
     <div>
+      <PromoBanner />
       {/* Hero */}
       <section className="electric-gradient relative overflow-hidden text-primary-foreground">
         <div className="hero-aurora" />

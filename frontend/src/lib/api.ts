@@ -179,6 +179,24 @@ export interface Quote {
   shipping_scope: string;
 }
 
+export interface Promotion {
+  id: number;
+  title: string;
+  title_ar?: string | null;
+  title_he?: string | null;
+  subtitle?: string | null;
+  subtitle_ar?: string | null;
+  subtitle_he?: string | null;
+  image_url?: string | null;
+  coupon_code?: string | null;
+  cta_link: string;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_active: boolean;
+  live: boolean;
+  sort_order: number;
+}
+
 export interface Coupon {
   id: number;
   code: string;

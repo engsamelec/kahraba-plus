@@ -30,6 +30,7 @@ const Checkout = lazy(() => import("@/pages/Checkout"));
 const OrderConfirmation = lazy(() => import("@/pages/OrderConfirmation"));
 const TrackOrder = lazy(() => import("@/pages/TrackOrder"));
 const Invoice = lazy(() => import("@/pages/Invoice"));
+const Offers = lazy(() => import("@/pages/Offers"));
 const About = lazy(() => import("@/pages/About"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const Login = lazy(() => import("@/pages/Login"));
@@ -90,6 +91,7 @@ function App() {
                         />
                         <Route path="/track" element={<TrackOrder />} />
                         <Route path="/invoice/:orderNumber" element={<Invoice />} />
+                        <Route path="/offers" element={<Offers />} />
                         <Route path="/about" element={<About />} />
                         <Route path="/faq" element={<FAQ />} />
                         <Route path="/favorites" element={<Favorites />} />

@@ -24,6 +24,7 @@ import { ImportAdmin } from "@/components/ImportAdmin";
 import { CatalogHealth } from "@/components/CatalogHealth";
 import { CouponsAdmin } from "@/components/CouponsAdmin";
 import { Accounting } from "@/components/Accounting";
+import { PromotionsAdmin } from "@/components/PromotionsAdmin";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -52,6 +53,7 @@ export default function Admin() {
     | "import"
     | "health"
     | "coupons"
+    | "promos"
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
@@ -83,6 +85,7 @@ export default function Admin() {
           { id: "import", label: t("import_csv") },
           { id: "health", label: t("health_tab") },
           { id: "coupons", label: t("coupons") },
+          { id: "promos", label: t("promos_title") },
         ].map((tb) => (
           <button
             key={tb.id}
@@ -105,6 +108,7 @@ export default function Admin() {
       {tab === "import" && <ImportAdmin />}
       {tab === "health" && <CatalogHealth />}
       {tab === "coupons" && <CouponsAdmin />}
+      {tab === "promos" && <PromotionsAdmin />}
     </div>
   );
 }
