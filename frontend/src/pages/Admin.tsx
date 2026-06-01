@@ -23,6 +23,7 @@ import { CatalogHealth } from "@/components/CatalogHealth";
 import { CouponsAdmin } from "@/components/CouponsAdmin";
 import { Accounting } from "@/components/Accounting";
 import { PromotionsAdmin } from "@/components/PromotionsAdmin";
+import { CategoriesAdmin } from "@/components/CategoriesAdmin";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -52,6 +53,7 @@ export default function Admin() {
     | "health"
     | "coupons"
     | "promos"
+    | "categories"
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
@@ -61,6 +63,7 @@ export default function Admin() {
         {[
           { id: "dashboard", label: t("admin_dashboard") },
           { id: "products", label: t("admin_products") },
+          { id: "categories", label: t("admin_categories") },
           { id: "orders", label: t("admin_orders") },
           { id: "accounting", label: t("acc_tab") },
           { id: "import", label: t("import_csv") },
@@ -90,6 +93,7 @@ export default function Admin() {
       {tab === "health" && <CatalogHealth />}
       {tab === "coupons" && <CouponsAdmin />}
       {tab === "promos" && <PromotionsAdmin />}
+      {tab === "categories" && <CategoriesAdmin />}
     </div>
   );
 }
@@ -176,6 +180,7 @@ interface ProductForm {
   image_urls: string[];
   image_hashes: (number | string)[];
   is_featured: boolean;
+  is_active: boolean;
 }
 
 const EMPTY_PRODUCT: ProductForm = {
@@ -197,6 +202,7 @@ const EMPTY_PRODUCT: ProductForm = {
   image_urls: [],
   image_hashes: [],
   is_featured: false,
+  is_active: true,
 };
 
 function ProductsAdmin() {
@@ -207,8 +213,9 @@ function ProductsAdmin() {
   const [saving, setSaving] = useState(false);
 
   function load() {
+    // include_inactive so the admin sees archived/hidden products too.
     api
-      .get("/products", { params: { per_page: 60 } })
+      .get("/products", { params: { per_page: 100, include_inactive: "true" } })
       .then((r) => setProducts(r.data.products));
   }
 
@@ -242,6 +249,7 @@ function ProductsAdmin() {
       image_urls: p.image_urls || [],
       image_hashes: p.image_hashes || [],
       is_featured: p.is_featured,
+      is_active: p.is_active ?? true,
     });
   }
 
@@ -269,6 +277,7 @@ function ProductsAdmin() {
       image_urls: editing.image_urls,
       image_hashes: editing.image_hashes,
       is_featured: editing.is_featured,
+      is_active: editing.is_active,
     };
     try {
       if (editing.id) {
@@ -333,7 +342,14 @@ function ProductsAdmin() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <span className="line-clamp-1 font-medium">{p.name}</span>
+                      <span className="line-clamp-1 font-medium">
+                        {p.name}
+                        {p.is_active === false && (
+                          <span className="ms-2 rounded-full bg-muted px-1.5 py-0.5 align-middle text-[10px] font-semibold text-muted-foreground">
+                            {t("hidden_label")}
+                          </span>
+                        )}
+                      </span>
                       {p.product_number && (
                         <span className="block text-xs text-muted-foreground ltr-nums">
                           {p.product_number}
@@ -532,6 +548,17 @@ function ProductsAdmin() {
                   className="h-4 w-4 accent-[hsl(var(--accent))]"
                 />
                 {t("featured")}
+              </label>
+              <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={editing.is_active}
+                  onChange={(e) =>
+                    setEditing({ ...editing, is_active: e.target.checked })
+                  }
+                  className="h-4 w-4 accent-[hsl(var(--accent))]"
+                />
+                {t("active_visible")}
               </label>
 
               {editing.id ? (

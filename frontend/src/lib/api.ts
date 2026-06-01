@@ -41,9 +41,11 @@ export interface Category {
   id: number;
   name: string;
   name_ar?: string | null;
+  name_he?: string | null;
   slug: string;
   description?: string | null;
   icon?: string | null;
+  parent_id?: number | null;
   product_count?: number;
 }
 

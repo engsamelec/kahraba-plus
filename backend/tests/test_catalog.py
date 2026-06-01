@@ -80,6 +80,55 @@ def test_delete_product_with_sales_archives_it(client, auth):
     assert all(p["id"] != pid for p in listed)
 
 
+def test_category_crud_admin_only(client, auth):
+    # create
+    res = client.post(
+        "/api/categories",
+        json={"name": "Cables", "name_ar": "كابلات", "name_he": "כבלים", "icon": "Cable"},
+        headers=auth,
+    )
+    assert res.status_code == 201
+    cid = res.get_json()["id"]
+    assert res.get_json()["name_he"] == "כבלים"
+    # update
+    res = client.put(f"/api/categories/{cid}", json={"name_ar": "أسلاك"}, headers=auth)
+    assert res.status_code == 200 and res.get_json()["name_ar"] == "أسلاك"
+    # non-admin cannot create/delete
+    assert client.post("/api/categories", json={"name": "x"}).status_code in (401, 403, 422)
+    assert client.delete(f"/api/categories/{cid}").status_code in (401, 403, 422)
+    # delete
+    assert client.delete(f"/api/categories/{cid}", headers=auth).status_code == 204
+
+
+def test_deleting_category_detaches_products_not_deletes_them(client, auth):
+    cid = client.post(
+        "/api/categories", json={"name": "Temp"}, headers=auth
+    ).get_json()["id"]
+    pid = client.post(
+        "/api/products",
+        json={"name": "InTemp", "price": 3, "category_id": cid},
+        headers=auth,
+    ).get_json()["id"]
+    assert client.delete(f"/api/categories/{cid}", headers=auth).status_code == 204
+    # product survives, just unlinked
+    p = client.get(f"/api/products/{pid}").get_json()
+    assert p["category_id"] is None
+
+
+def test_inactive_products_hidden_publicly_visible_to_admin(client, auth):
+    pid = client.post(
+        "/api/products",
+        json={"name": "Hidden One", "price": 9, "is_active": False},
+        headers=auth,
+    ).get_json()["id"]
+    public = client.get("/api/products?per_page=100").get_json()["products"]
+    assert all(p["id"] != pid for p in public)
+    admin = client.get(
+        "/api/products?per_page=100&include_inactive=true", headers=auth
+    ).get_json()["products"]
+    assert any(p["id"] == pid for p in admin)
+
+
 def test_cost_is_hidden_from_public_but_visible_to_admin(client, product, auth):
     # Public callers must never see the confidential unit cost (COGS),
     # neither in the list nor the detail response.

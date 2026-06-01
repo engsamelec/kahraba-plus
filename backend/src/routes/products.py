@@ -73,20 +73,63 @@ def create_category():
     cat = Category(
         name=name,
         name_ar=data.get("name_ar"),
+        name_he=data.get("name_he"),
         slug=_unique_slug(slugify(name), Category),
         description=data.get("description"),
         icon=data.get("icon"),
-        parent_id=data.get("parent_id"),
+        parent_id=data.get("parent_id") or None,
     )
     db.session.add(cat)
     db.session.commit()
-    return jsonify(cat.to_dict()), 201
+    return jsonify(cat.to_dict(with_count=True)), 201
+
+
+@products_bp.route("/categories/<int:category_id>", methods=["PUT"])
+@admin_required
+def update_category(category_id):
+    cat = db.session.get(Category, category_id)
+    if not cat:
+        return jsonify({"error": "Category not found"}), 404
+    data = request.get_json(silent=True) or {}
+    for field in ("name", "name_ar", "name_he", "description", "icon"):
+        if field in data:
+            setattr(cat, field, data[field])
+    if "parent_id" in data:
+        # Prevent a category being its own parent (a trivial cycle).
+        pid = data["parent_id"] or None
+        cat.parent_id = pid if pid != cat.id else None
+    db.session.commit()
+    return jsonify(cat.to_dict(with_count=True))
+
+
+@products_bp.route("/categories/<int:category_id>", methods=["DELETE"])
+@admin_required
+def delete_category(category_id):
+    cat = db.session.get(Category, category_id)
+    if not cat:
+        return jsonify({"error": "Category not found"}), 404
+    # Detach products and child categories instead of cascade-deleting them, so
+    # deleting a category never destroys products or orphans FKs.
+    Product.query.filter_by(category_id=category_id).update(
+        {Product.category_id: None}, synchronize_session=False
+    )
+    Category.query.filter_by(parent_id=category_id).update(
+        {Category.parent_id: None}, synchronize_session=False
+    )
+    db.session.delete(cat)
+    db.session.commit()
+    return "", 204
 
 
 # ---------------- Products ----------------
 @products_bp.route("/products", methods=["GET"])
 def get_products():
-    query = Product.query.filter_by(is_active=True)
+    # Admins may opt to see inactive/archived products so they can manage and
+    # reactivate them; the public storefront only ever sees active ones.
+    show_inactive = (
+        request.args.get("include_inactive") == "true" and is_admin_request()
+    )
+    query = Product.query if show_inactive else Product.query.filter_by(is_active=True)
 
     # explicit id list (used by the favorites/wishlist view)
     ids_param = request.args.get("ids")
