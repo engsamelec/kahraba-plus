@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import {
+  ChevronDown,
+  ChevronUp,
   DollarSign,
   Loader2,
   Package,
@@ -596,6 +598,7 @@ function ProductsAdmin() {
 function OrdersAdmin() {
   const { t } = useI18n();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   function load() {
     api.get("/admin/orders").then((r) => setOrders(r.data));
@@ -653,7 +656,7 @@ function OrdersAdmin() {
                 }
                 className="rounded-md border bg-background px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-accent"
               >
-                {["unpaid", "paid", "refunded", "failed"].map((s) => (
+                {["unpaid", "paid", "refunded"].map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -662,14 +665,88 @@ function OrdersAdmin() {
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-sm">
-            <span className="text-muted-foreground">
+            <button
+              onClick={() => setExpanded(expanded === o.id ? null : o.id)}
+              className="flex items-center gap-1 font-medium text-accent hover:underline"
+            >
+              {expanded === o.id ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
               {o.items.reduce((n, it) => n + it.quantity, 0)} {t("nav_cart")} ·{" "}
               {o.payment_method.toUpperCase()}
-            </span>
+            </button>
             <span className="font-bold ltr-nums">
               {formatPrice(o.total_amount)}
             </span>
           </div>
+
+          {/* Full order detail so the admin can pick / pack / ship */}
+          {expanded === o.id && (
+            <div className="mt-3 grid gap-4 border-t pt-3 text-sm md:grid-cols-2">
+              <div>
+                <h4 className="mb-1 font-semibold">{t("contact_info")}</h4>
+                <p className="text-muted-foreground">{o.customer_name}</p>
+                <p className="text-muted-foreground">{o.customer_email}</p>
+                {o.customer_phone && (
+                  <p className="text-muted-foreground ltr-nums">
+                    {o.customer_phone}
+                  </p>
+                )}
+                <h4 className="mb-1 mt-3 font-semibold">{t("shipping")}</h4>
+                <p className="text-muted-foreground">
+                  {o.shipping_address}, {o.shipping_city}, {o.shipping_country}
+                </p>
+                {o.notes && (
+                  <p className="mt-2 rounded-lg bg-secondary/60 p-2 text-xs text-muted-foreground">
+                    {o.notes}
+                  </p>
+                )}
+              </div>
+              <div>
+                <h4 className="mb-1 font-semibold">{t("order_summary")}</h4>
+                <ul className="space-y-1">
+                  {o.items.map((it) => (
+                    <li key={it.id} className="flex justify-between gap-2">
+                      <span>
+                        {it.product_name}
+                        {it.variant_label ? ` — ${it.variant_label}` : ""}
+                        <span className="text-muted-foreground ltr-nums">
+                          {" "}
+                          ×{it.quantity}
+                        </span>
+                      </span>
+                      <span className="ltr-nums">{formatPrice(it.subtotal)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-2 space-y-0.5 border-t pt-2 text-xs text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>{t("subtotal")}</span>
+                    <span className="ltr-nums">{formatPrice(o.subtotal)}</span>
+                  </div>
+                  {(o.discount ?? 0) > 0 && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>
+                        {t("discount")}
+                        {o.coupon_code ? ` (${o.coupon_code})` : ""}
+                      </span>
+                      <span className="ltr-nums">
+                        −{formatPrice(o.discount ?? 0)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>{t("shipping")}</span>
+                    <span className="ltr-nums">
+                      {formatPrice(o.shipping_cost ?? 0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
