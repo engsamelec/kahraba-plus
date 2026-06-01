@@ -65,7 +65,7 @@ export default function Admin() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap gap-1 border-b">
+      <div className="no-scrollbar mb-6 flex gap-1 overflow-x-auto border-b">
         {[
           { id: "dashboard", label: t("admin_dashboard") },
           { id: "products", label: t("admin_products") },
@@ -82,7 +82,7 @@ export default function Admin() {
           <button
             key={tb.id}
             onClick={() => setTab(tb.id as typeof tab)}
-            className={`-mb-px border-b-2 px-4 py-3 text-sm font-medium ${
+            className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium ${
               tab === tb.id
                 ? "border-accent text-accent"
                 : "border-transparent text-muted-foreground hover:text-foreground"
