@@ -279,6 +279,11 @@ const translations: Dict = {
   submit_review: { ar: "إرسال التقييم", en: "Submit Review", he: "שלח ביקורת" },
   // Cart
   cart_title: { ar: "سلة التسوق", en: "Shopping Cart", he: "עגלת קניות" },
+  secure_checkout: {
+    ar: "دفع آمن · إمكانية الدفع عند الاستلام",
+    en: "Secure checkout · Cash on delivery available",
+    he: "תשלום מאובטח · אפשרות תשלום במזומן",
+  },
   cart_empty: { ar: "سلتك فارغة", en: "Your cart is empty", he: "העגלה שלך ריקה" },
   cart_empty_cta: { ar: "ابدأ التسوق", en: "Start shopping", he: "התחל לקנות" },
   subtotal: { ar: "المجموع الفرعي", en: "Subtotal", he: "סכום ביניים" },

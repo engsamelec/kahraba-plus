@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Minus, Plus, ShieldCheck, ShoppingBag, Trash2 } from "lucide-react";
 import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Cart() {
   const { t, lang } = useI18n();
-  const { items, subtotal, setQuantity, remove } = useCart();
+  const { items, subtotal, setQuantity, remove, count } = useCart();
   const money = useMoney();
   useDocumentTitle(t("cart_title"));
 
@@ -30,7 +30,10 @@ export default function Cart() {
 
   return (
     <div className="container py-8">
-      <h1 className="mb-6 text-2xl font-bold">{t("cart_title")}</h1>
+      <h1 className="mb-6 text-2xl font-bold">
+        {t("cart_title")}{" "}
+        <span className="font-normal text-muted-foreground ltr-nums">({count})</span>
+      </h1>
       <div className="grid gap-8 lg:grid-cols-3">
         {/* items */}
         <div className="space-y-4 lg:col-span-2">
@@ -135,6 +138,10 @@ export default function Cart() {
                 {t("continue_shopping")}
               </Button>
             </Link>
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+              {t("secure_checkout")}
+            </p>
           </div>
         </div>
       </div>
