@@ -53,17 +53,17 @@ export default function Home() {
         <div className="hero-aurora" />
         <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_2px_2px,white_1px,transparent_0)] [background-size:32px_32px]" />
         <div className="container relative grid gap-8 py-16 md:grid-cols-2 md:py-24">
-          <div className="flex flex-col justify-center gap-6">
-            <span className="animate-fade-in w-fit rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent ring-1 ring-accent/30">
+          <div className="flex animate-fade-in flex-col justify-center gap-6">
+            <span className="w-fit rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent ring-1 ring-accent/30">
               {t("tagline")}
             </span>
-            <h1 className="animate-fade-in text-balance text-4xl font-extrabold leading-tight [animation-delay:80ms] md:text-5xl">
+            <h1 className="text-balance text-4xl font-extrabold leading-tight md:text-5xl">
               {t("hero_title")}
             </h1>
-            <p className="animate-fade-in max-w-md text-lg text-primary-foreground/80 [animation-delay:160ms]">
+            <p className="max-w-md text-lg text-primary-foreground/80">
               {t("hero_subtitle")}
             </p>
-            <div className="animate-fade-in flex flex-wrap gap-3 [animation-delay:240ms]">
+            <div className="flex flex-wrap gap-3">
               <Link to="/shop">
                 <Button
                   size="lg"

@@ -18,21 +18,28 @@ export function ProductCard({ product }: { product: Product }) {
   const name = localized(product, lang);
   const [imgError, setImgError] = useState(false);
   const fav = isFavorite(product.id);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow duration-200 hover:shadow-md">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-lg">
       <Link to={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-secondary">
         {product.image_urls[0] && !imgError ? (
-          <img
-            src={product.image_urls[0]}
-            alt={name}
-            loading="lazy"
-            decoding="async"
-            onError={() => setImgError(true)}
-            className="card-media h-full w-full object-cover"
-          />
+          <>
+            {!imgLoaded && <div className="skeleton absolute inset-0" />}
+            <img
+              src={product.image_urls[0]}
+              alt={name}
+              loading="lazy"
+              decoding="async"
+              onError={() => setImgError(true)}
+              onLoad={() => setImgLoaded(true)}
+              className={`card-media h-full w-full object-cover transition-opacity duration-500 ${
+                imgLoaded ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          </>
         ) : (
-          <div className="grid h-full w-full place-items-center text-4xl text-muted-foreground">
+          <div className="grid h-full w-full place-items-center bg-gradient-to-br from-secondary to-secondary/50 text-4xl text-accent/40">
             ⚡
           </div>
         )}
