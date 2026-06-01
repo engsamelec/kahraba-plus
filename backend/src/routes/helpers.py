@@ -6,6 +6,23 @@ from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from src.models.user import User, db
 
 
+def is_admin_request():
+    """True if the current request carries a valid token for an admin user.
+
+    Never raises — used to conditionally enrich otherwise-public responses
+    (e.g. include confidential `cost`) without forcing authentication.
+    """
+    try:
+        verify_jwt_in_request(optional=True)
+        identity = get_jwt_identity()
+        if not identity:
+            return False
+        user = db.session.get(User, int(identity))
+        return bool(user and user.is_admin)
+    except Exception:
+        return False
+
+
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):

@@ -31,6 +31,23 @@ def test_product_detail_full_fields(client, product):
     assert "bundle" in d  # frequently-bought-together
 
 
+def test_cost_is_hidden_from_public_but_visible_to_admin(client, product, auth):
+    # Public callers must never see the confidential unit cost (COGS),
+    # neither in the list nor the detail response.
+    detail = client.get(f"/api/products/{product['slug']}").get_json()
+    assert "cost" not in detail
+    listing = client.get("/api/products").get_json()
+    assert all("cost" not in p for p in listing["products"])
+
+    # Admins do see cost (needed to display/edit it without wiping it).
+    admin_detail = client.get(
+        f"/api/products/{product['slug']}", headers=auth
+    ).get_json()
+    assert "cost" in admin_detail
+    admin_list = client.get("/api/products", headers=auth).get_json()
+    assert all("cost" in p for p in admin_list["products"])
+
+
 def test_search_and_category_filter(client):
     res = client.get("/api/products", query_string={"search": "arduino"})
     assert res.status_code == 200

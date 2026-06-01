@@ -156,7 +156,7 @@ class Product(db.Model):
             return round((1 - self.price / self.compare_at_price) * 100)
         return 0
 
-    def to_dict(self, full=False):
+    def to_dict(self, full=False, include_cost=False):
         data = {
             "id": self.id,
             "product_number": self.product_number or f"KP-{self.id:05d}",
@@ -190,8 +190,11 @@ class Product(db.Model):
             data["description_he"] = self.description_he
             data["technical_specs"] = self.technical_specs
             data["variants"] = [v.to_dict() for v in self.variants]
-            data["cost"] = self.cost
             data["video_url"] = self.video_url
+        # cost (COGS) is confidential merchant data — only ever serialized for
+        # admin callers that explicitly opt in, never on public endpoints.
+        if include_cost:
+            data["cost"] = self.cost
         return data
 
 

@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from src.models.catalog import Category, Product, ProductVariant, Review
 from src.models.user import User, db
-from src.routes.helpers import admin_required
+from src.routes.helpers import admin_required, is_admin_request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 products_bp = Blueprint("products", __name__)
@@ -170,9 +170,10 @@ def get_products():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
     bestseller_ids = _bestseller_ids()
+    include_cost = is_admin_request()
 
     def _serialize(p):
-        d = p.to_dict()
+        d = p.to_dict(include_cost=include_cost)
         d["is_bestseller"] = p.id in bestseller_ids
         return d
 
@@ -205,7 +206,7 @@ def get_product(slug):
         .limit(4)
         .all()
     )
-    data = product.to_dict(full=True)
+    data = product.to_dict(full=True, include_cost=is_admin_request())
     data["reviews"] = [r.to_dict() for r in product.reviews]
     data["related"] = [p.to_dict() for p in related]
 
@@ -261,7 +262,7 @@ def create_product():
     if not product.product_number:
         product.product_number = f"KP-{product.id:05d}"
     db.session.commit()
-    return jsonify(product.to_dict(full=True)), 201
+    return jsonify(product.to_dict(full=True, include_cost=True)), 201
 
 
 @products_bp.route("/products/<int:product_id>", methods=["PUT"])
@@ -302,7 +303,7 @@ def update_product(product_id):
         product.technical_specs = data["technical_specs"]
 
     db.session.commit()
-    return jsonify(product.to_dict(full=True))
+    return jsonify(product.to_dict(full=True, include_cost=True))
 
 
 @products_bp.route("/products/<int:product_id>", methods=["DELETE"])
