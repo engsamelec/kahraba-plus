@@ -11,8 +11,10 @@ import {
   PackageX,
   Tag,
 } from "lucide-react";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { getErrorMessage } from "@/lib/utils";
 
 interface Brief {
   id: number;
@@ -76,8 +78,14 @@ export function CatalogHealth() {
   async function answer(id: number) {
     const text = (drafts[id] || "").trim();
     if (!text) return;
-    await api.put(`/admin/questions/${id}`, { answer: text });
-    setQuestions((qs) => qs.filter((q) => q.id !== id));
+    try {
+      await api.put(`/admin/questions/${id}`, { answer: text });
+      // Drop it from the pending list only after the server confirms.
+      setQuestions((qs) => qs.filter((q) => q.id !== id));
+      toast.success(t("save"));
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   if (loading) {

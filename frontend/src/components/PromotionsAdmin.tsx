@@ -55,12 +55,22 @@ export function PromotionsAdmin() {
   }
 
   async function toggle(p: Promotion) {
-    await api.put(`/admin/promotions/${p.id}`, { is_active: !p.is_active });
-    load();
+    try {
+      await api.put(`/admin/promotions/${p.id}`, { is_active: !p.is_active });
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
   async function remove(id: number) {
-    await api.delete(`/admin/promotions/${id}`);
-    setItems((xs) => xs.filter((x) => x.id !== id));
+    if (!confirm(`${t("delete")}?`)) return;
+    try {
+      await api.delete(`/admin/promotions/${id}`);
+      setItems((xs) => xs.filter((x) => x.id !== id));
+      toast.success(t("delete"));
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   const cell =

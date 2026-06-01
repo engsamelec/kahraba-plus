@@ -67,6 +67,17 @@ def test_notify_stock(client, auth):
 
 
 # ---- visual search ----
+def test_newsletter_subscribe_persists(client, auth):
+    assert client.post("/api/subscribe", json={"email": "bad"}).status_code == 400
+    assert client.post("/api/subscribe", json={"email": "Fan@X.com"}).status_code == 201
+    # idempotent re-subscribe
+    assert client.post("/api/subscribe", json={"email": "fan@x.com"}).status_code == 201
+    subs = client.get("/api/admin/subscribers", headers=auth).get_json()
+    assert sum(1 for s in subs if s["email"] == "fan@x.com") == 1
+    # admin-gated
+    assert client.get("/api/admin/subscribers").status_code in (401, 422)
+
+
 def test_admin_can_dismiss_stock_notifications(client, auth):
     # put product 2 out of stock and request notification
     client.put("/api/products/2", json={"stock_quantity": 0}, headers=auth)

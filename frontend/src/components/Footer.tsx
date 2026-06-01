@@ -13,20 +13,30 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "./Logo";
+import api from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { getErrorMessage } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 
 export function Footer() {
   const { t } = useI18n();
   const year = new Date().getFullYear();
   const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
 
-  function subscribe(e: React.FormEvent) {
+  async function subscribe(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
-    // No backend list yet — acknowledge locally so the UX is complete.
-    toast.success(t("newsletter_done"));
-    setEmail("");
+    if (!email.trim() || subscribing) return;
+    setSubscribing(true);
+    try {
+      await api.post("/subscribe", { email: email.trim() });
+      toast.success(t("newsletter_done"));
+      setEmail("");
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    } finally {
+      setSubscribing(false);
+    }
   }
 
   const quickLinks = [
@@ -143,8 +153,9 @@ export function Footer() {
               />
               <button
                 type="submit"
+                disabled={subscribing}
                 aria-label={t("newsletter_subscribe")}
-                className="grid w-10 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground transition-transform hover:-translate-y-0.5"
+                className="grid w-10 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground transition-transform hover:-translate-y-0.5 disabled:opacity-50"
               >
                 <Send className="h-4 w-4" />
               </button>

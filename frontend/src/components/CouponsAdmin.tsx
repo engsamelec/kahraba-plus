@@ -62,13 +62,23 @@ export function CouponsAdmin() {
   }
 
   async function toggle(c: Coupon) {
-    await api.put(`/admin/coupons/${c.id}`, { is_active: !c.is_active });
-    load();
+    try {
+      await api.put(`/admin/coupons/${c.id}`, { is_active: !c.is_active });
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   async function remove(id: number) {
-    await api.delete(`/admin/coupons/${id}`);
-    setCoupons((cs) => cs.filter((c) => c.id !== id));
+    if (!confirm(`${t("delete")}?`)) return;
+    try {
+      await api.delete(`/admin/coupons/${id}`);
+      setCoupons((cs) => cs.filter((c) => c.id !== id));
+      toast.success(t("delete"));
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   const cell =
