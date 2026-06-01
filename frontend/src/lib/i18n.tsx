@@ -126,6 +126,17 @@ const translations: Dict = {
   },
   out_of_stock: { ar: "غير متوفر", en: "Out of stock", he: "אזל מהמלאי" },
   in_stock: { ar: "متوفر", en: "In stock", he: "במלאי" },
+  notify_title: {
+    ar: "نبّهني عند توفّره",
+    en: "Notify me when it's back",
+    he: "עדכנו אותי כשחוזר למלאי",
+  },
+  notify_btn: { ar: "نبّهني", en: "Notify me", he: "עדכנו אותי" },
+  notify_done: {
+    ar: "سننبّهك عند توفّر المنتج 🔔",
+    en: "We'll email you when it's back 🔔",
+    he: "נעדכן אותך כשהמוצר יחזור 🔔",
+  },
   bestseller: { ar: "الأكثر مبيعاً", en: "Bestseller", he: "רב מכר" },
   low_stock_left: {
     ar: "بقي القليل فقط",
@@ -328,6 +339,12 @@ const translations: Dict = {
     en: "Click a product to edit and complete its data.",
     he: "לחץ על מוצר כדי לערוך ולהשלים את הנתונים.",
   },
+  demand_title: {
+    ar: "طلب على منتجات نافدة (نبّهني)",
+    en: "Demand for out-of-stock items (notify requests)",
+    he: "ביקוש למוצרים שאזלו (בקשות עדכון)",
+  },
+  demand_waiting: { ar: "بانتظار", en: "waiting", he: "ממתינים" },
   // Coupons admin
   coupons: { ar: "كوبونات الخصم", en: "Coupons", he: "קופונים" },
   coupons_hint: {

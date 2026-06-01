@@ -12,6 +12,7 @@ import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { StarRating } from "@/components/StarRating";
 import { VariantSelector } from "@/components/VariantSelector";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { NotifyStock } from "@/components/NotifyStock";
 import { ProductCard } from "@/components/ProductCard";
 import type { ProductVariant } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -265,6 +266,11 @@ export default function ProductDetail() {
               </span>
             )}
           </div>
+
+          {/* back-in-stock for genuinely out-of-stock products */}
+          {!canBuy && !needsVariant && (
+            <NotifyStock productId={product.id} />
+          )}
 
           {/* qty + actions */}
           {(canBuy || needsVariant) && (

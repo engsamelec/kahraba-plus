@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
+  BellRing,
   CheckCircle2,
   FileText,
   ImageOff,
@@ -29,9 +30,18 @@ interface Health {
   out_of_stock: Brief[];
 }
 
+interface Demand {
+  product_id: number;
+  product_name: string;
+  slug: string;
+  in_stock: boolean;
+  requests: number;
+}
+
 export function CatalogHealth() {
   const { t } = useI18n();
   const [data, setData] = useState<Health | null>(null);
+  const [demand, setDemand] = useState<Demand[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +49,10 @@ export function CatalogHealth() {
       .get("/admin/catalog-health")
       .then((r) => setData(r.data))
       .finally(() => setLoading(false));
+    api
+      .get("/admin/stock-notifications")
+      .then((r) => setDemand(r.data))
+      .catch(() => {});
   }, []);
 
   if (loading) {
@@ -119,6 +133,33 @@ export function CatalogHealth() {
           <AlertTriangle className="h-3.5 w-3.5" />
           {t("health_hint")}
         </p>
+      )}
+
+      {demand.length > 0 && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <BellRing className="h-4 w-4 text-accent" />
+            {t("demand_title")}
+          </div>
+          <div className="space-y-2">
+            {demand.map((d) => (
+              <div
+                key={d.product_id}
+                className="flex items-center justify-between gap-2 text-sm"
+              >
+                <Link
+                  to={`/product/${d.slug}`}
+                  className="line-clamp-1 hover:text-accent"
+                >
+                  {d.product_name}
+                </Link>
+                <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-bold text-accent ltr-nums">
+                  {d.requests} {t("demand_waiting")}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
