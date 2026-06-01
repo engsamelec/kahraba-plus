@@ -30,6 +30,8 @@ const Checkout = lazy(() => import("@/pages/Checkout"));
 const OrderConfirmation = lazy(() => import("@/pages/OrderConfirmation"));
 const TrackOrder = lazy(() => import("@/pages/TrackOrder"));
 const Invoice = lazy(() => import("@/pages/Invoice"));
+const About = lazy(() => import("@/pages/About"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
 const Login = lazy(() => import("@/pages/Login"));
 const Account = lazy(() => import("@/pages/Account"));
 const Favorites = lazy(() => import("@/pages/Favorites"));
@@ -88,6 +90,8 @@ function App() {
                         />
                         <Route path="/track" element={<TrackOrder />} />
                         <Route path="/invoice/:orderNumber" element={<Invoice />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/faq" element={<FAQ />} />
                         <Route path="/favorites" element={<Favorites />} />
                         <Route path="/visual-search" element={<VisualSearch />} />
                         <Route path="/compare" element={<Compare />} />
