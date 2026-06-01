@@ -46,7 +46,16 @@ export default function OrderConfirmation() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex justify-between border-t pt-4 text-lg font-bold">
+            {order.discount && order.discount > 0 ? (
+              <div className="mt-2 flex justify-between text-sm text-green-600 dark:text-green-400">
+                <span>
+                  {t("discount")}
+                  {order.coupon_code ? ` (${order.coupon_code})` : ""}
+                </span>
+                <span className="ltr-nums">−{money(order.discount)}</span>
+              </div>
+            ) : null}
+            <div className="mt-2 flex justify-between border-t pt-4 text-lg font-bold">
               <span>{t("total")}</span>
               <span className="ltr-nums">{money(order.total_amount)}</span>
             </div>

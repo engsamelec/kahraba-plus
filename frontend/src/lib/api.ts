@@ -137,6 +137,8 @@ export interface Order {
   payment_status: string;
   payment_method: string;
   subtotal: number;
+  discount?: number;
+  coupon_code?: string | null;
   shipping_cost: number;
   tax: number;
   total_amount: number;
@@ -162,9 +164,25 @@ export interface ProductsResponse {
 
 export interface Quote {
   subtotal: number;
+  discount?: number;
+  coupon_code?: string | null;
+  coupon_error?: string;
   shipping_cost: number;
   tax: number;
   total_amount: number;
   currency: string;
   shipping_scope: string;
+}
+
+export interface Coupon {
+  id: number;
+  code: string;
+  discount_type: "percent" | "fixed";
+  value: number;
+  min_subtotal: number;
+  max_uses?: number | null;
+  used_count: number;
+  expires_at?: string | null;
+  is_active: boolean;
+  status: string;
 }

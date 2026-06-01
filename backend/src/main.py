@@ -11,6 +11,7 @@ from flask_jwt_extended import JWTManager
 
 from src.models.user import db
 from src.routes.auth import auth_bp
+from src.routes.coupons import coupons_bp
 from src.routes.geo import geo_bp
 from src.routes.imports import imports_bp
 from src.routes.orders import orders_bp
@@ -51,6 +52,7 @@ def create_app():
     app.register_blueprint(visual_bp, url_prefix="/api")
     app.register_blueprint(uploads_bp, url_prefix="/api")
     app.register_blueprint(imports_bp, url_prefix="/api")
+    app.register_blueprint(coupons_bp, url_prefix="/api")
 
     @app.route("/api/health")
     def health():
@@ -58,7 +60,7 @@ def create_app():
 
     with app.app_context():
         # Import models so SQLAlchemy registers all tables
-        from src.models import catalog, order  # noqa: F401
+        from src.models import catalog, coupon, order  # noqa: F401
 
         db.create_all()
         from src.seed import seed_database

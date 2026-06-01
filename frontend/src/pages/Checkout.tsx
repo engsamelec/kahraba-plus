@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Tag } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Quote } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
@@ -46,6 +46,8 @@ export default function Checkout() {
   });
   const [quote, setQuote] = useState<Quote | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -55,12 +57,13 @@ export default function Checkout() {
         quantity: l.quantity,
       })),
       country: form.shipping_country,
+      coupon_code: appliedCoupon || undefined,
     };
     api
       .post("/orders/quote", payload)
       .then((r) => setQuote(r.data))
       .catch(() => setQuote(null));
-  }, [items, form.shipping_country]);
+  }, [items, form.shipping_country, appliedCoupon]);
 
   if (items.length === 0) {
     navigate("/cart");
@@ -77,6 +80,7 @@ export default function Checkout() {
     try {
       const payload = {
         ...form,
+        coupon_code: appliedCoupon || undefined,
         items: items.map((l) => ({
           product_id: l.product.id,
           quantity: l.quantity,
@@ -251,6 +255,51 @@ export default function Checkout() {
                 </div>
               ))}
             </div>
+            {/* coupon */}
+            <div className="border-t pt-4">
+              {appliedCoupon && quote?.coupon_code ? (
+                <div className="flex items-center justify-between rounded-lg bg-green-500/10 px-3 py-2 text-sm">
+                  <span className="flex items-center gap-1.5 font-medium text-green-600 dark:text-green-400">
+                    <Tag className="h-4 w-4" /> {quote.coupon_code}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAppliedCoupon("");
+                      setCouponInput("");
+                    }}
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    {t("remove")}
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      placeholder={t("coupon_placeholder")}
+                      className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm uppercase outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!couponInput.trim()}
+                      onClick={() => setAppliedCoupon(couponInput.trim())}
+                    >
+                      {t("coupon_apply")}
+                    </Button>
+                  </div>
+                  {appliedCoupon && quote?.coupon_error && (
+                    <p className="mt-1.5 text-xs text-destructive">
+                      {t(`coupon_err_${quote.coupon_error}`)}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("subtotal")}</span>
@@ -258,6 +307,12 @@ export default function Checkout() {
                   {money(quote?.subtotal ?? subtotal)}
                 </span>
               </div>
+              {quote && quote.discount && quote.discount > 0 ? (
+                <div className="flex justify-between text-green-600 dark:text-green-400">
+                  <span>{t("discount")}</span>
+                  <span className="ltr-nums">−{money(quote.discount)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("shipping")}</span>
                 <span className="ltr-nums">

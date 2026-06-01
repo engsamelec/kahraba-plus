@@ -193,6 +193,26 @@ const translations: Dict = {
   trust_genuine: { ar: "منتجات أصلية", en: "Genuine products", he: "מוצרים מקוריים" },
   trust_returns: { ar: "إرجاع سهل", en: "Easy returns", he: "החזרות קלות" },
   order_summary: { ar: "ملخص الطلب", en: "Order Summary", he: "סיכום הזמנה" },
+  discount: { ar: "الخصم", en: "Discount", he: "הנחה" },
+  coupon_placeholder: { ar: "كود الخصم", en: "Discount code", he: "קוד הנחה" },
+  coupon_apply: { ar: "تطبيق", en: "Apply", he: "החל" },
+  coupon_err_invalid: {
+    ar: "كود غير صحيح",
+    en: "Invalid code",
+    he: "קוד לא תקין",
+  },
+  coupon_err_expired: { ar: "انتهت صلاحية الكود", en: "Code expired", he: "הקוד פג" },
+  coupon_err_exhausted: {
+    ar: "تم استنفاد الكود",
+    en: "Code fully used",
+    he: "הקוד נוצל",
+  },
+  coupon_err_inactive: { ar: "كود غير مُفعّل", en: "Code inactive", he: "הקוד לא פעיל" },
+  coupon_err_min_subtotal: {
+    ar: "السلة أقل من الحد المطلوب للكود",
+    en: "Cart below the code's minimum",
+    he: "העגלה מתחת למינימום של הקוד",
+  },
   // Order confirmation / track
   order_placed: { ar: "تم استلام طلبك!", en: "Order Placed!", he: "ההזמנה התקבלה!" },
   order_placed_d: {
@@ -295,6 +315,26 @@ const translations: Dict = {
     en: "Click a product to edit and complete its data.",
     he: "לחץ על מוצר כדי לערוך ולהשלים את הנתונים.",
   },
+  // Coupons admin
+  coupons: { ar: "كوبونات الخصم", en: "Coupons", he: "קופונים" },
+  coupons_hint: {
+    ar: "أنشئ أكواد خصم يطبّقها العملاء عند الدفع.",
+    en: "Create discount codes customers apply at checkout.",
+    he: "צור קודי הנחה שלקוחות מחילים בתשלום.",
+  },
+  coupons_none: { ar: "لا توجد كوبونات بعد", en: "No coupons yet", he: "אין קופונים עדיין" },
+  coupon_min: { ar: "حد أدنى", en: "Min", he: "מינ׳" },
+  coupon_max_uses: { ar: "حد الاستخدام", en: "Max uses", he: "שימושים מקס׳" },
+  coupon_expires: { ar: "تاريخ الانتهاء", en: "Expires", he: "תפוגה" },
+  coupon_used: { ar: "استُخدم", en: "used", he: "נוצל" },
+  coupon_need_fields: {
+    ar: "أدخل الكود وقيمة الخصم",
+    en: "Enter a code and discount value",
+    he: "הזן קוד וערך הנחה",
+  },
+  active: { ar: "مُفعّل", en: "Active", he: "פעיל" },
+  inactive: { ar: "موقوف", en: "Inactive", he: "כבוי" },
+  add: { ar: "إضافة", en: "Add", he: "הוסף" },
   edit: { ar: "تعديل", en: "Edit", he: "עריכה" },
   delete: { ar: "حذف", en: "Delete", he: "מחיקה" },
   save_product: { ar: "حفظ المنتج", en: "Save Product", he: "שמור מוצר" },

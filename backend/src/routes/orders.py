@@ -43,10 +43,25 @@ def quote_order():
     data = request.get_json(silent=True) or {}
     items = data.get("items", [])
     country = (data.get("country") or "").strip()
-    result = _compute_totals(items, country)
+    coupon_code = data.get("coupon_code")
+    result = _compute_totals(items, country, coupon_code)
     if "error" in result:
         return jsonify(result), 400
+    # If a coupon code was sent but didn't apply, tell the client why.
+    if coupon_code and not result.get("coupon_code"):
+        from src.models.coupon import Coupon
+
+        c = Coupon.query.filter(
+            db.func.lower(Coupon.code) == coupon_code.strip().lower()
+        ).first()
+        if not c:
+            result["coupon_error"] = "invalid"
+        elif c.status():
+            result["coupon_error"] = c.status()
+        else:
+            result["coupon_error"] = "min_subtotal"
     result.pop("_resolved", None)  # internal-only, not serializable
+    result.pop("_coupon", None)
     return jsonify(result)
 
 
@@ -65,7 +80,7 @@ def store_config():
 
 
 
-def _compute_totals(items, country):
+def _compute_totals(items, country, coupon_code=None):
     subtotal = 0.0
     resolved = []
     for item in items:
@@ -82,19 +97,42 @@ def _compute_totals(items, country):
         subtotal += line
         resolved.append((product, qty, line))
 
+    # Optional coupon discount on the subtotal.
+    discount = 0.0
+    applied_code = None
+    coupon_obj = None
+    if coupon_code:
+        from src.models.coupon import Coupon
+
+        coupon_obj = Coupon.query.filter(
+            db.func.lower(Coupon.code) == coupon_code.strip().lower()
+        ).first()
+        if coupon_obj:
+            discount = coupon_obj.discount_for(subtotal)
+            if discount > 0:
+                applied_code = coupon_obj.code
+
+    discounted_subtotal = max(0.0, subtotal - discount)
+
     is_domestic = (not country) or country.lower() == HOME_COUNTRY.lower()
     scope = "domestic" if is_domestic else "international"
-    shipping = 0.0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_RATES[scope]
-    tax = round(subtotal * TAX_RATE, 2)
-    total = round(subtotal + shipping + tax, 2)
+    # Free-shipping threshold applies to the discounted subtotal.
+    shipping = (
+        0.0 if discounted_subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_RATES[scope]
+    )
+    tax = round(discounted_subtotal * TAX_RATE, 2)
+    total = round(discounted_subtotal + shipping + tax, 2)
     return {
         "subtotal": round(subtotal, 2),
+        "discount": round(discount, 2),
+        "coupon_code": applied_code,
         "shipping_cost": shipping,
         "tax": tax,
         "total_amount": total,
         "currency": "USD",
         "shipping_scope": scope,
         "_resolved": resolved,
+        "_coupon": coupon_obj if applied_code else None,
     }
 
 
@@ -110,7 +148,9 @@ def create_order():
     if missing:
         return jsonify({"error": f"Missing fields: {', '.join(missing)}"}), 400
 
-    totals = _compute_totals(items, data.get("shipping_country"))
+    totals = _compute_totals(
+        items, data.get("shipping_country"), data.get("coupon_code")
+    )
     if "error" in totals:
         return jsonify(totals), 400
 
@@ -122,6 +162,8 @@ def create_order():
         payment_status="unpaid",
         payment_method=data.get("payment_method", "cod"),
         subtotal=totals["subtotal"],
+        discount=totals.get("discount", 0.0),
+        coupon_code=totals.get("coupon_code"),
         shipping_cost=totals["shipping_cost"],
         tax=totals["tax"],
         total_amount=totals["total_amount"],
@@ -152,6 +194,11 @@ def create_order():
             )
         )
         product.stock_quantity -= qty  # decrement inventory
+
+    # Count a coupon redemption.
+    coupon = totals.get("_coupon")
+    if coupon is not None:
+        coupon.used_count = (coupon.used_count or 0) + 1
 
     db.session.commit()
     return jsonify(order.to_dict()), 201

@@ -15,6 +15,8 @@ class Order(db.Model):
     payment_method = db.Column(db.String(40), nullable=False, default="cod")
 
     subtotal = db.Column(db.Float, nullable=False, default=0.0)
+    discount = db.Column(db.Float, nullable=False, default=0.0)
+    coupon_code = db.Column(db.String(40), nullable=True)
     shipping_cost = db.Column(db.Float, nullable=False, default=0.0)
     tax = db.Column(db.Float, nullable=False, default=0.0)
     total_amount = db.Column(db.Float, nullable=False, default=0.0)
@@ -45,6 +47,8 @@ class Order(db.Model):
             "payment_status": self.payment_status,
             "payment_method": self.payment_method,
             "subtotal": self.subtotal,
+            "discount": self.discount,
+            "coupon_code": self.coupon_code,
             "shipping_cost": self.shipping_cost,
             "tax": self.tax,
             "total_amount": self.total_amount,
