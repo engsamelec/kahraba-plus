@@ -21,6 +21,7 @@ import type { SalesPoint, TopProduct } from "@/components/AdminCharts";
 import { ImageUploader } from "@/components/ImageUploader";
 import { VariantsEditor } from "@/components/VariantsEditor";
 import { ImportAdmin } from "@/components/ImportAdmin";
+import { CatalogHealth } from "@/components/CatalogHealth";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -42,7 +43,7 @@ export default function Admin() {
   const { t } = useI18n();
   const { user, loading: authLoading, isAdmin } = useAuth();
   const [tab, setTab] = useState<
-    "dashboard" | "products" | "orders" | "import"
+    "dashboard" | "products" | "orders" | "import" | "health"
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
@@ -71,6 +72,7 @@ export default function Admin() {
           { id: "products", label: t("admin_products") },
           { id: "orders", label: t("admin_orders") },
           { id: "import", label: t("import_csv") },
+          { id: "health", label: t("health_tab") },
         ].map((tb) => (
           <button
             key={tb.id}
@@ -90,6 +92,7 @@ export default function Admin() {
       {tab === "products" && <ProductsAdmin />}
       {tab === "orders" && <OrdersAdmin />}
       {tab === "import" && <ImportAdmin />}
+      {tab === "health" && <CatalogHealth />}
     </div>
   );
 }

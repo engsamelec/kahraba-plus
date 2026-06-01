@@ -307,6 +307,57 @@ def delete_variant(variant_id):
     return "", 204
 
 
+# ---------------- Catalog health ----------------
+@products_bp.route("/admin/catalog-health", methods=["GET"])
+@admin_required
+def catalog_health():
+    """Surface catalog data-quality gaps so the merchant can fix listings:
+    products missing images, prices, descriptions, category, or stock."""
+    products = Product.query.all()
+    total = len(products)
+
+    no_image, no_price, no_desc, no_category, no_stock = [], [], [], [], []
+    for p in products:
+        brief = {"id": p.id, "name": p.name, "slug": p.slug}
+        if not p.image_urls:
+            no_image.append(brief)
+        if not p.price or p.price <= 0:
+            no_price.append(brief)
+        if not (p.description or p.description_ar or p.description_he):
+            no_desc.append(brief)
+        if not p.category_id:
+            no_category.append(brief)
+        if p.stock_quantity <= 0:
+            no_stock.append(brief)
+
+    issues = (
+        len(no_image) + len(no_price) + len(no_desc)
+        + len(no_category) + len(no_stock)
+    )
+    # Simple completeness score: share of products with no gaps.
+    flagged_ids = {
+        p["id"]
+        for group in (no_image, no_price, no_desc, no_category, no_stock)
+        for p in group
+    }
+    complete = total - len(flagged_ids)
+    score = round(100 * complete / total) if total else 100
+
+    return jsonify(
+        {
+            "total": total,
+            "complete": complete,
+            "score": score,
+            "issue_count": issues,
+            "missing_image": no_image,
+            "missing_price": no_price,
+            "missing_description": no_desc,
+            "missing_category": no_category,
+            "out_of_stock": no_stock,
+        }
+    )
+
+
 # ---------------- Reviews ----------------
 @products_bp.route("/products/<int:product_id>/reviews", methods=["POST"])
 @jwt_required()
