@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
 import { useCart } from "@/lib/cart";
+import { useFavorites } from "@/lib/favorites";
 import { formatPrice } from "@/lib/format";
 import { StarRating } from "./StarRating";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,10 @@ import { Button } from "@/components/ui/button";
 export function ProductCard({ product }: { product: Product }) {
   const { t, lang } = useI18n();
   const { add } = useCart();
+  const { isFavorite, toggle } = useFavorites();
   const name = localized(product, lang);
   const [imgError, setImgError] = useState(false);
+  const fav = isFavorite(product.id);
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover-lift hover:border-accent/40 hover:shadow-xl">
@@ -43,6 +46,28 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         )}
       </Link>
+
+      <button
+        type="button"
+        aria-label={fav ? t("remove_favorite") : t("add_favorite")}
+        aria-pressed={fav}
+        onClick={(e) => {
+          e.preventDefault();
+          toggle(product.id);
+          toast.success(fav ? t("removed_favorite") : t("added_favorite"), {
+            description: name,
+          });
+        }}
+        className="absolute top-2 ltr:right-2 rtl:left-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/80 backdrop-blur transition-transform hover:scale-110 active:scale-90"
+      >
+        <Heart
+          className={`h-4 w-4 transition-colors ${
+            fav
+              ? "fill-destructive text-destructive"
+              : "text-muted-foreground"
+          }`}
+        />
+      </button>
 
       <div className="flex flex-1 flex-col gap-2 p-3">
         {product.brand && (

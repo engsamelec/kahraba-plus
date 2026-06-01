@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Globe,
+  Heart,
   LogOut,
   Menu,
   Moon,
@@ -16,12 +17,14 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 import { useCart } from "@/lib/cart";
+import { useFavorites } from "@/lib/favorites";
 import { useAuth } from "@/lib/auth";
 
 export function Navbar() {
   const { t, toggleLang, lang } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const { count } = useCart();
+  const { count: favCount } = useFavorites();
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -36,6 +39,7 @@ export function Navbar() {
   const links = [
     { to: "/", label: t("nav_home") },
     { to: "/shop", label: t("nav_shop") },
+    { to: "/favorites", label: t("favorites") },
     { to: "/track", label: t("nav_track") },
   ];
 
@@ -145,6 +149,17 @@ export function Navbar() {
               </Button>
             </Link>
           )}
+
+          <Link to="/favorites" className="relative hidden sm:block">
+            <Button variant="ghost" size="icon" title={t("favorites")}>
+              <Heart className="h-5 w-5" />
+            </Button>
+            {favCount > 0 && (
+              <span className="absolute -top-0.5 ltr:-right-0.5 rtl:-left-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[11px] font-bold text-destructive-foreground">
+                {favCount}
+              </span>
+            )}
+          </Link>
 
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon" title={t("nav_cart")}>

@@ -58,6 +58,15 @@ def create_category():
 def get_products():
     query = Product.query.filter_by(is_active=True)
 
+    # explicit id list (used by the favorites/wishlist view)
+    ids_param = request.args.get("ids")
+    if ids_param:
+        try:
+            id_list = [int(x) for x in ids_param.split(",") if x.strip().isdigit()]
+        except ValueError:
+            id_list = []
+        query = query.filter(Product.id.in_(id_list or [-1]))
+
     # filter by category (id or slug)
     category = request.args.get("category")
     if category:

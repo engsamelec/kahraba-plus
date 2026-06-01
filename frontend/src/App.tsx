@@ -11,6 +11,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
+import { FavoritesProvider } from "@/lib/favorites";
 import { initNative } from "@/lib/native";
 import { Layout } from "@/components/Layout";
 import { PageLoader } from "@/components/PageLoader";
@@ -27,6 +28,7 @@ const OrderConfirmation = lazy(() => import("@/pages/OrderConfirmation"));
 const TrackOrder = lazy(() => import("@/pages/TrackOrder"));
 const Login = lazy(() => import("@/pages/Login"));
 const Account = lazy(() => import("@/pages/Account"));
+const Favorites = lazy(() => import("@/pages/Favorites"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -60,30 +62,33 @@ function App() {
         <I18nProvider>
           <AuthProvider>
             <CartProvider>
-              <BrowserRouter>
-                <NativeShell />
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    <Route element={<Layout />}>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/shop" element={<Shop />} />
-                      <Route path="/product/:slug" element={<ProductDetail />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route
-                        path="/order-confirmation/:orderNumber"
-                        element={<OrderConfirmation />}
-                      />
-                      <Route path="/track" element={<TrackOrder />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/account" element={<Account />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Route>
-                  </Routes>
-                </Suspense>
-              </BrowserRouter>
-              <Toaster position="top-center" richColors />
+              <FavoritesProvider>
+                <BrowserRouter>
+                  <NativeShell />
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route element={<Layout />}>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/shop" element={<Shop />} />
+                        <Route path="/product/:slug" element={<ProductDetail />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route
+                          path="/order-confirmation/:orderNumber"
+                          element={<OrderConfirmation />}
+                        />
+                        <Route path="/track" element={<TrackOrder />} />
+                        <Route path="/favorites" element={<Favorites />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/account" element={<Account />} />
+                        <Route path="/admin" element={<Admin />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Route>
+                    </Routes>
+                  </Suspense>
+                </BrowserRouter>
+                <Toaster position="top-center" richColors />
+              </FavoritesProvider>
             </CartProvider>
           </AuthProvider>
         </I18nProvider>

@@ -79,6 +79,12 @@ const translations: Dict = {
   // Product
   add_to_cart: { ar: "أضف إلى السلة", en: "Add to Cart" },
   buy_now: { ar: "اشترِ الآن", en: "Buy Now" },
+  add_favorite: { ar: "أضف إلى المفضلة", en: "Add to favorites" },
+  remove_favorite: { ar: "إزالة من المفضلة", en: "Remove from favorites" },
+  added_favorite: { ar: "أُضيف إلى المفضلة", en: "Added to favorites" },
+  removed_favorite: { ar: "أُزيل من المفضلة", en: "Removed from favorites" },
+  favorites: { ar: "المفضلة", en: "Favorites" },
+  no_favorites: { ar: "لا توجد منتجات في المفضلة بعد", en: "No favorites yet" },
   out_of_stock: { ar: "غير متوفر", en: "Out of stock" },
   in_stock: { ar: "متوفر", en: "In stock" },
   specifications: { ar: "المواصفات", en: "Specifications" },
