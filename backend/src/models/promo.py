@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from src.models.user import db, utcnow
 
@@ -38,8 +38,11 @@ class Promotion(db.Model):
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         if self.starts_at and self.starts_at > now:
             return False
-        if self.ends_at and self.ends_at < now:
-            return False
+        if self.ends_at:
+            # Dates are stored at midnight; the end date is inclusive, so the
+            # promo stays live through the end of that whole day.
+            if now >= self.ends_at + timedelta(days=1):
+                return False
         return True
 
     def to_dict(self):

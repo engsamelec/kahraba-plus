@@ -92,3 +92,42 @@ def test_csv_export(client, auth):
     assert res.status_code == 200
     body = res.get_data(as_text=True)
     assert "product_number" in body.splitlines()[0]
+
+
+# ---- promotions / offers ----
+def test_promotion_requires_admin(client):
+    res = client.post("/api/admin/promotions", json={"title": "x"})
+    assert res.status_code in (401, 403, 422)
+
+
+def test_promotion_lifecycle_and_public_live(client, auth):
+    from datetime import date, timedelta
+
+    today = date.today()
+    # ends today → must still be live (end date is inclusive)
+    res = client.post(
+        "/api/admin/promotions",
+        json={
+            "title": "Eid",
+            "title_ar": "عروض العيد",
+            "coupon_code": "EID20",
+            "starts_at": str(today - timedelta(days=2)),
+            "ends_at": str(today),
+        },
+        headers=auth,
+    )
+    assert res.status_code == 201
+    assert res.get_json()["live"] is True
+
+    # an expired promo (ended yesterday) must not be live
+    expired = client.post(
+        "/api/admin/promotions",
+        json={"title": "Old", "ends_at": str(today - timedelta(days=1))},
+        headers=auth,
+    ).get_json()
+    assert expired["live"] is False
+
+    # public endpoint returns only live ones
+    live = client.get("/api/promotions").get_json()
+    titles = {p["title"] for p in live}
+    assert "Eid" in titles and "Old" not in titles
