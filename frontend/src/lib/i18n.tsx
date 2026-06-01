@@ -91,6 +91,7 @@ const translations: Dict = {
   nav_account: { ar: "حسابي", en: "Account", he: "החשבון שלי" },
   nav_login: { ar: "تسجيل الدخول", en: "Login", he: "התחברות" },
   nav_logout: { ar: "خروج", en: "Logout", he: "התנתקות" },
+  admin_view_site: { ar: "عرض الموقع", en: "View site", he: "צפה באתר" },
   nav_admin: { ar: "لوحة التحكم", en: "Admin", he: "ניהול" },
   notifications: { ar: "الإشعارات", en: "Notifications", he: "התראות" },
   notif_none: { ar: "لا يوجد جديد", en: "Nothing new", he: "אין חדש" },

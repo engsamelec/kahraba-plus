@@ -16,6 +16,7 @@ import { CompareProvider } from "@/lib/compare";
 import { ConfigProvider } from "@/lib/config";
 import { initNative } from "@/lib/native";
 import { Layout } from "@/components/Layout";
+import { AdminLayout } from "@/components/AdminLayout";
 import { PageLoader } from "@/components/PageLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CompareBar } from "@/components/CompareBar";
@@ -100,8 +101,12 @@ function App() {
                         <Route path="/solar-calculator" element={<SolarCalculator />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/account" element={<Account />} />
-                        <Route path="/admin" element={<Admin />} />
                         <Route path="*" element={<NotFound />} />
+                      </Route>
+                      {/* Admin lives in its own isolated shell (no storefront
+                          chrome), gated to admins inside AdminLayout. */}
+                      <Route element={<AdminLayout />}>
+                        <Route path="/admin" element={<Admin />} />
                       </Route>
                     </Routes>
                   </Suspense>

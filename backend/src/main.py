@@ -5,7 +5,7 @@ from datetime import timedelta
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -80,6 +80,17 @@ def create_app():
     @app.route("/api/health")
     def health():
         return jsonify({"status": "ok", "service": "kahraba-plus-api"})
+
+    @app.after_request
+    def _no_store_api(resp):
+        # API data must never be cached by the browser or any proxy, so an
+        # admin edit (price, stock, new product…) is reflected on the
+        # storefront immediately on the next request — no stale cache.
+        if request.path.startswith("/api/"):
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            resp.headers["Expires"] = "0"
+        return resp
 
     # --- API error handlers: never leak a raw HTML 500; always JSON, and roll
     # back the session so one bad request can't poison the next. ---

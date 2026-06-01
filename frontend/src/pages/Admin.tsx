@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import {
   DollarSign,
   Loader2,
@@ -13,7 +12,6 @@ import {
 import { toast } from "sonner";
 import api, { type Category, type Order, type Product } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import { useAuth } from "@/lib/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatPrice, classFor } from "@/lib/format";
 import { getErrorMessage } from "@/lib/utils";
@@ -44,7 +42,7 @@ const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancel
 
 export default function Admin() {
   const { t } = useI18n();
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  // Auth/admin gating and the page chrome are handled by AdminLayout.
   const [tab, setTab] = useState<
     | "dashboard"
     | "products"
@@ -57,26 +55,9 @@ export default function Admin() {
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
-  if (authLoading) {
-    return (
-      <div className="container grid place-items-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin)
-    return (
-      <div className="container grid place-items-center py-24 text-center">
-        <p className="text-muted-foreground">403 — {t("nav_admin")}</p>
-      </div>
-    );
-
   return (
-    <div className="container py-8">
-      <h1 className="mb-6 text-2xl font-bold">{t("admin_dashboard")}</h1>
-
-      <div className="mb-6 flex gap-1 border-b">
+    <div>
+      <div className="mb-6 flex flex-wrap gap-1 border-b">
         {[
           { id: "dashboard", label: t("admin_dashboard") },
           { id: "products", label: t("admin_products") },
