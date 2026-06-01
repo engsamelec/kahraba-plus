@@ -260,4 +260,20 @@
   img {
     -webkit-user-drag: none;
   }
+  /* print: hide site chrome so only the invoice (or current page) prints clean */
+  @media print {
+    header,
+    footer,
+    nav,
+    .print\:hidden {
+      display: none !important;
+    }
+    body {
+      background: #fff !important;
+      color: #000 !important;
+    }
+    main {
+      padding: 0 !important;
+    }
+  }
 }

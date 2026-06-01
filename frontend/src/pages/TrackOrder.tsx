@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, PackageSearch } from "lucide-react";
 import api, { type Order } from "@/lib/api";
 import { useI18n, localizedOrderItem } from "@/lib/i18n";
@@ -157,6 +157,14 @@ export default function TrackOrder() {
                   </span>
                 </div>
               ))}
+            </div>
+            <div className="mt-4 text-end">
+              <Link
+                to={`/invoice/${order.order_number}`}
+                className="text-sm font-medium text-accent hover:underline"
+              >
+                {t("invoice_view")}
+              </Link>
             </div>
           </div>
         </div>

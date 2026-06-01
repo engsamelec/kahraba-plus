@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Order } from "@/lib/api";
@@ -120,9 +120,17 @@ export default function Account() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 flex justify-between border-t pt-3 font-bold">
+                <div className="mt-3 flex items-center justify-between border-t pt-3 font-bold">
                   <span>{t("total")}</span>
                   <span className="ltr-nums">{money(o.total_amount)}</span>
+                </div>
+                <div className="mt-2 flex justify-end">
+                  <Link
+                    to={`/invoice/${o.order_number}`}
+                    className="text-xs font-medium text-accent hover:underline"
+                  >
+                    {t("invoice_view")}
+                  </Link>
                 </div>
               </div>
             ))}

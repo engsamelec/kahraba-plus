@@ -63,7 +63,10 @@ export default function OrderConfirmation() {
         )}
       </div>
 
-      <div className="mt-6 flex justify-center gap-3">
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Link to={`/invoice/${orderNumber}`}>
+          <Button variant="outline">{t("invoice_view")}</Button>
+        </Link>
         <Link to={`/track?order=${orderNumber}`}>
           <Button variant="outline">{t("nav_track")}</Button>
         </Link>
