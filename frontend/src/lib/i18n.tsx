@@ -199,6 +199,10 @@ const translations: Dict = {
   total_products: { ar: "المنتجات", en: "Products", he: "מוצרים" },
   total_customers: { ar: "العملاء", en: "Customers", he: "לקוחות" },
   add_product: { ar: "إضافة منتج", en: "Add Product", he: "הוסף מוצר" },
+  images: { ar: "الصور", en: "Images", he: "תמונות" },
+  images_uploaded: { ar: "تم رفع الصور", en: "Images uploaded", he: "התמונות הועלו" },
+  primary_image: { ar: "رئيسية", en: "Primary", he: "ראשית" },
+  make_primary: { ar: "اجعلها رئيسية", en: "Make primary", he: "הפוך לראשית" },
   edit: { ar: "تعديل", en: "Edit", he: "עריכה" },
   delete: { ar: "حذف", en: "Delete", he: "מחיקה" },
   save_product: { ar: "حفظ المنتج", en: "Save Product", he: "שמור מוצר" },
@@ -241,6 +245,30 @@ const translations: Dict = {
     ar: "يبدو أن هذا الرابط مقطوع أو أن الصفحة لم تعد متاحة.",
     en: "This link looks broken or the page is no longer available.",
     he: "נראה שהקישור שבור או שהדף כבר אינו זמין.",
+  },
+  // Visual search
+  visual_search: { ar: "البحث بالصورة", en: "Search by Image", he: "חיפוש לפי תמונה" },
+  visual_search_hint: {
+    ar: "ارفع صورة منتج — حتى لو غير واضحة أو لقطة من فيديو — ونطابقها لك",
+    en: "Upload a product photo — even blurry or a video screenshot — and we'll match it",
+    he: "העלה תמונת מוצר — גם מטושטשת או צילום מסך מסרטון — ונמצא התאמה",
+  },
+  visual_search_upload: {
+    ar: "اضغط لرفع صورة",
+    en: "Tap to upload an image",
+    he: "לחץ להעלאת תמונה",
+  },
+  visual_search_another: { ar: "صورة أخرى", en: "Try another", he: "תמונה אחרת" },
+  visual_search_matching: {
+    ar: "نطابق الصورة مع منتجاتنا...",
+    en: "Matching against our products...",
+    he: "מתאים מול המוצרים שלנו...",
+  },
+  visual_search_results: { ar: "أقرب النتائج", en: "Closest matches", he: "ההתאמות הקרובות" },
+  visual_search_none: {
+    ar: "لم نجد منتجاً مطابقاً. جرّب صورة أوضح.",
+    en: "No matching product found. Try a clearer photo.",
+    he: "לא נמצא מוצר תואם. נסה תמונה ברורה יותר.",
   },
 };
 

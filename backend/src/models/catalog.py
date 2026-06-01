@@ -57,6 +57,9 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
     _image_urls = db.Column("image_urls", db.Text, nullable=True)  # JSON array
     _technical_specs = db.Column("technical_specs", db.Text, nullable=True)  # JSON object
+    # JSON array of perceptual (dHash) values, one per product image, used for
+    # visual search (match a customer photo to a product).
+    _image_hashes = db.Column("image_hashes", db.Text, nullable=True)
     is_featured = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     rating_avg = db.Column(db.Float, default=0.0)
@@ -81,6 +84,19 @@ class Product(db.Model):
     @image_urls.setter
     def image_urls(self, value):
         self._image_urls = json.dumps(value or [])
+
+    @property
+    def image_hashes(self):
+        if not self._image_hashes:
+            return []
+        try:
+            return json.loads(self._image_hashes)
+        except (ValueError, TypeError):
+            return []
+
+    @image_hashes.setter
+    def image_hashes(self, value):
+        self._image_hashes = json.dumps(value or [])
 
     @property
     def technical_specs(self):

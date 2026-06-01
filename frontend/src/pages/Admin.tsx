@@ -18,6 +18,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatPrice, classFor } from "@/lib/format";
 import { getErrorMessage } from "@/lib/utils";
 import type { SalesPoint, TopProduct } from "@/components/AdminCharts";
+import { ImageUploader } from "@/components/ImageUploader";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -161,7 +162,8 @@ interface ProductForm {
   category_id: number | string;
   description: string;
   description_ar: string;
-  image_url: string;
+  image_urls: string[];
+  image_hashes: (number | string)[];
   is_featured: boolean;
 }
 
@@ -176,7 +178,8 @@ const EMPTY_PRODUCT: ProductForm = {
   category_id: "",
   description: "",
   description_ar: "",
-  image_url: "",
+  image_urls: [],
+  image_hashes: [],
   is_featured: false,
 };
 
@@ -215,7 +218,8 @@ function ProductsAdmin() {
       category_id: p.category_id || "",
       description: p.description || "",
       description_ar: p.description_ar || "",
-      image_url: p.image_urls[0] || "",
+      image_urls: p.image_urls || [],
+      image_hashes: p.image_hashes || [],
       is_featured: p.is_featured,
     });
   }
@@ -236,7 +240,8 @@ function ProductsAdmin() {
       category_id: editing.category_id ? Number(editing.category_id) : null,
       description: editing.description,
       description_ar: editing.description_ar,
-      image_urls: editing.image_url ? [editing.image_url] : [],
+      image_urls: editing.image_urls,
+      image_hashes: editing.image_hashes,
       is_featured: editing.is_featured,
     };
     try {
@@ -418,12 +423,11 @@ function ProductsAdmin() {
                   </option>
                 ))}
               </select>
-              <input
-                placeholder="Image URL"
-                className={`${inputCls} sm:col-span-2`}
-                value={editing.image_url}
-                onChange={(e) =>
-                  setEditing({ ...editing, image_url: e.target.value })
+              <ImageUploader
+                urls={editing.image_urls}
+                hashes={editing.image_hashes}
+                onChange={(image_urls, image_hashes) =>
+                  setEditing({ ...editing, image_urls, image_hashes })
                 }
               />
               <textarea

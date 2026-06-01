@@ -63,6 +63,9 @@ export interface Product {
   category_id?: number | null;
   category?: Category | null;
   image_urls: string[];
+  image_hashes?: (number | string)[];
+  match_score?: number;
+  match_distance?: number;
   is_featured: boolean;
   is_active: boolean;
   rating_avg: number;

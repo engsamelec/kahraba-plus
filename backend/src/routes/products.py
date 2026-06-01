@@ -188,6 +188,7 @@ def create_product():
         is_active=data.get("is_active", True),
     )
     product.image_urls = data.get("image_urls", [])
+    product.image_hashes = data.get("image_hashes", [])
     product.technical_specs = data.get("technical_specs", {})
     db.session.add(product)
     db.session.commit()
@@ -222,6 +223,8 @@ def update_product(product_id):
         product.is_active = bool(data["is_active"])
     if "image_urls" in data:
         product.image_urls = data["image_urls"]
+    if "image_hashes" in data:
+        product.image_hashes = data["image_hashes"]
     if "technical_specs" in data:
         product.technical_specs = data["technical_specs"]
 

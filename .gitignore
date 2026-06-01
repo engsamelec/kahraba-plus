@@ -26,3 +26,6 @@ frontend/ios/
 .vscode/
 .idea/
 *.log
+
+# Runtime product image uploads (served from /api/uploads)
+backend/uploads/

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  Camera,
   Heart,
   LogOut,
   Menu,
@@ -67,8 +68,16 @@ export function Navbar() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("search_placeholder")}
-            className="w-full rounded-full border bg-secondary/60 py-2 ltr:pl-10 ltr:pr-4 rtl:pr-10 rtl:pl-4 text-sm outline-none focus:ring-2 focus:ring-accent"
+            className="w-full rounded-full border bg-secondary/60 py-2 ltr:pl-10 ltr:pr-11 rtl:pr-10 rtl:pl-11 text-sm outline-none focus:ring-2 focus:ring-accent"
           />
+          <Link
+            to="/visual-search"
+            title={t("visual_search")}
+            aria-label={t("visual_search")}
+            className="absolute top-1/2 -translate-y-1/2 ltr:right-2 rtl:left-2 grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent/15 hover:text-accent"
+          >
+            <Camera className="h-4 w-4" />
+          </Link>
         </form>
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -178,8 +187,16 @@ export function Navbar() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("search_placeholder")}
-                className="w-full rounded-full border bg-secondary/60 py-2 ltr:pl-10 ltr:pr-4 rtl:pr-10 rtl:pl-4 text-sm outline-none focus:ring-2 focus:ring-accent"
+                className="w-full rounded-full border bg-secondary/60 py-2 ltr:pl-10 ltr:pr-11 rtl:pr-10 rtl:pl-11 text-sm outline-none focus:ring-2 focus:ring-accent"
               />
+              <Link
+                to="/visual-search"
+                onClick={() => setMobileOpen(false)}
+                aria-label={t("visual_search")}
+                className="absolute top-1/2 -translate-y-1/2 ltr:right-2 rtl:left-2 grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:text-accent"
+              >
+                <Camera className="h-4 w-4" />
+              </Link>
             </form>
             <nav className="grid gap-1">
               {links.map((l) => (

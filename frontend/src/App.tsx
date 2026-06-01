@@ -29,6 +29,7 @@ const TrackOrder = lazy(() => import("@/pages/TrackOrder"));
 const Login = lazy(() => import("@/pages/Login"));
 const Account = lazy(() => import("@/pages/Account"));
 const Favorites = lazy(() => import("@/pages/Favorites"));
+const VisualSearch = lazy(() => import("@/pages/VisualSearch"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -79,6 +80,7 @@ function App() {
                         />
                         <Route path="/track" element={<TrackOrder />} />
                         <Route path="/favorites" element={<Favorites />} />
+                        <Route path="/visual-search" element={<VisualSearch />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/account" element={<Account />} />
                         <Route path="/admin" element={<Admin />} />
