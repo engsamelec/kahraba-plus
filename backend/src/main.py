@@ -5,7 +5,7 @@ from datetime import timedelta
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -165,6 +165,59 @@ def create_app():
                     p.cost = round(p.price * 0.62, 2)
             db.session.commit()
             app.logger.info("Backfilled cost for %d products.", len(no_cost))
+
+    @app.route("/robots.txt")
+    def robots_txt():
+        base = request.url_root.rstrip("/")
+        body = (
+            "User-agent: *\n"
+            "Allow: /\n"
+            # Keep private/transactional pages out of search results.
+            "Disallow: /admin\n"
+            "Disallow: /account\n"
+            "Disallow: /cart\n"
+            "Disallow: /checkout\n"
+            "Disallow: /login\n"
+            f"Sitemap: {base}/sitemap.xml\n"
+        )
+        return Response(body, mimetype="text/plain")
+
+    @app.route("/sitemap.xml")
+    def sitemap_xml():
+        """Crawler-friendly sitemap of public pages, categories and products."""
+        from xml.sax.saxutils import escape
+
+        from src.models.catalog import Category, Product
+
+        base = request.url_root.rstrip("/")
+        urls = [
+            (f"{base}/", "1.0"),
+            (f"{base}/shop", "0.9"),
+            (f"{base}/offers", "0.8"),
+            (f"{base}/about", "0.4"),
+            (f"{base}/faq", "0.4"),
+            (f"{base}/track", "0.3"),
+            (f"{base}/solar-calculator", "0.5"),
+        ]
+        for c in Category.query.all():
+            urls.append((f"{base}/shop?category={escape(c.slug)}", "0.7"))
+        for p in (
+            Product.query.filter_by(is_active=True)
+            .order_by(Product.id)
+            .limit(5000)
+            .all()
+        ):
+            urls.append((f"{base}/product/{escape(p.slug)}", "0.8"))
+
+        items = "".join(
+            f"<url><loc>{loc}</loc><priority>{pr}</priority></url>" for loc, pr in urls
+        )
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            f"{items}</urlset>"
+        )
+        return Response(xml, mimetype="application/xml")
 
     def _no_store(resp):
         """Never cache: the browser must always fetch the latest copy."""

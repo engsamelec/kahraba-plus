@@ -7,6 +7,18 @@ def test_health(client):
     assert res.get_json()["status"] == "ok"
 
 
+def test_robots_and_sitemap(client):
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200
+    assert "Sitemap:" in robots.get_data(as_text=True)
+    assert "Disallow: /admin" in robots.get_data(as_text=True)
+
+    sm = client.get("/sitemap.xml")
+    assert sm.status_code == 200
+    body = sm.get_data(as_text=True)
+    assert "<urlset" in body and "/product/" in body
+
+
 def test_products_list_and_pagination(client):
     res = client.get("/api/products", query_string={"per_page": 5})
     data = res.get_json()

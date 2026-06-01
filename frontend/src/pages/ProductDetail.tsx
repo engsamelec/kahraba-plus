@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import api, { type Product } from "@/lib/api";
 import { useI18n, localized, localizedText } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useMeta } from "@/hooks/useMeta";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useMoney } from "@/lib/currency";
@@ -87,6 +88,13 @@ export default function ProductDetail() {
   }, [slug]);
 
   useDocumentTitle(product ? localized(product, lang) : null);
+  useMeta({
+    title: product ? localized(product, lang) : null,
+    description: product
+      ? (localizedText(product, lang) || "").slice(0, 160) || null
+      : null,
+    image: product?.image_urls?.[0] ?? null,
+  });
 
   if (loading) {
     return (
