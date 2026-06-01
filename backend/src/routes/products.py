@@ -174,11 +174,13 @@ def create_product():
     product = Product(
         name=name,
         name_ar=data.get("name_ar"),
+        name_he=data.get("name_he"),
         slug=_unique_slug(slugify(name), Product),
         sku=data.get("sku"),
         brand=data.get("brand"),
         description=data.get("description"),
         description_ar=data.get("description_ar"),
+        description_he=data.get("description_he"),
         price=float(data.get("price") or 0),
         compare_at_price=data.get("compare_at_price"),
         currency=data.get("currency", "USD"),
@@ -191,6 +193,9 @@ def create_product():
     product.image_hashes = data.get("image_hashes", [])
     product.technical_specs = data.get("technical_specs", {})
     db.session.add(product)
+    db.session.flush()
+    if not product.product_number:
+        product.product_number = f"KP-{product.id:05d}"
     db.session.commit()
     return jsonify(product.to_dict(full=True)), 201
 
@@ -204,8 +209,8 @@ def update_product(product_id):
     data = request.get_json(silent=True) or {}
 
     for field in [
-        "name", "name_ar", "sku", "brand", "description", "description_ar",
-        "currency",
+        "name", "name_ar", "name_he", "sku", "brand", "description",
+        "description_ar", "description_he", "currency",
     ]:
         if field in data:
             setattr(product, field, data[field])

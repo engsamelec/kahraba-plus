@@ -31,6 +31,8 @@ HEADER_ALIASES = {
     "name": "name", "title": "name", "الاسم": "name", "اسم": "name", "שם": "name",
     "name_ar": "name_ar", "arabic name": "name_ar", "الاسم بالعربية": "name_ar",
     "name_he": "name_he", "hebrew name": "name_he",
+    "product_number": "product_number", "product number": "product_number",
+    "رقم المنتج": "product_number", "رقم": "product_number", "id": "product_number",
     "sku": "sku", "رمز": "sku", "code": "sku", 'מק"ט': "sku",
     "brand": "brand", "العلامة": "brand", "الماركة": "brand",
     "price": "price", "السعر": "price", "מחיר": "price",
@@ -91,6 +93,41 @@ def _read_text():
         return request.files["file"].read().decode("utf-8-sig", errors="replace")
     body = request.get_json(silent=True) or {}
     return body.get("csv", "")
+
+
+@imports_bp.route("/admin/export", methods=["GET"])
+@admin_required
+def export_csv():
+    """Export the whole catalog as CSV so the merchant can edit in Excel and
+    re-import (matched back by product_number)."""
+    from flask import Response
+
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(
+        [
+            "product_number", "name", "name_ar", "name_he", "sku", "brand",
+            "price", "compare_at_price", "stock", "category", "image_url",
+            "featured",
+        ]
+    )
+    for p in Product.query.order_by(Product.id).all():
+        writer.writerow(
+            [
+                p.product_number or f"KP-{p.id:05d}",
+                p.name, p.name_ar or "", p.name_he or "", p.sku or "",
+                p.brand or "", p.price, p.compare_at_price or "",
+                p.stock_quantity,
+                p.category.name if p.category else "",
+                p.image_urls[0] if p.image_urls else "",
+                "yes" if p.is_featured else "no",
+            ]
+        )
+    return Response(
+        out.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=kahraba-catalog.csv"},
+    )
 
 
 @imports_bp.route("/admin/import/preview", methods=["POST"])
@@ -159,16 +196,26 @@ def import_commit():
                     db.session.flush()
                 cat_cache[key] = category
 
+        # Match an existing product by product_number first, then SKU.
+        pnum = (row.get("product_number") or "").strip() or None
         sku = (row.get("sku") or "").strip() or None
-        product = Product.query.filter_by(sku=sku).first() if sku else None
+        product = None
+        if pnum:
+            product = Product.query.filter_by(product_number=pnum).first()
+        if product is None and sku:
+            product = Product.query.filter_by(sku=sku).first()
 
         if product is None:
             product = Product(
                 name=name,
                 slug=_unique_slug(slugify(name), Product),
                 sku=sku,
+                product_number=pnum,
             )
             db.session.add(product)
+            db.session.flush()
+            if not product.product_number:
+                product.product_number = f"KP-{product.id:05d}"
             created += 1
         else:
             updated += 1

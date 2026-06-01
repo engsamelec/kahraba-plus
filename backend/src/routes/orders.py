@@ -128,6 +128,8 @@ def create_order():
                 order_id=order.id,
                 product_id=product.id,
                 product_name=product.name,
+                product_name_ar=product.name_ar,
+                product_name_he=product.name_he,
                 product_image=product.image_urls[0] if product.image_urls else None,
                 quantity=qty,
                 unit_price=product.price,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Quote } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
@@ -96,8 +96,14 @@ export default function Checkout() {
 
   return (
     <div className="container py-8">
-      <h1 className="mb-6 text-2xl font-bold">{t("checkout_title")}</h1>
-      <form onSubmit={submit} className="grid gap-8 lg:grid-cols-3">
+      <h1 className="mb-1 text-2xl font-bold">{t("checkout_title")}</h1>
+      {!user && (
+        <p className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+          {t("guest_checkout_note")}
+        </p>
+      )}
+      <form onSubmit={submit} className="mt-5 grid gap-8 lg:grid-cols-3">
         {/* form */}
         <div className="space-y-6 lg:col-span-2">
           <section className="rounded-xl border bg-card p-6">

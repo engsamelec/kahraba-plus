@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { FileUp, Loader2, UploadCloud } from "lucide-react";
+import { Download, FileUp, Loader2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api";
+import api, { getToken, API_BASE_URL } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,23 @@ export function ImportAdmin() {
       setResult(null);
     };
     reader.readAsText(file);
+  }
+
+  async function exportCsv() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/export`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "kahraba-catalog.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   async function doPreview() {
@@ -87,6 +104,9 @@ export function ImportAdmin() {
         />
         <Button variant="outline" onClick={() => fileRef.current?.click()} className="gap-2">
           <FileUp className="h-4 w-4" /> {t("import_choose_file")}
+        </Button>
+        <Button variant="outline" onClick={exportCsv} className="gap-2">
+          <Download className="h-4 w-4" /> {t("export_csv")}
         </Button>
         <Button
           variant="ghost"

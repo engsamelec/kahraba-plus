@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Order } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { classFor } from "@/lib/format";
@@ -11,7 +11,7 @@ import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 
 export default function Account() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user, loading: authLoading, refresh } = useAuth();
   const money = useMoney();
   useDocumentTitle(t("my_account"));
@@ -114,7 +114,7 @@ export default function Account() {
                   {o.items.map((it) => (
                     <div key={it.id} className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {it.product_name} × {it.quantity}
+                        {localizedOrderItem(it, lang)} × {it.quantity}
                       </span>
                       <span className="ltr-nums">{money(it.subtotal)}</span>
                     </div>

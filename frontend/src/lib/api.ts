@@ -49,6 +49,7 @@ export interface Category {
 
 export interface Product {
   id: number;
+  product_number?: string;
   name: string;
   name_ar?: string | null;
   name_he?: string | null;
@@ -75,6 +76,7 @@ export interface Product {
   rating_count: number;
   description?: string;
   description_ar?: string;
+  description_he?: string;
   technical_specs?: Record<string, string>;
   reviews?: Review[];
   related?: Product[];
@@ -118,6 +120,8 @@ export interface OrderItem {
   id?: number;
   product_id: number;
   product_name: string;
+  product_name_ar?: string | null;
+  product_name_he?: string | null;
   product_image?: string | null;
   quantity: number;
   unit_price: number;

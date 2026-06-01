@@ -123,6 +123,7 @@ const translations: Dict = {
   related_products: { ar: "منتجات ذات صلة", en: "Related Products", he: "מוצרים קשורים" },
   brand_label: { ar: "العلامة", en: "Brand", he: "מותג" },
   sku_label: { ar: "رمز المنتج", en: "SKU", he: 'מק"ט' },
+  product_number: { ar: "رقم المنتج", en: "Product No.", he: "מספר מוצר" },
   quantity: { ar: "الكمية", en: "Quantity", he: "כמות" },
   size: { ar: "المقاس", en: "Size", he: "מידה" },
   color: { ar: "اللون", en: "Color", he: "צבע" },
@@ -164,6 +165,11 @@ const translations: Dict = {
   pay_cod: { ar: "الدفع عند الاستلام", en: "Cash on Delivery", he: "תשלום במזומן בעת קבלה" },
   pay_card: { ar: "بطاقة ائتمان", en: "Credit / Debit Card", he: "כרטיס אשראי / חיוב" },
   place_order: { ar: "تأكيد الطلب", en: "Place Order", he: "בצע הזמנה" },
+  guest_checkout_note: {
+    ar: "لا حاجة لإنشاء حساب — اطلب كزائر وادفع عند الاستلام",
+    en: "No account needed — check out as a guest and pay on delivery",
+    he: "אין צורך בחשבון — בצע הזמנה כאורח ושלם בעת קבלה",
+  },
   order_summary: { ar: "ملخص الطلب", en: "Order Summary", he: "סיכום הזמנה" },
   // Order confirmation / track
   order_placed: { ar: "تم استلام طلبك!", en: "Order Placed!", he: "ההזמנה התקבלה!" },
@@ -235,6 +241,7 @@ const translations: Dict = {
     he: "העלה CSV ליצירה או עדכון של מוצרים רבים בבת אחת. מותאם לפי מק\"ט.",
   },
   import_choose_file: { ar: "اختر ملف", en: "Choose file", he: "בחר קובץ" },
+  export_csv: { ar: "تصدير CSV", en: "Export CSV", he: "ייצוא CSV" },
   import_sample: { ar: "نموذج", en: "Load sample", he: "טען דוגמה" },
   import_preview: { ar: "معاينة", en: "Preview", he: "תצוגה מקדימה" },
   import_commit: { ar: "استيراد", en: "Import", he: "ייבא" },
@@ -412,4 +419,32 @@ export function localized<
   if (lang === "ar" && item.name_ar) return item.name_ar;
   if (lang === "he" && item.name_he) return item.name_he;
   return item.name;
+}
+
+// Localized free-text description (product description fields).
+export function localizedText(
+  item: {
+    description?: string | null;
+    description_ar?: string | null;
+    description_he?: string | null;
+  },
+  lang: Lang
+): string {
+  if (lang === "ar" && item.description_ar) return item.description_ar;
+  if (lang === "he" && item.description_he) return item.description_he;
+  return item.description || "";
+}
+
+// Localized order-item name (uses snapshotted name fields on the order).
+export function localizedOrderItem(
+  item: {
+    product_name: string;
+    product_name_ar?: string | null;
+    product_name_he?: string | null;
+  },
+  lang: Lang
+): string {
+  if (lang === "ar" && item.product_name_ar) return item.product_name_ar;
+  if (lang === "he" && item.product_name_he) return item.product_name_he;
+  return item.product_name;
 }

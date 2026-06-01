@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Check, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Product } from "@/lib/api";
-import { useI18n, localized } from "@/lib/i18n";
+import { useI18n, localized, localizedText } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
@@ -72,10 +72,7 @@ export default function ProductDetail() {
 
   const prod = product; // non-null below this point
   const name = localized(prod, lang);
-  const desc =
-    lang === "ar" && prod.description_ar
-      ? prod.description_ar
-      : prod.description;
+  const desc = localizedText(prod, lang);
   const specs = prod.technical_specs ?? {};
 
   const variants = prod.variants ?? [];
@@ -193,8 +190,13 @@ export default function ProductDetail() {
           )}
           <h1 className="text-balance text-3xl font-bold leading-tight">{name}</h1>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <StarRating value={product.rating_avg} count={product.rating_count} size={18} />
+            {product.product_number && (
+              <span className="text-sm text-muted-foreground ltr-nums">
+                {t("product_number")}: {product.product_number}
+              </span>
+            )}
             {product.sku && (
               <span className="text-sm text-muted-foreground">
                 {t("sku_label")}: {product.sku}

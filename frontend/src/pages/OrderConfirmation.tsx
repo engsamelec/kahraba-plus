@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 import api, { type Order } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 
 export default function OrderConfirmation() {
   const { orderNumber } = useParams();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const money = useMoney();
   const [order, setOrder] = useState<Order | null>(null);
 
@@ -38,7 +38,7 @@ export default function OrderConfirmation() {
               {order.items.map((it) => (
                 <div key={it.id} className="flex justify-between">
                   <span>
-                    {it.product_name} × {it.quantity}
+                    {localizedOrderItem(it, lang)} × {it.quantity}
                   </span>
                   <span className="ltr-nums font-semibold">
                     {money(it.subtotal)}

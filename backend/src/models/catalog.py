@@ -41,6 +41,9 @@ class Product(db.Model):
     __tablename__ = "products"
 
     id = db.Column(db.Integer, primary_key=True)
+    # Human-friendly unique product number (e.g. "KP-00021"). Stable, easy to
+    # reference in spreadsheets/invoices and to match rows on CSV import.
+    product_number = db.Column(db.String(40), unique=True, nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False, index=True)
     name_ar = db.Column(db.String(200), nullable=True)
     name_he = db.Column(db.String(200), nullable=True)
@@ -131,6 +134,7 @@ class Product(db.Model):
     def to_dict(self, full=False):
         data = {
             "id": self.id,
+            "product_number": self.product_number or f"KP-{self.id:05d}",
             "name": self.name,
             "name_ar": self.name_ar,
             "name_he": self.name_he,

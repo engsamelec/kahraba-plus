@@ -70,6 +70,10 @@ class OrderItem(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=True)
     product_name = db.Column(db.String(200), nullable=False)
+    # Localized name snapshots so historical orders render in the customer's
+    # language even if the product is later renamed or deleted.
+    product_name_ar = db.Column(db.String(200), nullable=True)
+    product_name_he = db.Column(db.String(200), nullable=True)
     product_image = db.Column(db.String(500), nullable=True)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     unit_price = db.Column(db.Float, nullable=False, default=0.0)
@@ -80,6 +84,8 @@ class OrderItem(db.Model):
             "id": self.id,
             "product_id": self.product_id,
             "product_name": self.product_name,
+            "product_name_ar": self.product_name_ar,
+            "product_name_he": self.product_name_he,
             "product_image": self.product_image,
             "quantity": self.quantity,
             "unit_price": self.unit_price,

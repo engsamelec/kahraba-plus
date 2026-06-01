@@ -163,6 +163,7 @@ interface ProductForm {
   id?: number;
   name: string;
   name_ar: string;
+  name_he: string;
   brand: string;
   sku: string;
   price: number | string;
@@ -179,6 +180,7 @@ interface ProductForm {
 const EMPTY_PRODUCT: ProductForm = {
   name: "",
   name_ar: "",
+  name_he: "",
   brand: "",
   sku: "",
   price: 0,
@@ -219,6 +221,7 @@ function ProductsAdmin() {
       id: p.id,
       name: p.name,
       name_ar: p.name_ar || "",
+      name_he: p.name_he || "",
       brand: p.brand || "",
       sku: p.sku || "",
       price: p.price,
@@ -239,6 +242,7 @@ function ProductsAdmin() {
     const payload = {
       name: editing.name,
       name_ar: editing.name_ar,
+      name_he: editing.name_he,
       brand: editing.brand,
       sku: editing.sku || null,
       price: Number(editing.price),
@@ -315,7 +319,14 @@ function ProductsAdmin() {
                         />
                       )}
                     </div>
-                    <span className="line-clamp-1 font-medium">{p.name}</span>
+                    <div className="min-w-0">
+                      <span className="line-clamp-1 font-medium">{p.name}</span>
+                      {p.product_number && (
+                        <span className="block text-xs text-muted-foreground ltr-nums">
+                          {p.product_number}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td className="p-3 text-muted-foreground">{p.brand}</td>
@@ -373,6 +384,15 @@ function ProductsAdmin() {
                 value={editing.name_ar}
                 onChange={(e) =>
                   setEditing({ ...editing, name_ar: e.target.value })
+                }
+              />
+              <input
+                placeholder="שם (עברית)"
+                dir="rtl"
+                className={`${inputCls} sm:col-span-2`}
+                value={editing.name_he}
+                onChange={(e) =>
+                  setEditing({ ...editing, name_he: e.target.value })
                 }
               />
               <input

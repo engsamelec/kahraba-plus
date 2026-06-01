@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, Circle, PackageSearch } from "lucide-react";
 import api, { type Order } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 const STEPS = ["pending", "processing", "shipped", "delivered"];
 
 export default function TrackOrder() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const money = useMoney();
   useDocumentTitle(t("track_title"));
   const [searchParams] = useSearchParams();
@@ -150,7 +150,7 @@ export default function TrackOrder() {
               {order.items.map((it) => (
                 <div key={it.id} className="flex justify-between">
                   <span>
-                    {it.product_name} × {it.quantity}
+                    {localizedOrderItem(it, lang)} × {it.quantity}
                   </span>
                   <span className="ltr-nums font-semibold">
                     {money(it.subtotal)}

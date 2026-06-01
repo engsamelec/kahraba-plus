@@ -66,6 +66,17 @@ def create_app():
         if seed_database():
             app.logger.info("Database seeded with initial catalog.")
 
+        # Backfill human-friendly product numbers for any product missing one
+        # (seeded rows, older imports). Idempotent.
+        from src.models.catalog import Product
+
+        missing = Product.query.filter(Product.product_number.is_(None)).all()
+        if missing:
+            for p in missing:
+                p.product_number = f"KP-{p.id:05d}"
+            db.session.commit()
+            app.logger.info("Backfilled %d product numbers.", len(missing))
+
     def _no_store(resp):
         """Never cache: the browser must always fetch the latest copy."""
         resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
