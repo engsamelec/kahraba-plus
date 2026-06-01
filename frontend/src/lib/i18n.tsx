@@ -68,6 +68,11 @@ const translations: Dict = {
   nav_login: { ar: "تسجيل الدخول", en: "Login", he: "התחברות" },
   nav_logout: { ar: "خروج", en: "Logout", he: "התנתקות" },
   nav_admin: { ar: "لوحة التحكم", en: "Admin", he: "ניהול" },
+  notifications: { ar: "الإشعارات", en: "Notifications", he: "התראות" },
+  notif_none: { ar: "لا يوجد جديد", en: "Nothing new", he: "אין חדש" },
+  notif_pending_orders: { ar: "طلبات معلّقة", en: "Pending orders", he: "הזמנות ממתינות" },
+  notif_questions: { ar: "أسئلة بانتظار رد", en: "Questions to answer", he: "שאלות לענות" },
+  notif_restock: { ar: "طلبات إعادة تخزين", en: "Restock requests", he: "בקשות חידוש מלאי" },
   search_placeholder: {
     ar: "ابحث عن منتج...",
     en: "Search products...",

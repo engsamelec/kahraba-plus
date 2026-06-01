@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { AdminBell } from "./AdminBell";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -118,6 +119,8 @@ export function Navbar() {
           </Button>
 
           <LanguageSwitcher />
+
+          <AdminBell />
 
           {user ? (
             <>

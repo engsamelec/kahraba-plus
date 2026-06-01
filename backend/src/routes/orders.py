@@ -289,6 +289,56 @@ def admin_update_order(order_id):
     return jsonify(order.to_dict())
 
 
+@orders_bp.route("/admin/notifications", methods=["GET"])
+@admin_required
+def admin_notifications():
+    """Aggregate the things the merchant needs to act on: pending orders,
+    unanswered questions, and out-of-stock products with waiting customers."""
+    from sqlalchemy import func
+
+    from src.models.catalog import Product
+    from src.models.notify import StockNotification
+    from src.models.question import Question
+
+    pending_orders = (
+        db.session.query(func.count(Order.id))
+        .filter(Order.status == "pending")
+        .scalar()
+        or 0
+    )
+    unanswered_questions = (
+        db.session.query(func.count(Question.id))
+        .filter(Question.answer.is_(None))
+        .scalar()
+        or 0
+    )
+    # distinct out-of-stock products that have waiting notify requests
+    restock_requests = (
+        db.session.query(func.count(func.distinct(StockNotification.product_id)))
+        .filter(StockNotification.notified.is_(False))
+        .scalar()
+        or 0
+    )
+    low_stock = (
+        db.session.query(func.count(Product.id))
+        .filter(Product.stock_quantity > 0, Product.stock_quantity <= 5)
+        .scalar()
+        or 0
+    )
+
+    return jsonify(
+        {
+            "pending_orders": int(pending_orders),
+            "unanswered_questions": int(unanswered_questions),
+            "restock_requests": int(restock_requests),
+            "low_stock": int(low_stock),
+            "total": int(
+                pending_orders + unanswered_questions + restock_requests
+            ),
+        }
+    )
+
+
 @orders_bp.route("/admin/stats", methods=["GET"])
 @admin_required
 def admin_stats():
