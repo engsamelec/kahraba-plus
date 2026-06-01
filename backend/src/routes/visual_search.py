@@ -12,6 +12,9 @@ Endpoints
 from __future__ import annotations
 
 import base64
+import ipaddress
+import socket
+from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, request
 
@@ -129,12 +132,40 @@ def reindex_images():
     return jsonify({"products_indexed": updated, "images_skipped": skipped})
 
 
+_MAX_FETCH_BYTES = 8 * 1024 * 1024  # 8MB cap on remote image fetches
+
+
+def _url_is_public(url: str) -> bool:
+    """Block SSRF: only http(s) to hosts that resolve to public IPs."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            return False
+        for info in socket.getaddrinfo(parsed.hostname, None):
+            ip = ipaddress.ip_address(info[4][0])
+            if (
+                ip.is_private
+                or ip.is_loopback
+                or ip.is_link_local
+                or ip.is_reserved
+                or ip.is_multicast
+                or ip.is_unspecified
+            ):
+                return False
+        return True
+    except Exception:
+        return False
+
+
 def _fetch(url: str, urllib, timeout: int = 6):
     try:
         if url.startswith("data:") and "," in url:
             return base64.b64decode(url.split(",", 1)[1])
+        if not _url_is_public(url):
+            return None
         req = urllib.request.Request(url, headers={"User-Agent": "kahraba-plus"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.read()
+            # Cap the read so a huge/again-internal response can't be slurped.
+            return resp.read(_MAX_FETCH_BYTES + 1)[:_MAX_FETCH_BYTES]
     except Exception:
         return None

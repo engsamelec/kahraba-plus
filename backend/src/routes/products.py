@@ -341,9 +341,10 @@ def _apply_variant(variant, data):
         if f in data:
             setattr(variant, f, data[f] or None)
     if "additional_price" in data:
-        variant.additional_price = float(data["additional_price"] or 0)
+        # Never negative — a variant can't drop the unit price below base.
+        variant.additional_price = max(0.0, float(data["additional_price"] or 0))
     if "stock_quantity" in data:
-        variant.stock_quantity = int(data["stock_quantity"] or 0)
+        variant.stock_quantity = max(0, int(data["stock_quantity"] or 0))
     if "is_available" in data:
         variant.is_available = bool(data["is_available"])
     if "sort_order" in data:

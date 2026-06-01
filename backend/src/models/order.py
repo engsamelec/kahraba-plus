@@ -38,7 +38,7 @@ class Order(db.Model):
         "OrderItem", backref="order", lazy=True, cascade="all, delete-orphan"
     )
 
-    def to_dict(self, with_items=True):
+    def to_dict(self, with_items=True, include_cost=False):
         data = {
             "id": self.id,
             "order_number": self.order_number,
@@ -63,7 +63,7 @@ class Order(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
         if with_items:
-            data["items"] = [item.to_dict() for item in self.items]
+            data["items"] = [item.to_dict(include_cost=include_cost) for item in self.items]
         return data
 
 
@@ -86,8 +86,8 @@ class OrderItem(db.Model):
     unit_cost = db.Column(db.Float, nullable=True)  # COGS snapshot for profit
     subtotal = db.Column(db.Float, nullable=False, default=0.0)
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_cost=False):
+        data = {
             "id": self.id,
             "product_id": self.product_id,
             "product_name": self.product_name,
@@ -98,6 +98,9 @@ class OrderItem(db.Model):
             "variant_label": self.variant_label,
             "quantity": self.quantity,
             "unit_price": self.unit_price,
-            "unit_cost": self.unit_cost,
             "subtotal": self.subtotal,
         }
+        # unit_cost is confidential COGS — only for admin order views.
+        if include_cost:
+            data["unit_cost"] = self.unit_cost
+        return data

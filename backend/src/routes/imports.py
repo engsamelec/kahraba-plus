@@ -102,6 +102,14 @@ def export_csv():
     re-import (matched back by product_number)."""
     from flask import Response
 
+    def safe(v):
+        # Neutralize spreadsheet formula injection: a cell starting with one of
+        # these is treated as a formula by Excel/Sheets, so prefix an apostrophe.
+        s = "" if v is None else str(v)
+        if s and s[0] in ("=", "+", "-", "@", "\t", "\r"):
+            return "'" + s
+        return s
+
     out = io.StringIO()
     writer = csv.writer(out)
     writer.writerow(
@@ -114,12 +122,13 @@ def export_csv():
     for p in Product.query.order_by(Product.id).all():
         writer.writerow(
             [
-                p.product_number or f"KP-{p.id:05d}",
-                p.name, p.name_ar or "", p.name_he or "", p.sku or "",
-                p.brand or "", p.price, p.compare_at_price or "",
+                safe(p.product_number or f"KP-{p.id:05d}"),
+                safe(p.name), safe(p.name_ar or ""), safe(p.name_he or ""),
+                safe(p.sku or ""), safe(p.brand or ""),
+                p.price, p.compare_at_price or "",
                 p.stock_quantity,
-                p.category.name if p.category else "",
-                p.image_urls[0] if p.image_urls else "",
+                safe(p.category.name if p.category else ""),
+                safe(p.image_urls[0] if p.image_urls else ""),
                 "yes" if p.is_featured else "no",
             ]
         )

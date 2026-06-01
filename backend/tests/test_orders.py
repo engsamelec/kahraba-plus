@@ -96,6 +96,19 @@ def test_cancelling_order_restocks_inventory(client, auth):
     assert again == before
 
 
+def test_unit_cost_hidden_from_customers_visible_to_admin(client, auth):
+    num = _order(client, [{"product_id": 1, "quantity": 1}]).get_json()[
+        "order_number"
+    ]
+    # Public tracking must not leak the merchant's COGS.
+    tracked = client.get(f"/api/orders/track/{num}").get_json()
+    assert all("unit_cost" not in it for it in tracked["items"])
+    # Admin order list does include it.
+    admin_orders = client.get("/api/admin/orders", headers=auth).get_json()
+    target = next(o for o in admin_orders if o["order_number"] == num)
+    assert all("unit_cost" in it for it in target["items"])
+
+
 def test_invalid_order_status_rejected(client, auth):
     order = _order(client, [{"product_id": 1, "quantity": 1}]).get_json()
     res = client.put(

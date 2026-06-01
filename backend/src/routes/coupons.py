@@ -122,9 +122,13 @@ def update_coupon(coupon_id):
     if "discount_type" in data and data["discount_type"] in ("percent", "fixed"):
         coupon.discount_type = data["discount_type"]
     if "value" in data:
-        coupon.value = float(data["value"] or 0)
+        value = max(0.0, float(data["value"] or 0))
+        # Mirror create: a percentage discount can't exceed 100% or go negative.
+        if coupon.discount_type == "percent":
+            value = min(value, 100.0)
+        coupon.value = value
     if "min_subtotal" in data:
-        coupon.min_subtotal = float(data["min_subtotal"] or 0)
+        coupon.min_subtotal = max(0.0, float(data["min_subtotal"] or 0))
     if "max_uses" in data:
         coupon.max_uses = int(data["max_uses"]) if data["max_uses"] else None
     if "expires_at" in data:

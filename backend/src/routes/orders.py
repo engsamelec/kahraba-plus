@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 from datetime import datetime, timezone
 
@@ -27,7 +27,10 @@ PAYMENT_STATUSES = {"unpaid", "paid", "refunded"}
 
 def _generate_order_number():
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
-    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    # 8 chars of crypto-strength randomness so order numbers (which act as a
+    # bearer credential for guest tracking) can't be enumerated/guessed.
+    alphabet = string.ascii_uppercase + string.digits
+    suffix = "".join(secrets.choice(alphabet) for _ in range(8))
     return f"KP-{stamp}-{suffix}"
 
 
@@ -316,7 +319,7 @@ def admin_list_orders():
     if status:
         query = query.filter_by(status=status)
     orders = query.order_by(Order.created_at.desc()).all()
-    return jsonify([o.to_dict() for o in orders])
+    return jsonify([o.to_dict(include_cost=True) for o in orders])
 
 
 @orders_bp.route("/admin/orders/<int:order_id>", methods=["PUT"])
