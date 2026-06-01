@@ -83,6 +83,7 @@ export interface Product {
   technical_specs?: Record<string, string>;
   reviews?: Review[];
   related?: Product[];
+  bundle?: Product[];
 }
 
 export interface ProductVariant {

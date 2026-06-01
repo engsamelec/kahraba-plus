@@ -13,6 +13,7 @@ import { StarRating } from "@/components/StarRating";
 import { VariantSelector } from "@/components/VariantSelector";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { NotifyStock } from "@/components/NotifyStock";
+import { FrequentlyBought } from "@/components/FrequentlyBought";
 import { ProductCard } from "@/components/ProductCard";
 import type { ProductVariant } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -417,6 +418,11 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      {/* frequently bought together */}
+      {product.bundle && product.bundle.length > 1 && (
+        <FrequentlyBought items={product.bundle} />
+      )}
 
       {/* related */}
       {product.related && product.related.length > 0 && (

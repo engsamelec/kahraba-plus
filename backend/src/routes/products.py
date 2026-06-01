@@ -186,6 +186,13 @@ def get_product(slug):
     data = product.to_dict(full=True)
     data["reviews"] = [r.to_dict() for r in product.reviews]
     data["related"] = [p.to_dict() for p in related]
+
+    # "Frequently bought together": this product + up to 2 in-stock siblings.
+    bundle_items = [
+        p for p in related if p.in_stock
+    ][:2]
+    if bundle_items:
+        data["bundle"] = [product.to_dict()] + [p.to_dict() for p in bundle_items]
     return jsonify(data)
 
 
