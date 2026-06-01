@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
-import api, { type Order } from "@/lib/api";
+import api, { type Order, type Product } from "@/lib/api";
 import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -29,14 +29,33 @@ export default function Account() {
       const { data } = await api.get("/products", {
         params: { ids, per_page: 100 },
       });
-      const byId = new Map(data.products.map((p: { id: number }) => [p.id, p]));
+      const byId = new Map<number, Product>(
+        (data.products as Product[]).map((p) => [p.id, p]),
+      );
       let added = 0;
       for (const it of order.items) {
         const prod = byId.get(it.product_id);
-        if (prod && (prod as { in_stock?: boolean }).in_stock) {
-          add(prod as never, it.quantity);
-          added++;
+        if (!prod || !prod.in_stock) continue;
+        // Rebuild the variant cart line so it round-trips through checkout
+        // (a product with options requires a variant to be chosen).
+        if (it.variant_id) {
+          add(
+            {
+              ...prod,
+              id: prod.id * 100000 + it.variant_id,
+              base_product_id: prod.id,
+              variant_id: it.variant_id,
+              price: it.unit_price,
+              name: it.variant_label
+                ? `${prod.name} — ${it.variant_label}`
+                : prod.name,
+            },
+            it.quantity,
+          );
+        } else {
+          add(prod, it.quantity);
         }
+        added++;
       }
       if (added) {
         toast.success(t("reorder_done"));
