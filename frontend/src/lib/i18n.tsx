@@ -55,6 +55,8 @@ const translations: Dict = {
   solar_daily: { ar: "الاستهلاك اليومي", en: "Daily use", he: "צריכה יומית" },
   solar_per_day: { ar: "يوم", en: "day", he: "יום" },
   scroll_top: { ar: "العودة للأعلى", en: "Scroll to top", he: "חזרה למעלה" },
+  theme_light: { ar: "الوضع الفاتح", en: "Light mode", he: "מצב בהיר" },
+  theme_dark: { ar: "الوضع الليلي", en: "Dark mode", he: "מצב כהה" },
   solar_shop: { ar: "تسوّق منتجات الطاقة الشمسية", en: "Shop solar products", he: "קנה מוצרים סולאריים" },
   solar_disclaimer: {
     ar: "نتيجة تقريبية للإرشاد فقط — تواصل معنا لتصميم دقيق.",

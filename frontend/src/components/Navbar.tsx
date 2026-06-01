@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Camera,
   Heart,
@@ -28,8 +28,12 @@ export function Navbar() {
   const { count: favCount } = useFavorites();
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isActive = (to: string) =>
+    to === "/" ? pathname === "/" : pathname.startsWith(to);
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -86,7 +90,12 @@ export function Navbar() {
             <Link
               key={l.to}
               to={l.to}
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-secondary hover:text-foreground"
+              aria-current={isActive(l.to) ? "page" : undefined}
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                isActive(l.to)
+                  ? "bg-accent/10 text-accent"
+                  : "text-foreground/80 hover:bg-secondary hover:text-foreground"
+              }`}
             >
               {l.label}
             </Link>
@@ -98,8 +107,8 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            title={theme === "dark" ? "Light mode" : "Dark mode"}
-            aria-label="Toggle theme"
+            title={theme === "dark" ? t("theme_light") : t("theme_dark")}
+            aria-label={theme === "dark" ? t("theme_light") : t("theme_dark")}
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5" />
@@ -205,7 +214,12 @@ export function Navbar() {
                   key={l.to}
                   to={l.to}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm font-medium hover:bg-secondary"
+                  aria-current={isActive(l.to) ? "page" : undefined}
+                  className={`rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive(l.to)
+                      ? "bg-accent/10 text-accent"
+                      : "hover:bg-secondary"
+                  }`}
                 >
                   {l.label}
                 </Link>
