@@ -15,6 +15,7 @@ import {
 import { Logo } from "./Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { AdminBell } from "./AdminBell";
+import { MegaMenu } from "./MegaMenu";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -89,18 +90,21 @@ export function Navbar() {
 
         <nav className="hidden items-center gap-1 lg:flex">
           {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              aria-current={isActive(l.to) ? "page" : undefined}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                isActive(l.to)
-                  ? "bg-accent/10 text-accent"
-                  : "text-foreground/80 hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {l.label}
-            </Link>
+            <span key={l.to} className="flex items-center">
+              <Link
+                to={l.to}
+                aria-current={isActive(l.to) ? "page" : undefined}
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive(l.to)
+                    ? "bg-accent/10 text-accent"
+                    : "text-foreground/80 hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                {l.label}
+              </Link>
+              {/* Categories mega-menu sits right after the Shop link */}
+              {l.to === "/shop" && <MegaMenu />}
+            </span>
           ))}
         </nav>
 
