@@ -78,16 +78,62 @@ pnpm dev                    # runs on http://localhost:5173, proxies /api → :5
 
 ### 3. Production build
 
-`pnpm build` compiles the frontend straight into `backend/src/static/`, so the
-Flask server serves the whole app (SPA + API) from a single origin on port 5000.
+`pnpm build` compiles the frontend into `frontend/dist/`, which the Flask
+server serves as the SPA — so the whole app (SPA + API) runs from a single
+origin on port 5000. The same `dist/` is the Capacitor `webDir` for the mobile apps.
 
 ## 🔧 Configuration
 
-| Env var | Default | Purpose |
-|---------|---------|---------|
-| `DATABASE_URL` | SQLite file | Use MySQL: `mysql+pymysql://user:pass@host/db` |
-| `SECRET_KEY` | dev value | Flask secret — **set in production** |
-| `JWT_SECRET_KEY` | dev value | JWT signing key — **set in production** |
+All configuration is via environment variables. Sensible dev defaults let the
+app run instantly; **production requires the secrets below or it refuses to
+start.**
+
+| Env var | Default (dev) | Purpose |
+|---------|---------------|---------|
+| `ENVIRONMENT` | _(unset)_ | Set to `production` to enforce secrets & lock down CORS |
+| `SECRET_KEY` | dev value | Flask session secret — **required in production** |
+| `JWT_SECRET_KEY` | dev value | JWT signing key — **required in production** |
+| `DATABASE_URL` | local SQLite | e.g. `mysql+pymysql://user:pass@host/db` |
+| `CORS_ORIGINS` | `*` | Comma-separated allowed origins in production, e.g. `https://electricalplus.com` |
+| `VITE_API_URL` | `/api` (build-time) | Absolute API URL for the mobile apps, e.g. `https://api.electricalplus.com/api` |
+
+> In production the backend **fails fast** if `ENVIRONMENT=production` and
+> `SECRET_KEY` / `JWT_SECRET_KEY` are unset — no forgeable default keys ship.
+
+### 🚀 Deploy checklist
+
+```bash
+# 1. Build the frontend (served by Flask from frontend/dist)
+cd frontend && pnpm install && pnpm build
+
+# 2. Backend deps
+cd ../backend && pip install -r requirements.txt
+
+# 3. Production env (example)
+export ENVIRONMENT=production
+export SECRET_KEY="$(python -c 'import secrets;print(secrets.token_hex(32))')"
+export JWT_SECRET_KEY="$(python -c 'import secrets;print(secrets.token_hex(32))')"
+export DATABASE_URL="mysql+pymysql://user:pass@host/electrical_plus"
+export CORS_ORIGINS="https://electricalplus.com"
+
+# 4. Run behind a WSGI server (the app object is src.main:app)
+gunicorn -w 4 -b 0.0.0.0:5000 src.main:app
+```
+
+Put it behind a reverse proxy/CDN (Nginx, Cloudflare) for TLS and to set the
+`CF-IPCountry` header that drives region-based language. `index.html` is sent
+`no-store` and hashed assets are cached immutably, so deploys take effect
+immediately with no manual cache clearing.
+
+### ✅ Tests & CI
+
+```bash
+cd backend && pytest          # 39 backend tests
+cd frontend && pnpm lint && pnpm build
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs the backend tests and the
+frontend lint+build on every push and pull request.
 
 ## 🌍 Local & International Selling
 
