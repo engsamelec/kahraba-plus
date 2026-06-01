@@ -23,6 +23,7 @@ import { VariantsEditor } from "@/components/VariantsEditor";
 import { ImportAdmin } from "@/components/ImportAdmin";
 import { CatalogHealth } from "@/components/CatalogHealth";
 import { CouponsAdmin } from "@/components/CouponsAdmin";
+import { Accounting } from "@/components/Accounting";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -44,7 +45,13 @@ export default function Admin() {
   const { t } = useI18n();
   const { user, loading: authLoading, isAdmin } = useAuth();
   const [tab, setTab] = useState<
-    "dashboard" | "products" | "orders" | "import" | "health" | "coupons"
+    | "dashboard"
+    | "products"
+    | "orders"
+    | "accounting"
+    | "import"
+    | "health"
+    | "coupons"
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
@@ -72,6 +79,7 @@ export default function Admin() {
           { id: "dashboard", label: t("admin_dashboard") },
           { id: "products", label: t("admin_products") },
           { id: "orders", label: t("admin_orders") },
+          { id: "accounting", label: t("acc_tab") },
           { id: "import", label: t("import_csv") },
           { id: "health", label: t("health_tab") },
           { id: "coupons", label: t("coupons") },
@@ -93,6 +101,7 @@ export default function Admin() {
       {tab === "dashboard" && <Dashboard />}
       {tab === "products" && <ProductsAdmin />}
       {tab === "orders" && <OrdersAdmin />}
+      {tab === "accounting" && <Accounting />}
       {tab === "import" && <ImportAdmin />}
       {tab === "health" && <CatalogHealth />}
       {tab === "coupons" && <CouponsAdmin />}
@@ -170,6 +179,7 @@ interface ProductForm {
   brand: string;
   sku: string;
   price: number | string;
+  cost: number | string;
   compare_at_price: number | string;
   stock_quantity: number | string;
   category_id: number | string;
@@ -187,6 +197,7 @@ const EMPTY_PRODUCT: ProductForm = {
   brand: "",
   sku: "",
   price: 0,
+  cost: "",
   compare_at_price: "",
   stock_quantity: 0,
   category_id: "",
@@ -228,6 +239,7 @@ function ProductsAdmin() {
       brand: p.brand || "",
       sku: p.sku || "",
       price: p.price,
+      cost: p.cost ?? "",
       compare_at_price: p.compare_at_price || "",
       stock_quantity: p.stock_quantity,
       category_id: p.category_id || "",
@@ -249,6 +261,7 @@ function ProductsAdmin() {
       brand: editing.brand,
       sku: editing.sku || null,
       price: Number(editing.price),
+      cost: editing.cost === "" ? null : Number(editing.cost),
       compare_at_price: editing.compare_at_price
         ? Number(editing.compare_at_price)
         : null,
@@ -415,11 +428,22 @@ function ProductsAdmin() {
               <input
                 type="number"
                 step="0.01"
-                placeholder="Price"
+                placeholder={`${t("price")} ($)`}
                 className={inputCls}
                 value={editing.price}
                 onChange={(e) =>
                   setEditing({ ...editing, price: e.target.value })
+                }
+              />
+              <input
+                type="number"
+                step="0.01"
+                placeholder={`${t("cost")} ($)`}
+                title={t("cost_hint")}
+                className={inputCls}
+                value={editing.cost}
+                onChange={(e) =>
+                  setEditing({ ...editing, cost: e.target.value })
                 }
               />
               <input

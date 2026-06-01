@@ -57,6 +57,7 @@ export interface Product {
   sku?: string | null;
   brand?: string | null;
   price: number;
+  cost?: number | null;
   compare_at_price?: number | null;
   discount_percent: number;
   currency: string;

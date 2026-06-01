@@ -81,6 +81,18 @@ def create_app():
             db.session.commit()
             app.logger.info("Backfilled %d product numbers.", len(missing))
 
+        # Seed a realistic cost (~62% of price) for demo products that have
+        # none, so the accountant shows meaningful margins out of the box.
+        no_cost = Product.query.filter(
+            (Product.cost.is_(None)) | (Product.cost == 0)
+        ).all()
+        if no_cost:
+            for p in no_cost:
+                if p.price:
+                    p.cost = round(p.price * 0.62, 2)
+            db.session.commit()
+            app.logger.info("Backfilled cost for %d products.", len(no_cost))
+
     def _no_store(resp):
         """Never cache: the browser must always fetch the latest copy."""
         resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"

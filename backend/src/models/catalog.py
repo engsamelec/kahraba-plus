@@ -54,6 +54,7 @@ class Product(db.Model):
     description_ar = db.Column(db.Text, nullable=True)
     description_he = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False, default=0.0)
+    cost = db.Column(db.Float, nullable=True)  # unit cost (COGS) for profit calc
     compare_at_price = db.Column(db.Float, nullable=True)  # original price for discounts
     currency = db.Column(db.String(8), nullable=False, default="USD")
     stock_quantity = db.Column(db.Integer, nullable=False, default=0)
@@ -168,6 +169,7 @@ class Product(db.Model):
             data["description_he"] = self.description_he
             data["technical_specs"] = self.technical_specs
             data["variants"] = [v.to_dict() for v in self.variants]
+            data["cost"] = self.cost
         return data
 
 

@@ -81,6 +81,7 @@ class OrderItem(db.Model):
     product_image = db.Column(db.String(500), nullable=True)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     unit_price = db.Column(db.Float, nullable=False, default=0.0)
+    unit_cost = db.Column(db.Float, nullable=True)  # COGS snapshot for profit
     subtotal = db.Column(db.Float, nullable=False, default=0.0)
 
     def to_dict(self):
@@ -93,5 +94,6 @@ class OrderItem(db.Model):
             "product_image": self.product_image,
             "quantity": self.quantity,
             "unit_price": self.unit_price,
+            "unit_cost": self.unit_cost,
             "subtotal": self.subtotal,
         }

@@ -190,6 +190,7 @@ def create_order():
                 product_image=product.image_urls[0] if product.image_urls else None,
                 quantity=qty,
                 unit_price=product.price,
+                unit_cost=product.cost,
                 subtotal=round(line, 2),
             )
         )
@@ -320,5 +321,93 @@ def admin_stats():
             "total_customers": total_customers,
             "sales_series": sales_series,
             "top_products": top_products,
+        }
+    )
+
+
+@orders_bp.route("/admin/accounting", methods=["GET"])
+@admin_required
+def admin_accounting():
+    """Smart accountant: revenue, cost of goods sold (COGS), gross profit,
+    margin, discounts, AOV — plus the most and least profitable products.
+
+    Excludes cancelled orders. Profit uses the unit_cost snapshot captured at
+    sale time; line items without a recorded cost are flagged so the merchant
+    knows the profit figure is partial until costs are filled in."""
+    from src.models.catalog import Product
+
+    orders = Order.query.filter(Order.status != "cancelled").all()
+
+    revenue = 0.0          # sum of item subtotals actually sold
+    cogs = 0.0             # sum of unit_cost * qty (where cost known)
+    discounts = 0.0
+    shipping_collected = 0.0
+    items_with_cost = 0
+    items_without_cost = 0
+
+    # per-product aggregation
+    prod_agg: dict[int, dict] = {}
+
+    for o in orders:
+        discounts += o.discount or 0
+        shipping_collected += o.shipping_cost or 0
+        for it in o.items:
+            line_rev = it.subtotal or 0
+            revenue += line_rev
+            agg = prod_agg.setdefault(
+                it.product_id or 0,
+                {"name": it.product_name, "revenue": 0.0, "profit": 0.0, "qty": 0},
+            )
+            agg["revenue"] += line_rev
+            agg["qty"] += it.quantity or 0
+            if it.unit_cost is not None:
+                line_cost = (it.unit_cost or 0) * (it.quantity or 0)
+                cogs += line_cost
+                agg["profit"] += line_rev - line_cost
+                items_with_cost += 1
+            else:
+                items_without_cost += 1
+
+    gross_profit = revenue - cogs
+    margin = (gross_profit / revenue * 100) if revenue else 0
+    order_count = len(orders)
+    aov = (revenue / order_count) if order_count else 0
+
+    ranked = sorted(prod_agg.values(), key=lambda p: p["profit"], reverse=True)
+    top_profit = [
+        {"name": p["name"], "profit": round(p["profit"], 2), "revenue": round(p["revenue"], 2), "qty": p["qty"]}
+        for p in ranked[:5]
+    ]
+    low_profit = [
+        {"name": p["name"], "profit": round(p["profit"], 2), "revenue": round(p["revenue"], 2), "qty": p["qty"]}
+        for p in ranked[-5:][::-1]
+        if p["profit"] <= 0 or len(ranked) > 5
+    ]
+
+    # how many catalog products are missing a cost (so margins are blind there)
+    from sqlalchemy import func as _func
+
+    missing_cost = (
+        db.session.query(_func.count(Product.id))
+        .filter((Product.cost.is_(None)) | (Product.cost == 0))
+        .scalar()
+        or 0
+    )
+
+    return jsonify(
+        {
+            "revenue": round(revenue, 2),
+            "cogs": round(cogs, 2),
+            "gross_profit": round(gross_profit, 2),
+            "margin_percent": round(margin, 1),
+            "discounts": round(discounts, 2),
+            "shipping_collected": round(shipping_collected, 2),
+            "order_count": order_count,
+            "aov": round(aov, 2),
+            "items_with_cost": items_with_cost,
+            "items_without_cost": items_without_cost,
+            "products_missing_cost": int(missing_cost),
+            "top_profit": top_profit,
+            "low_profit": low_profit,
         }
     )

@@ -208,6 +208,7 @@ def create_product():
         description_ar=data.get("description_ar"),
         description_he=data.get("description_he"),
         price=float(data.get("price") or 0),
+        cost=float(data["cost"]) if data.get("cost") not in (None, "") else None,
         compare_at_price=data.get("compare_at_price"),
         currency=data.get("currency", "USD"),
         stock_quantity=int(data.get("stock_quantity") or 0),
@@ -242,6 +243,8 @@ def update_product(product_id):
             setattr(product, field, data[field])
     if "price" in data:
         product.price = float(data["price"])
+    if "cost" in data:
+        product.cost = float(data["cost"]) if data["cost"] not in (None, "") else None
     if "compare_at_price" in data:
         product.compare_at_price = data["compare_at_price"]
     if "stock_quantity" in data:

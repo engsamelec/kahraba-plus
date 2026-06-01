@@ -345,6 +345,32 @@ const translations: Dict = {
     he: "ביקוש למוצרים שאזלו (בקשות עדכון)",
   },
   demand_waiting: { ar: "بانتظار", en: "waiting", he: "ממתינים" },
+  // Cost / accounting
+  cost: { ar: "التكلفة", en: "Cost", he: "עלות" },
+  cost_hint: {
+    ar: "تكلفة الوحدة — تُستخدم لحساب الربح",
+    en: "Unit cost — used to calculate profit",
+    he: "עלות יחידה — לחישוב רווח",
+  },
+  acc_tab: { ar: "المحاسبة", en: "Accounting", he: "הנהלת חשבונות" },
+  acc_title: {
+    ar: "المحاسب الذكي",
+    en: "Smart Accountant",
+    he: "רואה החשבון החכם",
+  },
+  acc_revenue: { ar: "الإيرادات", en: "Revenue", he: "הכנסות" },
+  acc_cogs: { ar: "تكلفة البضاعة", en: "Cost of goods (COGS)", he: "עלות מכר" },
+  acc_gross_profit: { ar: "الربح الإجمالي", en: "Gross profit", he: "רווח גולמי" },
+  acc_margin: { ar: "هامش الربح", en: "Profit margin", he: "שולי רווח" },
+  acc_aov: { ar: "متوسط قيمة الطلب", en: "Avg order value", he: "ערך הזמנה ממוצע" },
+  acc_discounts: { ar: "الخصومات", en: "Discounts given", he: "הנחות שניתנו" },
+  acc_top_profit: { ar: "الأكثر ربحاً", en: "Most profitable", he: "הרווחיים ביותר" },
+  acc_low_profit: { ar: "الأقل ربحاً", en: "Least profitable", he: "הפחות רווחיים" },
+  acc_missing_cost: {
+    ar: "{n} منتج بدون تكلفة محدّدة — أضف التكلفة لحساب ربح أدق.",
+    en: "{n} products have no cost set — add costs for accurate profit.",
+    he: "ל-{n} מוצרים אין עלות — הוסף עלויות לחישוב רווח מדויק.",
+  },
   // Coupons admin
   coupons: { ar: "كوبونات الخصم", en: "Coupons", he: "קופונים" },
   coupons_hint: {
