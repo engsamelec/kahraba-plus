@@ -43,7 +43,7 @@ export function CompareBar() {
                 <button
                   onClick={() => remove(p.id)}
                   aria-label={t("remove")}
-                  className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-destructive text-destructive-foreground"
+                  className="absolute -top-1 ltr:-right-1 rtl:-left-1 grid h-4 w-4 place-items-center rounded-full bg-destructive text-destructive-foreground"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>

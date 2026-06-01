@@ -92,7 +92,7 @@ export default function VisualSearch() {
             <button
               onClick={reset}
               aria-label={t("remove")}
-              className="absolute -right-2 -top-2 grid h-7 w-7 place-items-center rounded-full bg-destructive text-destructive-foreground shadow"
+              className="absolute -top-2 ltr:-right-2 rtl:-left-2 grid h-7 w-7 place-items-center rounded-full bg-destructive text-destructive-foreground shadow"
             >
               <X className="h-4 w-4" />
             </button>
@@ -132,7 +132,7 @@ export default function VisualSearch() {
               {results.map((p) => (
                 <div key={p.id} className="relative">
                   {typeof p.match_score === "number" && (
-                    <span className="absolute left-2 top-2 z-10 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
+                    <span className="absolute top-2 ltr:left-2 rtl:right-2 z-10 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
                       {Math.round(p.match_score * 100)}%
                     </span>
                   )}

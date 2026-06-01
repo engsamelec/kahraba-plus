@@ -93,7 +93,7 @@ export function ImageUploader({ urls, hashes, onChange }: Props) {
           >
             <img src={url} alt="" className="h-full w-full object-cover" />
             {i === 0 && (
-              <span className="absolute left-1 top-1 rounded bg-accent px-1 text-[9px] font-bold text-accent-foreground">
+              <span className="absolute top-1 ltr:left-1 rtl:right-1 rounded bg-accent px-1 text-[9px] font-bold text-accent-foreground">
                 {t("primary_image")}
               </span>
             )}

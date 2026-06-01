@@ -73,7 +73,7 @@ export function FrequentlyBought({ items }: { items: Product[] }) {
                   </div>
                 </div>
                 {/* checkbox dot */}
-                <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border bg-background text-accent peer-checked:bg-accent peer-checked:text-accent-foreground">
+                <span className="absolute top-1 ltr:right-1 rtl:left-1 grid h-5 w-5 place-items-center rounded-full border bg-background text-accent peer-checked:bg-accent peer-checked:text-accent-foreground">
                   ✓
                 </span>
               </label>

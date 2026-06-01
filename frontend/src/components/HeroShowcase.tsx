@@ -63,10 +63,10 @@ export function HeroShowcase() {
         </div>
 
         {/* floating spark chips */}
-        <div className="absolute -left-4 top-6 grid h-12 w-12 animate-pulse-soft place-items-center rounded-xl bg-background/90 text-accent shadow-lg ring-1 ring-border">
+        <div className="absolute top-6 ltr:-left-4 rtl:-right-4 grid h-12 w-12 animate-pulse-soft place-items-center rounded-xl bg-background/90 text-accent shadow-lg ring-1 ring-border">
           <Zap className="h-6 w-6" fill="currentColor" />
         </div>
-        <div className="absolute -bottom-3 right-8 grid h-10 w-10 place-items-center rounded-xl bg-background/90 text-primary shadow-lg ring-1 ring-border">
+        <div className="absolute -bottom-3 ltr:right-8 rtl:left-8 grid h-10 w-10 place-items-center rounded-xl bg-background/90 text-primary shadow-lg ring-1 ring-border">
           <Cpu className="h-5 w-5" />
         </div>
       </div>
