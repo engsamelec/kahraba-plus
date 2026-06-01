@@ -110,6 +110,15 @@ const translations: Dict = {
   added_favorite: { ar: "أُضيف إلى المفضلة", en: "Added to favorites", he: "נוסף למועדפים" },
   removed_favorite: { ar: "أُزيل من المفضلة", en: "Removed from favorites", he: "הוסר מהמועדפים" },
   favorites: { ar: "المفضلة", en: "Favorites", he: "מועדפים" },
+  compare: { ar: "قارن", en: "Compare", he: "השוואה" },
+  compare_add: { ar: "أضف للمقارنة", en: "Add to compare", he: "הוסף להשוואה" },
+  compare_empty: {
+    ar: "لم تختر منتجات للمقارنة بعد",
+    en: "No products selected to compare yet",
+    he: "לא נבחרו מוצרים להשוואה",
+  },
+  compare_cheapest: { ar: "الأرخص", en: "cheapest", he: "הזול ביותר" },
+  clear: { ar: "مسح", en: "Clear", he: "נקה" },
   no_favorites: {
     ar: "لا توجد منتجات في المفضلة بعد",
     en: "No favorites yet",

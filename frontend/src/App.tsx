@@ -12,11 +12,13 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart";
 import { FavoritesProvider } from "@/lib/favorites";
+import { CompareProvider } from "@/lib/compare";
 import { ConfigProvider } from "@/lib/config";
 import { initNative } from "@/lib/native";
 import { Layout } from "@/components/Layout";
 import { PageLoader } from "@/components/PageLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { CompareBar } from "@/components/CompareBar";
 
 // Home loads eagerly (it's the landing route); the rest are code-split so the
 // initial bundle stays small and each page is fetched on demand.
@@ -31,6 +33,7 @@ const Login = lazy(() => import("@/pages/Login"));
 const Account = lazy(() => import("@/pages/Account"));
 const Favorites = lazy(() => import("@/pages/Favorites"));
 const VisualSearch = lazy(() => import("@/pages/VisualSearch"));
+const Compare = lazy(() => import("@/pages/Compare"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -66,6 +69,7 @@ function App() {
             <ConfigProvider>
             <CartProvider>
               <FavoritesProvider>
+                <CompareProvider>
                 <BrowserRouter>
                   <NativeShell />
                   <Suspense fallback={<PageLoader />}>
@@ -83,6 +87,7 @@ function App() {
                         <Route path="/track" element={<TrackOrder />} />
                         <Route path="/favorites" element={<Favorites />} />
                         <Route path="/visual-search" element={<VisualSearch />} />
+                        <Route path="/compare" element={<Compare />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/account" element={<Account />} />
                         <Route path="/admin" element={<Admin />} />
@@ -90,8 +95,10 @@ function App() {
                       </Route>
                     </Routes>
                   </Suspense>
+                  <CompareBar />
                 </BrowserRouter>
                 <Toaster position="top-center" richColors />
+                </CompareProvider>
               </FavoritesProvider>
             </CartProvider>
             </ConfigProvider>
