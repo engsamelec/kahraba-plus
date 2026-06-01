@@ -7,7 +7,7 @@ import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
-import { formatPrice } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { StarRating } from "@/components/StarRating";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const { t, lang } = useI18n();
   const { add } = useCart();
   const { user } = useAuth();
+  const money = useMoney();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -166,12 +167,12 @@ export default function ProductDetail() {
 
           <div className="flex items-end gap-3 ltr-nums">
             <span className="text-3xl font-extrabold text-foreground">
-              {formatPrice(product.price, product.currency)}
+              {money(product.price)}
             </span>
             {product.compare_at_price && (
               <>
                 <span className="text-lg text-muted-foreground line-through">
-                  {formatPrice(product.compare_at_price, product.currency)}
+                  {money(product.compare_at_price)}
                 </span>
                 <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
                   -{product.discount_percent}% {t("off")}

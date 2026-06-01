@@ -6,12 +6,14 @@ import api, { type Order } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { formatPrice, classFor } from "@/lib/format";
+import { classFor } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 
 export default function Account() {
   const { t } = useI18n();
   const { user, loading: authLoading, refresh } = useAuth();
+  const money = useMoney();
   useDocumentTitle(t("my_account"));
   const [tab, setTab] = useState<"orders" | "profile">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -114,13 +116,13 @@ export default function Account() {
                       <span className="text-muted-foreground">
                         {it.product_name} × {it.quantity}
                       </span>
-                      <span className="ltr-nums">{formatPrice(it.subtotal)}</span>
+                      <span className="ltr-nums">{money(it.subtotal)}</span>
                     </div>
                   ))}
                 </div>
                 <div className="mt-3 flex justify-between border-t pt-3 font-bold">
                   <span>{t("total")}</span>
-                  <span className="ltr-nums">{formatPrice(o.total_amount)}</span>
+                  <span className="ltr-nums">{money(o.total_amount)}</span>
                 </div>
               </div>
             ))}

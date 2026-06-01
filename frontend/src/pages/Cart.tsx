@@ -3,12 +3,13 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
-import { formatPrice } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 
 export default function Cart() {
   const { t, lang } = useI18n();
   const { items, subtotal, setQuantity, remove } = useCart();
+  const money = useMoney();
   useDocumentTitle(t("cart_title"));
 
   if (items.length === 0) {
@@ -58,7 +59,7 @@ export default function Cart() {
                     {name}
                   </Link>
                   <span className="text-sm text-muted-foreground ltr-nums">
-                    {formatPrice(line.product.price, line.product.currency)}
+                    {money(line.product.price)}
                   </span>
                   <div className="mt-auto flex items-center justify-between pt-2">
                     <div className="flex items-center rounded-lg border">
@@ -91,7 +92,7 @@ export default function Cart() {
                   </div>
                 </div>
                 <div className="shrink-0 text-end font-bold ltr-nums">
-                  {formatPrice(line.product.price * line.quantity, line.product.currency)}
+                  {money(line.product.price * line.quantity)}
                 </div>
               </div>
             );
@@ -106,7 +107,7 @@ export default function Cart() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("subtotal")}</span>
                 <span className="font-semibold ltr-nums">
-                  {formatPrice(subtotal)}
+                  {money(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -119,7 +120,7 @@ export default function Cart() {
             <div className="my-4 border-t" />
             <div className="flex justify-between text-lg font-bold">
               <span>{t("total")}</span>
-              <span className="ltr-nums">{formatPrice(subtotal)}</span>
+              <span className="ltr-nums">{money(subtotal)}</span>
             </div>
             <Link to="/checkout">
               <Button className="mt-4 w-full bg-accent text-accent-foreground hover:bg-accent/90">

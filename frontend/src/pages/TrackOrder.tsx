@@ -4,13 +4,14 @@ import { CheckCircle2, Circle, PackageSearch } from "lucide-react";
 import api, { type Order } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { formatPrice } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 
 const STEPS = ["pending", "processing", "shipped", "delivered"];
 
 export default function TrackOrder() {
   const { t } = useI18n();
+  const money = useMoney();
   useDocumentTitle(t("track_title"));
   const [searchParams] = useSearchParams();
   const [number, setNumber] = useState(searchParams.get("order") || "");
@@ -92,7 +93,7 @@ export default function TrackOrder() {
                 </p>
               </div>
               <span className="text-lg font-bold ltr-nums">
-                {formatPrice(order.total_amount)}
+                {money(order.total_amount)}
               </span>
             </div>
 
@@ -152,7 +153,7 @@ export default function TrackOrder() {
                     {it.product_name} × {it.quantity}
                   </span>
                   <span className="ltr-nums font-semibold">
-                    {formatPrice(it.subtotal)}
+                    {money(it.subtotal)}
                   </span>
                 </div>
               ))}

@@ -3,12 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 import api, { type Order } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import { formatPrice } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 
 export default function OrderConfirmation() {
   const { orderNumber } = useParams();
   const { t } = useI18n();
+  const money = useMoney();
   const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -40,14 +41,14 @@ export default function OrderConfirmation() {
                     {it.product_name} × {it.quantity}
                   </span>
                   <span className="ltr-nums font-semibold">
-                    {formatPrice(it.subtotal)}
+                    {money(it.subtotal)}
                   </span>
                 </div>
               ))}
             </div>
             <div className="mt-4 flex justify-between border-t pt-4 text-lg font-bold">
               <span>{t("total")}</span>
-              <span className="ltr-nums">{formatPrice(order.total_amount)}</span>
+              <span className="ltr-nums">{money(order.total_amount)}</span>
             </div>
           </>
         )}

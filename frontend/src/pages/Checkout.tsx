@@ -7,7 +7,7 @@ import { useI18n, localized } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
-import { formatPrice } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +29,7 @@ export default function Checkout() {
   const { t, lang } = useI18n();
   const { items, subtotal, clear } = useCart();
   const { user } = useAuth();
+  const money = useMoney();
   const navigate = useNavigate();
   useDocumentTitle(t("checkout_title"));
 
@@ -238,7 +239,7 @@ export default function Checkout() {
                     {localized(l.product, lang)}
                   </span>
                   <span className="font-semibold ltr-nums">
-                    {formatPrice(l.product.price * l.quantity)}
+                    {money(l.product.price * l.quantity)}
                   </span>
                 </div>
               ))}
@@ -247,7 +248,7 @@ export default function Checkout() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("subtotal")}</span>
                 <span className="ltr-nums">
-                  {formatPrice(quote?.subtotal ?? subtotal)}
+                  {money(quote?.subtotal ?? subtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -256,14 +257,14 @@ export default function Checkout() {
                   {quote
                     ? quote.shipping_cost === 0
                       ? t("free")
-                      : formatPrice(quote.shipping_cost)
+                      : money(quote.shipping_cost)
                     : "—"}
                 </span>
               </div>
               {quote && quote.tax > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("tax")}</span>
-                  <span className="ltr-nums">{formatPrice(quote.tax)}</span>
+                  <span className="ltr-nums">{money(quote.tax)}</span>
                 </div>
               )}
             </div>
@@ -271,7 +272,7 @@ export default function Checkout() {
             <div className="flex justify-between text-lg font-bold">
               <span>{t("total")}</span>
               <span className="ltr-nums">
-                {formatPrice(quote?.total_amount ?? subtotal)}
+                {money(quote?.total_amount ?? subtotal)}
               </span>
             </div>
             <Button

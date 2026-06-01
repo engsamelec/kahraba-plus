@@ -37,27 +37,27 @@
   }
 
   .dark {
-    /* Deeper base so raised surfaces (cards) clearly stand out, brighter
-       borders/text for legibility. */
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 40% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 40% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 38 92% 50%;
+    /* Deep base with clearly lighter raised surfaces (cards) and bright
+       borders/text for strong contrast and legibility. */
+    --background: 222 47% 5%;
+    --foreground: 0 0% 100%;
+    --card: 222 38% 16%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 38% 16%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 38 95% 55%;
     --primary-foreground: 222 47% 11%;
-    --secondary: 222 33% 20%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 222 33% 20%;
-    --muted-foreground: 217 24% 74%;
-    --accent: 38 95% 55%;
+    --secondary: 222 32% 24%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 32% 24%;
+    --muted-foreground: 215 28% 80%;
+    --accent: 38 96% 56%;
     --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 222 28% 28%;
-    --input: 222 28% 28%;
-    --ring: 38 95% 55%;
+    --destructive: 0 75% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 26% 34%;
+    --input: 222 26% 34%;
+    --ring: 38 96% 56%;
 
     --sidebar-background: 222 47% 10%;
     --sidebar-foreground: 210 40% 98%;

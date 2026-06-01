@@ -6,7 +6,7 @@ import type { Product } from "@/lib/api";
 import { useI18n, localized } from "@/lib/i18n";
 import { useCart } from "@/lib/cart";
 import { useFavorites } from "@/lib/favorites";
-import { formatPrice } from "@/lib/format";
+import { useMoney } from "@/lib/currency";
 import { StarRating } from "./StarRating";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
   const { t, lang } = useI18n();
   const { add } = useCart();
   const { isFavorite, toggle } = useFavorites();
+  const money = useMoney();
   const name = localized(product, lang);
   const [imgError, setImgError] = useState(false);
   const fav = isFavorite(product.id);
@@ -89,11 +90,11 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="mt-auto flex items-end justify-between pt-2">
           <div className="ltr-nums">
             <span className="text-lg font-bold text-foreground">
-              {formatPrice(product.price, product.currency)}
+              {money(product.price)}
             </span>
             {product.compare_at_price && (
               <span className="ms-1.5 text-xs text-muted-foreground line-through">
-                {formatPrice(product.compare_at_price, product.currency)}
+                {money(product.compare_at_price)}
               </span>
             )}
           </div>
