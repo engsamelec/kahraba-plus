@@ -34,6 +34,7 @@ const Account = lazy(() => import("@/pages/Account"));
 const Favorites = lazy(() => import("@/pages/Favorites"));
 const VisualSearch = lazy(() => import("@/pages/VisualSearch"));
 const Compare = lazy(() => import("@/pages/Compare"));
+const SolarCalculator = lazy(() => import("@/pages/SolarCalculator"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -88,6 +89,7 @@ function App() {
                         <Route path="/favorites" element={<Favorites />} />
                         <Route path="/visual-search" element={<VisualSearch />} />
                         <Route path="/compare" element={<Compare />} />
+                        <Route path="/solar-calculator" element={<SolarCalculator />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/account" element={<Account />} />
                         <Route path="/admin" element={<Admin />} />
