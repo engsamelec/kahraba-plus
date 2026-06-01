@@ -17,13 +17,15 @@ def slugify(text):
     return text.strip("-") or "item"
 
 
-def _unique_slug(base, model):
+def _unique_slug(base, model, exclude_id=None):
     slug = base
     i = 2
-    while model.query.filter_by(slug=slug).first():
+    while True:
+        existing = model.query.filter_by(slug=slug).first()
+        if not existing or (exclude_id is not None and existing.id == exclude_id):
+            return slug
         slug = f"{base}-{i}"
         i += 1
-    return slug
 
 
 def _money(value, default=0.0):
@@ -337,6 +339,13 @@ def update_product(product_id):
             setattr(product, field, data[field])
     if "tags" in data:
         product.tags = data["tags"]
+    # Admin may correct the human-friendly product number or the URL slug.
+    if data.get("product_number"):
+        product.product_number = data["product_number"].strip()
+    if data.get("slug"):
+        new_slug = slugify(data["slug"])
+        if new_slug and new_slug != product.slug:
+            product.slug = _unique_slug(new_slug, Product, exclude_id=product.id)
     if "price" in data:
         product.price = _money(data["price"])
     if "cost" in data:
@@ -544,12 +553,31 @@ def add_review(product_id):
             )
         )
     db.session.flush()
+    _recompute_rating(product)
+    db.session.commit()
+    return jsonify({"message": "Review saved", "rating_avg": product.rating_avg})
 
-    # recompute aggregates
-    reviews = Review.query.filter_by(product_id=product_id).all()
+
+def _recompute_rating(product):
+    reviews = Review.query.filter_by(product_id=product.id).all()
     product.rating_count = len(reviews)
     product.rating_avg = (
         sum(r.rating for r in reviews) / len(reviews) if reviews else 0
     )
+
+
+@products_bp.route("/admin/reviews/<int:review_id>", methods=["DELETE"])
+@admin_required
+def delete_review(review_id):
+    """Moderation: remove an abusive/spam review and refresh the product's
+    rating aggregates."""
+    review = db.session.get(Review, review_id)
+    if not review:
+        return jsonify({"error": "Review not found"}), 404
+    product = db.session.get(Product, review.product_id)
+    db.session.delete(review)
+    db.session.flush()
+    if product:
+        _recompute_rating(product)
     db.session.commit()
-    return jsonify({"message": "Review saved", "rating_avg": product.rating_avg})
+    return "", 204

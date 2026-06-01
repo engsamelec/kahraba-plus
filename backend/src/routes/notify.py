@@ -74,3 +74,19 @@ def list_notifications():
         )
     out.sort(key=lambda r: r["requests"], reverse=True)
     return jsonify(out)
+
+
+@notify_bp.route(
+    "/admin/stock-notifications/<int:product_id>/dismiss", methods=["POST"]
+)
+@admin_required
+def dismiss_notifications(product_id):
+    """Mark all pending restock requests for a product as handled, so the
+    admin can clear them once customers have been notified (otherwise the
+    pending-restock badge would never decrease)."""
+    updated = (
+        StockNotification.query.filter_by(product_id=product_id, notified=False)
+        .update({StockNotification.notified: True}, synchronize_session=False)
+    )
+    db.session.commit()
+    return jsonify({"dismissed": int(updated)})

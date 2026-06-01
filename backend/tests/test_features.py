@@ -67,6 +67,19 @@ def test_notify_stock(client, auth):
 
 
 # ---- visual search ----
+def test_admin_can_dismiss_stock_notifications(client, auth):
+    # put product 2 out of stock and request notification
+    client.put("/api/products/2", json={"stock_quantity": 0}, headers=auth)
+    client.post("/api/products/2/notify-stock", json={"email": "a@b.com"})
+    before = client.get("/api/admin/stock-notifications", headers=auth).get_json()
+    assert any(r["product_id"] == 2 for r in before)
+    # dismiss clears them
+    res = client.post("/api/admin/stock-notifications/2/dismiss", headers=auth)
+    assert res.status_code == 200 and res.get_json()["dismissed"] >= 1
+    after = client.get("/api/admin/stock-notifications", headers=auth).get_json()
+    assert all(r["product_id"] != 2 for r in after)
+
+
 def test_visual_search_no_image(client):
     assert client.post("/api/visual-search", json={}).status_code == 400
 

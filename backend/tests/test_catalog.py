@@ -129,6 +129,39 @@ def test_inactive_products_hidden_publicly_visible_to_admin(client, auth):
     assert any(p["id"] == pid for p in admin)
 
 
+def test_admin_can_edit_product_number_and_slug(client, auth):
+    pid = client.post(
+        "/api/products", json={"name": "Editable", "price": 4}, headers=auth
+    ).get_json()["id"]
+    res = client.put(
+        f"/api/products/{pid}",
+        json={"product_number": "KP-CUSTOM-9", "slug": "totally-custom"},
+        headers=auth,
+    )
+    assert res.status_code == 200
+    assert res.get_json()["product_number"] == "KP-CUSTOM-9"
+    assert res.get_json()["slug"] == "totally-custom"
+
+
+def test_admin_can_delete_review_and_rating_recomputes(client, auth):
+    # a customer leaves a review
+    client.post("/api/auth/register", json={"email": "rev@x.com", "password": "secret123"})
+    tok = client.post(
+        "/api/auth/login", json={"email": "rev@x.com", "password": "secret123"}
+    ).get_json()["token"]
+    ch = {"Authorization": f"Bearer {tok}"}
+    client.post("/api/products/1/reviews", json={"rating": 1, "comment": "spam"}, headers=ch)
+    detail = client.get("/api/products/1").get_json()
+    assert detail["rating_count"] >= 1
+    rid = detail["reviews"][0]["id"]
+    # admin removes it
+    assert client.delete(f"/api/admin/reviews/{rid}", headers=auth).status_code == 204
+    # non-admin cannot
+    assert client.delete(f"/api/admin/reviews/{rid}", headers=ch).status_code in (401, 403, 404)
+    after = client.get("/api/products/1").get_json()
+    assert all(r["id"] != rid for r in after["reviews"])
+
+
 def test_cost_is_hidden_from_public_but_visible_to_admin(client, product, auth):
     # Public callers must never see the confidential unit cost (COGS),
     # neither in the list nor the detail response.

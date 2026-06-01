@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Check, Minus, Play, Plus, ShoppingCart, X } from "lucide-react";
+import { Check, Minus, Play, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Product } from "@/lib/api";
 import { useI18n, localized, localizedText } from "@/lib/i18n";
@@ -23,7 +23,7 @@ export default function ProductDetail() {
   const { slug } = useParams();
   const { t, lang, dir } = useI18n();
   const { add } = useCart();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const money = useMoney();
   const navigate = useNavigate();
 
@@ -165,6 +165,19 @@ export default function ProductDetail() {
       setReviewComment("");
       const r = await api.get(`/products/${slug}`);
       setProduct(r.data);
+    } catch {
+      toast.error(t("error_generic"));
+    }
+  }
+
+  // Admin moderation: remove an abusive/spam review and refresh the page.
+  async function deleteReview(reviewId?: number) {
+    if (!reviewId) return;
+    try {
+      await api.delete(`/admin/reviews/${reviewId}`);
+      const r = await api.get(`/products/${slug}`);
+      setProduct(r.data);
+      toast.success(t("delete_review"));
     } catch {
       toast.error(t("error_generic"));
     }
@@ -494,9 +507,21 @@ export default function ProductDetail() {
                 <div className="space-y-4">
                   {product.reviews.map((r) => (
                     <div key={r.id} className="rounded-xl border p-4">
-                      <div className="mb-1 flex items-center justify-between">
+                      <div className="mb-1 flex items-center justify-between gap-2">
                         <span className="font-semibold">{r.user_name}</span>
-                        <StarRating value={r.rating} />
+                        <span className="flex items-center gap-2">
+                          <StarRating value={r.rating} />
+                          {isAdmin && (
+                            <button
+                              onClick={() => deleteReview(r.id)}
+                              title={t("delete_review")}
+                              aria-label={t("delete_review")}
+                              className="text-destructive hover:opacity-70"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </span>
                       </div>
                       {r.comment && (
                         <p className="text-sm text-foreground/80">{r.comment}</p>

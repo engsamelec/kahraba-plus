@@ -17,6 +17,7 @@ from src.routes.imports import imports_bp
 from src.routes.notify import notify_bp
 from src.routes.orders import orders_bp
 from src.routes.products import products_bp
+from src.routes.admin_users import admin_users_bp
 from src.routes.promos import promos_bp
 from src.routes.questions import questions_bp
 from src.routes.uploads import uploads_bp
@@ -76,6 +77,7 @@ def create_app():
     app.register_blueprint(notify_bp, url_prefix="/api")
     app.register_blueprint(questions_bp, url_prefix="/api")
     app.register_blueprint(promos_bp, url_prefix="/api")
+    app.register_blueprint(admin_users_bp, url_prefix="/api")
 
     @app.route("/api/health")
     def health():

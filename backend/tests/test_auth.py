@@ -50,3 +50,31 @@ def test_non_admin_cannot_reach_admin_endpoints(client):
     headers = {"Authorization": f"Bearer {tok}"}
     assert client.get("/api/admin/stats", headers=headers).status_code == 403
     assert client.get("/api/admin/accounting", headers=headers).status_code == 403
+    assert client.get("/api/admin/users", headers=headers).status_code == 403
+
+
+def test_admin_user_management(client, auth):
+    # list includes the seeded admin
+    users = client.get("/api/admin/users", headers=auth).get_json()
+    assert any(u["role"] == "admin" for u in users)
+    admin_id = next(u["id"] for u in users if u["role"] == "admin")
+
+    # promote a new customer
+    client.post("/api/auth/register", json={"email": "c2@x.com", "password": "secret123"})
+    uid = next(
+        u["id"]
+        for u in client.get("/api/admin/users", headers=auth).get_json()
+        if u["email"] == "c2@x.com"
+    )
+    res = client.put(f"/api/admin/users/{uid}/role", json={"role": "admin"}, headers=auth)
+    assert res.status_code == 200 and res.get_json()["role"] == "admin"
+
+    # an admin cannot demote themselves, and invalid roles are rejected
+    assert (
+        client.put(f"/api/admin/users/{admin_id}/role", json={"role": "customer"}, headers=auth).status_code
+        == 400
+    )
+    assert (
+        client.put(f"/api/admin/users/{uid}/role", json={"role": "boss"}, headers=auth).status_code
+        == 400
+    )
