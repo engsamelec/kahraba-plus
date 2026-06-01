@@ -3,6 +3,7 @@ import {
   ChevronDown,
   ChevronUp,
   DollarSign,
+  Download,
   Loader2,
   Package,
   Pencil,
@@ -615,8 +616,32 @@ function OrdersAdmin() {
     load();
   }
 
+  async function exportCsv() {
+    // Fetch through the api client so the admin auth header is attached, then
+    // download the returned CSV as a file.
+    const { data } = await api.get("/admin/orders/export", {
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(data as Blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "kahraba-orders.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-4">
+      {orders.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            onClick={exportCsv}
+            className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-secondary"
+          >
+            <Download className="h-4 w-4" /> {t("export_csv")}
+          </button>
+        </div>
+      )}
       {orders.length === 0 && (
         <div className="grid place-items-center rounded-xl border border-dashed py-20 text-muted-foreground">
           {t("no_orders")}

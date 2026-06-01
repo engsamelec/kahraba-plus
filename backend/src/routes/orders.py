@@ -349,6 +349,65 @@ def admin_list_orders():
     return jsonify([o.to_dict(include_cost=True) for o in orders])
 
 
+@orders_bp.route("/admin/orders/export", methods=["GET"])
+@admin_required
+def admin_export_orders():
+    """Export orders as CSV for accounting / fulfilment / records."""
+    import csv
+    import io
+
+    from flask import Response
+
+    def safe(v):
+        # Neutralize spreadsheet formula injection.
+        s = "" if v is None else str(v)
+        return "'" + s if s and s[0] in ("=", "+", "-", "@", "\t", "\r") else s
+
+    status = request.args.get("status")
+    query = Order.query
+    if status:
+        query = query.filter_by(status=status)
+    orders = query.order_by(Order.created_at.desc()).all()
+
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(
+        [
+            "order_number", "date", "status", "payment_status", "payment_method",
+            "customer_name", "customer_email", "customer_phone",
+            "shipping_address", "shipping_city", "shipping_country",
+            "items", "subtotal", "discount", "coupon", "shipping", "tax",
+            "total", "currency",
+        ]
+    )
+    for o in orders:
+        items = "; ".join(
+            f"{it.product_name}"
+            + (f" ({it.variant_label})" if it.variant_label else "")
+            + f" x{it.quantity}"
+            for it in o.items
+        )
+        w.writerow(
+            [
+                safe(o.order_number),
+                o.created_at.strftime("%Y-%m-%d %H:%M") if o.created_at else "",
+                o.status, o.payment_status, o.payment_method,
+                safe(o.customer_name), safe(o.customer_email),
+                safe(o.customer_phone),
+                safe(o.shipping_address), safe(o.shipping_city),
+                safe(o.shipping_country),
+                safe(items),
+                o.subtotal, o.discount, safe(o.coupon_code or ""),
+                o.shipping_cost, o.tax, o.total_amount, o.currency,
+            ]
+        )
+    return Response(
+        out.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=kahraba-orders.csv"},
+    )
+
+
 @orders_bp.route("/admin/orders/<int:order_id>", methods=["PUT"])
 @admin_required
 def admin_update_order(order_id):

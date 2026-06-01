@@ -128,6 +128,18 @@ def test_bad_quantity_does_not_500(client):
     assert res.status_code == 400  # global handler turns ValueError into 400
 
 
+def test_admin_orders_csv_export(client, auth):
+    _order(client, [{"product_id": 1, "quantity": 2}])
+    # admin-gated
+    assert client.get("/api/admin/orders/export").status_code in (401, 422)
+    res = client.get("/api/admin/orders/export", headers=auth)
+    assert res.status_code == 200
+    assert "text/csv" in res.headers["Content-Type"]
+    body = res.get_data(as_text=True)
+    assert "order_number" in body.splitlines()[0]
+    assert "KP-" in body
+
+
 def test_unit_cost_hidden_from_customers_visible_to_admin(client, auth):
     num = _order(client, [{"product_id": 1, "quantity": 1}]).get_json()[
         "order_number"
