@@ -7,6 +7,7 @@ import {
   FileText,
   ImageOff,
   Loader2,
+  MessagesSquare,
   PackageX,
   Tag,
 } from "lucide-react";
@@ -38,11 +39,27 @@ interface Demand {
   requests: number;
 }
 
+interface AdminQuestion {
+  id: number;
+  body: string;
+  answer: string | null;
+  product_name?: string | null;
+}
+
 export function CatalogHealth() {
   const { t } = useI18n();
   const [data, setData] = useState<Health | null>(null);
   const [demand, setDemand] = useState<Demand[]>([]);
+  const [questions, setQuestions] = useState<AdminQuestion[]>([]);
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
+
+  function loadQuestions() {
+    api
+      .get("/admin/questions")
+      .then((r) => setQuestions(r.data.filter((q: AdminQuestion) => !q.answer)))
+      .catch(() => {});
+  }
 
   useEffect(() => {
     api
@@ -53,7 +70,15 @@ export function CatalogHealth() {
       .get("/admin/stock-notifications")
       .then((r) => setDemand(r.data))
       .catch(() => {});
+    loadQuestions();
   }, []);
+
+  async function answer(id: number) {
+    const text = (drafts[id] || "").trim();
+    if (!text) return;
+    await api.put(`/admin/questions/${id}`, { answer: text });
+    setQuestions((qs) => qs.filter((q) => q.id !== id));
+  }
 
   if (loading) {
     return <Loader2 className="h-6 w-6 animate-spin text-accent" />;
@@ -156,6 +181,48 @@ export function CatalogHealth() {
                 <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-bold text-accent ltr-nums">
                   {d.requests} {t("demand_waiting")}
                 </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {questions.length > 0 && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <MessagesSquare className="h-4 w-4 text-accent" />
+            {t("qa_inbox")}
+            <span className="ltr-nums text-muted-foreground">
+              ({questions.length})
+            </span>
+          </div>
+          <div className="space-y-3">
+            {questions.map((q) => (
+              <div key={q.id} className="rounded-lg border p-3">
+                <p className="mb-1 text-sm">
+                  <span className="font-medium text-accent">Q:</span> {q.body}
+                </p>
+                {q.product_name && (
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    {q.product_name}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    value={drafts[q.id] || ""}
+                    onChange={(e) =>
+                      setDrafts((d) => ({ ...d, [q.id]: e.target.value }))
+                    }
+                    placeholder={t("qa_answer_placeholder")}
+                    className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  />
+                  <button
+                    onClick={() => answer(q.id)}
+                    className="rounded-lg bg-accent px-3 text-sm font-medium text-accent-foreground hover:bg-accent/90"
+                  >
+                    {t("qa_submit")}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

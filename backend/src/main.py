@@ -17,6 +17,7 @@ from src.routes.imports import imports_bp
 from src.routes.notify import notify_bp
 from src.routes.orders import orders_bp
 from src.routes.products import products_bp
+from src.routes.questions import questions_bp
 from src.routes.uploads import uploads_bp
 from src.routes.visual_search import visual_bp
 
@@ -55,6 +56,7 @@ def create_app():
     app.register_blueprint(imports_bp, url_prefix="/api")
     app.register_blueprint(coupons_bp, url_prefix="/api")
     app.register_blueprint(notify_bp, url_prefix="/api")
+    app.register_blueprint(questions_bp, url_prefix="/api")
 
     @app.route("/api/health")
     def health():
@@ -62,7 +64,7 @@ def create_app():
 
     with app.app_context():
         # Import models so SQLAlchemy registers all tables
-        from src.models import catalog, coupon, notify, order  # noqa: F401
+        from src.models import catalog, coupon, notify, order, question  # noqa: F401
 
         db.create_all()
         from src.seed import seed_database
