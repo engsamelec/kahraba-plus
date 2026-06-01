@@ -178,6 +178,9 @@ interface ProductForm {
   name_he: string;
   brand: string;
   sku: string;
+  barcode: string;
+  tags: string;
+  video_url: string;
   price: number | string;
   cost: number | string;
   compare_at_price: number | string;
@@ -196,6 +199,9 @@ const EMPTY_PRODUCT: ProductForm = {
   name_he: "",
   brand: "",
   sku: "",
+  barcode: "",
+  tags: "",
+  video_url: "",
   price: 0,
   cost: "",
   compare_at_price: "",
@@ -238,6 +244,9 @@ function ProductsAdmin() {
       name_he: p.name_he || "",
       brand: p.brand || "",
       sku: p.sku || "",
+      barcode: p.barcode || "",
+      tags: (p.tags || []).join(", "),
+      video_url: p.video_url || "",
       price: p.price,
       cost: p.cost ?? "",
       compare_at_price: p.compare_at_price || "",
@@ -260,6 +269,9 @@ function ProductsAdmin() {
       name_he: editing.name_he,
       brand: editing.brand,
       sku: editing.sku || null,
+      barcode: editing.barcode || null,
+      tags: editing.tags,
+      video_url: editing.video_url || null,
       price: Number(editing.price),
       cost: editing.cost === "" ? null : Number(editing.cost),
       compare_at_price: editing.compare_at_price
@@ -424,6 +436,27 @@ function ProductsAdmin() {
                 className={inputCls}
                 value={editing.sku}
                 onChange={(e) => setEditing({ ...editing, sku: e.target.value })}
+              />
+              <input
+                placeholder={t("barcode")}
+                className={inputCls}
+                value={editing.barcode}
+                onChange={(e) => setEditing({ ...editing, barcode: e.target.value })}
+              />
+              <input
+                placeholder={`${t("tags")} (a, b, c)`}
+                className={`${inputCls} sm:col-span-2`}
+                value={editing.tags}
+                onChange={(e) => setEditing({ ...editing, tags: e.target.value })}
+              />
+              <input
+                placeholder={t("video_url")}
+                dir="ltr"
+                className={`${inputCls} sm:col-span-2`}
+                value={editing.video_url}
+                onChange={(e) =>
+                  setEditing({ ...editing, video_url: e.target.value })
+                }
               />
               <input
                 type="number"

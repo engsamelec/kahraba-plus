@@ -49,7 +49,10 @@ class Product(db.Model):
     name_he = db.Column(db.String(200), nullable=True)
     slug = db.Column(db.String(220), unique=True, nullable=False, index=True)
     sku = db.Column(db.String(60), unique=True, nullable=True)
+    barcode = db.Column(db.String(64), nullable=True, index=True)  # searchable
     brand = db.Column(db.String(120), nullable=True)
+    _tags = db.Column("tags", db.Text, nullable=True)  # JSON array of search tags
+    video_url = db.Column(db.String(500), nullable=True)
     description = db.Column(db.Text, nullable=True)
     description_ar = db.Column(db.Text, nullable=True)
     description_he = db.Column(db.Text, nullable=True)
@@ -110,6 +113,22 @@ class Product(db.Model):
         self._image_hashes = json.dumps(value or [])
 
     @property
+    def tags(self):
+        if not self._tags:
+            return []
+        try:
+            return json.loads(self._tags)
+        except (ValueError, TypeError):
+            return []
+
+    @tags.setter
+    def tags(self, value):
+        # Accept a list or a comma-separated string.
+        if isinstance(value, str):
+            value = [t.strip() for t in value.split(",") if t.strip()]
+        self._tags = json.dumps(value or [])
+
+    @property
     def technical_specs(self):
         if not self._technical_specs:
             return {}
@@ -146,6 +165,8 @@ class Product(db.Model):
             "name_he": self.name_he,
             "slug": self.slug,
             "sku": self.sku,
+            "barcode": self.barcode,
+            "tags": self.tags,
             "brand": self.brand,
             "price": self.price,
             "compare_at_price": self.compare_at_price,
@@ -170,6 +191,7 @@ class Product(db.Model):
             data["technical_specs"] = self.technical_specs
             data["variants"] = [v.to_dict() for v in self.variants]
             data["cost"] = self.cost
+            data["video_url"] = self.video_url
         return data
 
 

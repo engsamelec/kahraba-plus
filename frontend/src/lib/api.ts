@@ -55,6 +55,9 @@ export interface Product {
   name_he?: string | null;
   slug: string;
   sku?: string | null;
+  barcode?: string | null;
+  tags?: string[];
+  video_url?: string | null;
   brand?: string | null;
   price: number;
   cost?: number | null;

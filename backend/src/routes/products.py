@@ -114,8 +114,12 @@ def get_products():
             or_(
                 Product.name.ilike(like),
                 Product.name_ar.ilike(like),
+                Product.name_he.ilike(like),
                 Product.brand.ilike(like),
                 Product.description.ilike(like),
+                Product.sku.ilike(like),
+                Product.barcode.ilike(like),
+                Product._tags.ilike(like),
             )
         )
 
@@ -221,6 +225,8 @@ def create_product():
         name_he=data.get("name_he"),
         slug=_unique_slug(slugify(name), Product),
         sku=data.get("sku"),
+        barcode=(data.get("barcode") or "").strip() or None,
+        video_url=(data.get("video_url") or "").strip() or None,
         brand=data.get("brand"),
         description=data.get("description"),
         description_ar=data.get("description_ar"),
@@ -241,6 +247,8 @@ def create_product():
     product.image_urls = data.get("image_urls", [])
     product.image_hashes = data.get("image_hashes", [])
     product.technical_specs = data.get("technical_specs", {})
+    if "tags" in data:
+        product.tags = data["tags"]
     db.session.add(product)
     db.session.flush()
     if not product.product_number:
@@ -258,11 +266,13 @@ def update_product(product_id):
     data = request.get_json(silent=True) or {}
 
     for field in [
-        "name", "name_ar", "name_he", "sku", "brand", "description",
-        "description_ar", "description_he", "currency",
+        "name", "name_ar", "name_he", "sku", "barcode", "video_url", "brand",
+        "description", "description_ar", "description_he", "currency",
     ]:
         if field in data:
             setattr(product, field, data[field])
+    if "tags" in data:
+        product.tags = data["tags"]
     if "price" in data:
         product.price = _money(data["price"])
     if "cost" in data:

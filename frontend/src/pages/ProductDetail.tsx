@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Check, Minus, Plus, ShoppingCart, X } from "lucide-react";
+import { Check, Minus, Play, Plus, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Product } from "@/lib/api";
 import { useI18n, localized, localizedText } from "@/lib/i18n";
@@ -348,9 +348,33 @@ export default function ProductDetail() {
 
         <div className="py-6">
           {tab === "desc" && (
-            <p className="max-w-2xl leading-relaxed text-foreground/90">
-              {desc || t("no_products")}
-            </p>
+            <div className="max-w-2xl space-y-4">
+              <p className="leading-relaxed text-foreground/90">
+                {desc || t("no_products")}
+              </p>
+              {product.video_url && (
+                <a
+                  href={product.video_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline"
+                >
+                  <Play className="h-4 w-4" /> {t("watch_video")}
+                </a>
+              )}
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {tab === "specs" && (
