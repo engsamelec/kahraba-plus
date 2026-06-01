@@ -1,0 +1,597 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Check, Minus, Play, Plus, ShoppingCart, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
+import api, { type Product } from "@/lib/api";
+import { useI18n, localized, localizedText } from "@/lib/i18n";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useMeta } from "@/hooks/useMeta";
+import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
+import { useMoney } from "@/lib/currency";
+import { pushRecentlyViewed } from "@/lib/recentlyViewed";
+import { StarRating } from "@/components/StarRating";
+import { VariantSelector } from "@/components/VariantSelector";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { NotifyStock } from "@/components/NotifyStock";
+import { FrequentlyBought } from "@/components/FrequentlyBought";
+import { ProductQA } from "@/components/ProductQA";
+import { ProductCard } from "@/components/ProductCard";
+import type { ProductVariant } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+
+export default function ProductDetail() {
+  const { slug } = useParams();
+  const { t, lang, dir } = useI18n();
+  const { add } = useCart();
+  const { user, isAdmin } = useAuth();
+  const money = useMoney();
+  const navigate = useNavigate();
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [qty, setQty] = useState(1);
+  const [tab, setTab] = useState<"desc" | "specs" | "reviews">("desc");
+  const [activeImg, setActiveImg] = useState(0);
+  const [variant, setVariant] = useState<ProductVariant | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  // Sticky mobile buy bar: shown once the primary CTA scrolls out of view.
+  const buyRef = useRef<HTMLDivElement>(null);
+  const [showStickyBuy, setShowStickyBuy] = useState(false);
+  // Swipeable image gallery (scroll-snap carousel).
+  const galleryRef = useRef<HTMLDivElement>(null);
+
+  function scrollToImg(i: number) {
+    const el = galleryRef.current;
+    if (!el) return;
+    // In RTL the carousel scrolls in the negative direction.
+    el.scrollTo({ left: (dir === "rtl" ? -1 : 1) * i * el.offsetWidth, behavior: "smooth" });
+    setActiveImg(i);
+  }
+
+  function onGalleryScroll() {
+    const el = galleryRef.current;
+    if (!el || !el.offsetWidth) return;
+    const i = Math.round(Math.abs(el.scrollLeft) / el.offsetWidth);
+    setActiveImg((cur) => (cur === i ? cur : i));
+  }
+
+  useEffect(() => {
+    const el = buyRef.current;
+    if (!el) {
+      setShowStickyBuy(false);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      ([entry]) => setShowStickyBuy(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [product]);
+
+  useEffect(() => {
+    setLoading(true);
+    setQty(1);
+    setActiveImg(0);
+    setVariant(null);
+    api
+      .get(`/products/${slug}`)
+      .then((r) => {
+        setProduct(r.data);
+        pushRecentlyViewed(r.data);
+      })
+      .catch(() => setProduct(null))
+      .finally(() => setLoading(false));
+    window.scrollTo(0, 0);
+  }, [slug]);
+
+  useDocumentTitle(product ? localized(product, lang) : null);
+  useMeta({
+    title: product ? localized(product, lang) : null,
+    description: product
+      ? (localizedText(product, lang) || "").slice(0, 160) || null
+      : null,
+    image: product?.image_urls?.[0] ?? null,
+  });
+
+  if (loading) {
+    return (
+      <div className="container grid gap-8 py-10 md:grid-cols-2">
+        <div className="aspect-square animate-pulse rounded-xl bg-secondary" />
+        <div className="space-y-4">
+          <div className="h-8 w-2/3 animate-pulse rounded bg-secondary" />
+          <div className="h-6 w-1/3 animate-pulse rounded bg-secondary" />
+          <div className="h-24 animate-pulse rounded bg-secondary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="container grid place-items-center py-24 text-center">
+        <p className="mb-4 text-muted-foreground">{t("error_generic")}</p>
+        <Link to="/shop">
+          <Button>{t("nav_shop")}</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const prod = product; // non-null below this point
+  const name = localized(prod, lang);
+  const desc = localizedText(prod, lang);
+  const specs = prod.technical_specs ?? {};
+
+  const variants = prod.variants ?? [];
+  const hasVariants = variants.length > 0;
+  // Price reflects the chosen variant's surcharge; selection is required to
+  // buy when a product has variants.
+  const effectivePrice = prod.price + (variant?.additional_price ?? 0);
+  const needsVariant = hasVariants && !variant;
+  const canBuy = variant
+    ? variant.in_stock
+    : hasVariants
+      ? false
+      : prod.in_stock;
+
+  function addToCart() {
+    // Encode the chosen variant into the cart line by adjusting price and id
+    // so different variants are tracked as separate lines.
+    const item = variant
+      ? {
+          ...prod,
+          id: prod.id * 100000 + variant.id,
+          base_product_id: prod.id,
+          variant_id: variant.id,
+          price: effectivePrice,
+          name: `${name} — ${variant.label}`,
+          name_ar: prod.name_ar ? `${prod.name_ar} — ${variant.label}` : prod.name_ar,
+          name_he: prod.name_he ? `${prod.name_he} — ${variant.label}` : prod.name_he,
+          stock_quantity: variant.stock_quantity,
+        }
+      : prod;
+    add(item, qty);
+    toast.success(t("add_to_cart"), {
+      description: variant ? `${name} — ${variant.label}` : name,
+    });
+  }
+
+  async function submitReview() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    try {
+      await api.post(`/products/${product!.id}/reviews`, {
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      toast.success(t("submit_review"));
+      setReviewComment("");
+      const r = await api.get(`/products/${slug}`);
+      setProduct(r.data);
+    } catch {
+      toast.error(t("error_generic"));
+    }
+  }
+
+  // Admin moderation: remove an abusive/spam review and refresh the page.
+  async function deleteReview(reviewId?: number) {
+    if (!reviewId) return;
+    try {
+      await api.delete(`/admin/reviews/${reviewId}`);
+      const r = await api.get(`/products/${slug}`);
+      setProduct(r.data);
+      toast.success(t("delete_review"));
+    } catch {
+      toast.error(t("error_generic"));
+    }
+  }
+
+  return (
+    <div className="container py-8">
+      {/* breadcrumb */}
+      <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+        <Link to="/" className="hover:text-accent">
+          {t("nav_home")}
+        </Link>
+        <span>/</span>
+        <Link to="/shop" className="hover:text-accent">
+          {t("nav_shop")}
+        </Link>
+        {product.category && (
+          <>
+            <span>/</span>
+            <Link
+              to={`/shop?category=${product.category.slug}`}
+              className="hover:text-accent"
+            >
+              {localized(product.category, lang)}
+            </Link>
+          </>
+        )}
+      </nav>
+
+      <div className="grid gap-10 md:grid-cols-2">
+        {/* gallery — swipeable scroll-snap carousel */}
+        <div>
+          <div className="relative">
+            <div
+              ref={galleryRef}
+              onScroll={onGalleryScroll}
+              className="no-scrollbar flex aspect-square snap-x snap-mandatory overflow-x-auto rounded-2xl border bg-secondary"
+            >
+              {(product.image_urls.length ? product.image_urls : [null]).map(
+                (url, i) => (
+                  <div key={i} className="aspect-square w-full shrink-0 snap-center">
+                    {url ? (
+                      <img
+                        src={url}
+                        alt={`${name} ${i + 1}`}
+                        className="h-full w-full object-cover"
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center text-6xl">
+                        ⚡
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
+            {product.image_urls.length > 1 && (
+              <>
+                <span className="pointer-events-none absolute top-3 ltr:right-3 rtl:left-3 rounded-full bg-black/55 px-2 py-0.5 text-xs font-medium text-white ltr-nums">
+                  {activeImg + 1} / {product.image_urls.length}
+                </span>
+                <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                  {product.image_urls.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all ${
+                        activeImg === i ? "w-4 bg-accent" : "w-1.5 bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          {product.image_urls.length > 1 && (
+            <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+              {product.image_urls.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => scrollToImg(i)}
+                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 ${
+                    activeImg === i ? "border-accent" : "border-transparent"
+                  }`}
+                >
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* info */}
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2">
+            {product.brand && (
+              <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                {product.brand}
+              </span>
+            )}
+            {product.is_bestseller && (
+              <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                ★ {t("bestseller")}
+              </span>
+            )}
+            {product.low_stock && product.in_stock && (
+              <span className="rounded-full bg-orange-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                {t("low_stock_left")}
+              </span>
+            )}
+          </div>
+          <h1 className="text-balance text-3xl font-bold leading-tight">{name}</h1>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <StarRating value={product.rating_avg} count={product.rating_count} size={18} />
+            {product.product_number && (
+              <span className="text-sm text-muted-foreground ltr-nums">
+                {t("product_number")}: {product.product_number}
+              </span>
+            )}
+            {product.sku && (
+              <span className="text-sm text-muted-foreground">
+                {t("sku_label")}: {product.sku}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-end gap-3 ltr-nums">
+            <span className="text-3xl font-extrabold text-foreground">
+              {money(effectivePrice)}
+            </span>
+            {product.compare_at_price && !variant && (
+              <>
+                <span className="text-lg text-muted-foreground line-through">
+                  {money(product.compare_at_price)}
+                </span>
+                <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
+                  -{product.discount_percent}% {t("off")}
+                </span>
+              </>
+            )}
+          </div>
+
+          {hasVariants && (
+            <VariantSelector
+              variants={variants}
+              selected={variant}
+              onSelect={setVariant}
+            />
+          )}
+
+          <div className="flex items-center gap-2 text-sm">
+            {canBuy ? (
+              <span className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400">
+                <Check className="h-4 w-4" /> {t("in_stock")}
+                {variant
+                  ? ` (${variant.stock_quantity})`
+                  : !hasVariants
+                    ? ` (${product.stock_quantity})`
+                    : ""}
+              </span>
+            ) : needsVariant ? (
+              <span className="font-medium text-muted-foreground">
+                {t("select_options")}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 font-medium text-destructive">
+                <X className="h-4 w-4" /> {t("out_of_stock")}
+              </span>
+            )}
+          </div>
+
+          {/* back-in-stock for genuinely out-of-stock products */}
+          {!canBuy && !needsVariant && (
+            <NotifyStock productId={product.id} />
+          )}
+
+          {/* qty + actions */}
+          {(canBuy || needsVariant) && (
+            <div ref={buyRef} className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex items-center rounded-lg border">
+                <button
+                  className="grid h-10 w-10 place-items-center hover:bg-secondary"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-12 text-center font-semibold ltr-nums">{qty}</span>
+                <button
+                  className="grid h-10 w-10 place-items-center hover:bg-secondary"
+                  onClick={() =>
+                    setQty((q) =>
+                      Math.min(
+                        variant ? variant.stock_quantity : product.stock_quantity,
+                        q + 1
+                      )
+                    )
+                  }
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <Button
+                size="lg"
+                disabled={!canBuy}
+                className="flex-1 gap-2 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
+                onClick={addToCart}
+              >
+                <ShoppingCart className="h-5 w-5" />{" "}
+                {needsVariant ? t("select_options") : t("add_to_cart")}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                disabled={!canBuy}
+                onClick={() => {
+                  addToCart();
+                  navigate("/cart");
+                }}
+              >
+                {t("buy_now")}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* tabs */}
+      <div className="mt-12">
+        <div className="flex gap-1 border-b">
+          {[
+            { id: "desc", label: t("description") },
+            { id: "specs", label: t("specifications") },
+            { id: "reviews", label: `${t("reviews")} (${product.rating_count})` },
+          ].map((tb) => (
+            <button
+              key={tb.id}
+              onClick={() => setTab(tb.id as typeof tab)}
+              className={`-mb-px border-b-2 px-4 py-3 text-sm font-medium ${
+                tab === tb.id
+                  ? "border-accent text-accent"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tb.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="py-6">
+          {tab === "desc" && (
+            <div className="max-w-2xl space-y-4">
+              <p className="leading-relaxed text-foreground/90">
+                {desc || t("no_products")}
+              </p>
+              {product.video_url && (
+                <a
+                  href={product.video_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline"
+                >
+                  <Play className="h-4 w-4" /> {t("watch_video")}
+                </a>
+              )}
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "specs" && (
+            <div className="max-w-xl overflow-hidden rounded-xl border">
+              {Object.entries(specs).map(([k, v], i) => (
+                <div
+                  key={k}
+                  className={`grid grid-cols-2 gap-4 px-4 py-3 text-sm ${
+                    i % 2 === 0 ? "bg-secondary/40" : ""
+                  }`}
+                >
+                  <span className="font-medium text-muted-foreground">{k}</span>
+                  <span className="font-semibold">{v}</span>
+                </div>
+              ))}
+              {Object.keys(specs).length === 0 && (
+                <p className="px-4 py-3 text-sm text-muted-foreground">—</p>
+              )}
+            </div>
+          )}
+
+          {tab === "reviews" && (
+            <div className="max-w-2xl space-y-6">
+              {/* write review */}
+              <div className="rounded-xl border bg-card p-4">
+                <h4 className="mb-3 font-semibold">{t("write_review")}</h4>
+                <StarRating
+                  value={reviewRating}
+                  size={22}
+                  onChange={setReviewRating}
+                />
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  rows={3}
+                  className="mt-3 w-full rounded-lg border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="..."
+                />
+                <Button
+                  className="mt-3 bg-accent text-accent-foreground hover:bg-accent/90"
+                  onClick={submitReview}
+                >
+                  {t("submit_review")}
+                </Button>
+              </div>
+
+              {/* list */}
+              {product.reviews && product.reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {product.reviews.map((r) => (
+                    <div key={r.id} className="rounded-xl border p-4">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span className="font-semibold">{r.user_name}</span>
+                        <span className="flex items-center gap-2">
+                          <StarRating value={r.rating} />
+                          {isAdmin && (
+                            <button
+                              onClick={() => deleteReview(r.id)}
+                              title={t("delete_review")}
+                              aria-label={t("delete_review")}
+                              className="text-destructive hover:opacity-70"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </span>
+                      </div>
+                      {r.comment && (
+                        <p className="text-sm text-foreground/80">{r.comment}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("no_reviews")}</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* frequently bought together */}
+      {product.bundle && product.bundle.length > 1 && (
+        <FrequentlyBought items={product.bundle} />
+      )}
+
+      {/* questions & answers */}
+      <ProductQA productId={product.id} />
+
+      {/* related */}
+      {product.related && product.related.length > 0 && (
+        <div className="mt-12">
+          <h2 className="mb-6 text-xl font-bold">{t("related_products")}</h2>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {product.related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <RecentlyViewed excludeId={product.id} bare />
+
+      {/* Sticky mobile buy bar — appears once the main CTA is scrolled away.
+          Sits just above the mobile tab bar; hidden on desktop. */}
+      {showStickyBuy && (canBuy || needsVariant) && (
+        <div
+          className="fixed inset-x-0 z-40 border-t bg-background/95 px-4 py-2.5 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.35)] backdrop-blur lg:hidden"
+          style={{ bottom: "calc(3.75rem + env(safe-area-inset-bottom))" }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{name}</p>
+              <p className="text-base font-extrabold text-accent ltr-nums">
+                {money(effectivePrice)}
+              </p>
+            </div>
+            <Button
+              disabled={!canBuy}
+              onClick={addToCart}
+              className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {needsVariant ? t("select_options") : t("add_to_cart")}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

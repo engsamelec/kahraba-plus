@@ -1,0 +1,31 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+*.db
+backend/src/kahraba_plus.db
+
+# Node
+frontend/node_modules/
+node_modules/
+
+# Note: frontend/dist holds the built SPA (committed so Flask serves it and
+# Capacitor uses it as webDir). Rebuild with `pnpm build`.
+
+# Capacitor native projects are generated from capacitor.config.ts + dist.
+# Regenerate with: npx cap add android  /  npx cap add ios  (then cap sync).
+frontend/android/
+frontend/ios/
+
+# Env / secrets
+.env
+*.local
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.log
+
+# Runtime product image uploads (served from /api/uploads)
+backend/uploads/
