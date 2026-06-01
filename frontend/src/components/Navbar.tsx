@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Camera,
   Heart,
   LogOut,
   Menu,
   Moon,
-  Search,
   ShoppingCart,
   Sun,
   User as UserIcon,
@@ -15,6 +13,7 @@ import {
 import { Logo } from "./Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { AdminBell } from "./AdminBell";
+import { SearchBox } from "./SearchBox";
 import { MegaMenu } from "./MegaMenu";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -31,17 +30,10 @@ export function Navbar() {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (to: string) =>
     to === "/" ? pathname === "/" : pathname.startsWith(to);
-
-  function submitSearch(e: React.FormEvent) {
-    e.preventDefault();
-    navigate(`/shop?search=${encodeURIComponent(search)}`);
-    setMobileOpen(false);
-  }
 
   const links = [
     { to: "/", label: t("nav_home") },
@@ -66,27 +58,8 @@ export function Navbar() {
           <Logo />
         </Link>
 
-        {/* search (desktop) */}
-        <form
-          onSubmit={submitSearch}
-          className="relative hidden flex-1 md:block"
-        >
-          <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 ltr:left-3 rtl:right-3 h-4 w-4 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("search_placeholder")}
-            className="w-full rounded-full border bg-secondary/60 py-2 ltr:pl-10 ltr:pr-11 rtl:pr-10 rtl:pl-11 text-sm outline-none focus:ring-2 focus:ring-accent"
-          />
-          <Link
-            to="/visual-search"
-            title={t("visual_search")}
-            aria-label={t("visual_search")}
-            className="absolute top-1/2 -translate-y-1/2 ltr:right-2 rtl:left-2 grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent/15 hover:text-accent"
-          >
-            <Camera className="h-4 w-4" />
-          </Link>
-        </form>
+        {/* search (desktop) with live autocomplete */}
+        <SearchBox className="hidden flex-1 md:block" />
 
         <nav className="hidden items-center gap-1 lg:flex">
           {links.map((l) => (
@@ -199,23 +172,7 @@ export function Navbar() {
       {mobileOpen && (
         <div className="border-t bg-background lg:hidden">
           <div className="container space-y-3 py-4">
-            <form onSubmit={submitSearch} className="relative">
-              <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 ltr:left-3 rtl:right-3 h-4 w-4 text-muted-foreground" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("search_placeholder")}
-                className="w-full rounded-full border bg-secondary/60 py-2 ltr:pl-10 ltr:pr-11 rtl:pr-10 rtl:pl-11 text-sm outline-none focus:ring-2 focus:ring-accent"
-              />
-              <Link
-                to="/visual-search"
-                onClick={() => setMobileOpen(false)}
-                aria-label={t("visual_search")}
-                className="absolute top-1/2 -translate-y-1/2 ltr:right-2 rtl:left-2 grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:text-accent"
-              >
-                <Camera className="h-4 w-4" />
-              </Link>
-            </form>
+            <SearchBox onNavigate={() => setMobileOpen(false)} />
             <nav className="grid gap-1">
               {links.map((l) => (
                 <Link

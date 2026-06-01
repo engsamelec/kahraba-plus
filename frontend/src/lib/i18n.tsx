@@ -141,6 +141,16 @@ const translations: Dict = {
     en: "Search products...",
     he: "חיפוש מוצרים...",
   },
+  search_no_results: {
+    ar: "لا نتائج",
+    en: "No matches",
+    he: "אין תוצאות",
+  },
+  search_view_all: {
+    ar: "عرض كل النتائج",
+    en: "View all results",
+    he: "כל התוצאות",
+  },
   // Home
   hero_title: {
     ar: "قطعك الإلكترونية بين يديك",
