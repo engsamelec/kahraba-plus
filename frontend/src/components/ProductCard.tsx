@@ -19,7 +19,7 @@ export function ProductCard({ product }: { product: Product }) {
   const fav = isFavorite(product.id);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover-lift hover:border-accent/40 hover:shadow-xl">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow duration-200 hover:shadow-md">
       <Link to={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-secondary">
         {product.image_urls[0] && !imgError ? (
           <img
@@ -28,7 +28,7 @@ export function ProductCard({ product }: { product: Product }) {
             loading="lazy"
             decoding="async"
             onError={() => setImgError(true)}
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+            className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-4xl text-muted-foreground">
@@ -58,7 +58,7 @@ export function ProductCard({ product }: { product: Product }) {
             description: name,
           });
         }}
-        className="absolute top-2 ltr:right-2 rtl:left-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/80 backdrop-blur transition-transform hover:scale-110 active:scale-90"
+        className="absolute top-2 ltr:right-2 rtl:left-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/80 backdrop-blur"
       >
         <Heart
           className={`h-4 w-4 transition-colors ${
@@ -100,7 +100,7 @@ export function ProductCard({ product }: { product: Product }) {
           <Button
             size="icon"
             aria-label={t("add_to_cart")}
-            className="h-9 w-9 rounded-full bg-accent text-accent-foreground transition-transform hover:bg-accent/90 hover:scale-110 active:scale-95 disabled:opacity-40"
+            className="h-9 w-9 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
             disabled={!product.in_stock}
             onClick={() => {
               add(product);

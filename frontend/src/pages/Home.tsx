@@ -50,16 +50,16 @@ export default function Home() {
         <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_2px_2px,white_1px,transparent_0)] [background-size:32px_32px]" />
         <div className="container relative grid gap-8 py-16 md:grid-cols-2 md:py-24">
           <div className="flex flex-col justify-center gap-6">
-            <span className="w-fit animate-fade-up rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent [animation-delay:0ms]">
+            <span className="w-fit rounded-full bg-accent/20 px-3 py-1 text-sm font-medium text-accent">
               {t("tagline")}
             </span>
-            <h1 className="animate-fade-up text-balance text-4xl font-extrabold leading-tight [animation-delay:80ms] md:text-5xl">
+            <h1 className="text-balance text-4xl font-extrabold leading-tight md:text-5xl">
               {t("hero_title")}
             </h1>
-            <p className="max-w-md animate-fade-up text-lg text-primary-foreground/80 [animation-delay:160ms]">
+            <p className="max-w-md text-lg text-primary-foreground/80">
               {t("hero_subtitle")}
             </p>
-            <div className="flex animate-fade-up flex-wrap gap-3 [animation-delay:240ms]">
+            <div className="flex flex-wrap gap-3">
               <Link to="/shop">
                 <Button
                   size="lg"
@@ -85,7 +85,7 @@ export default function Home() {
               src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=700&q=80"
               alt="electronics"
               fetchPriority="high"
-              className="max-h-80 animate-float rounded-2xl object-cover shadow-2xl ring-1 ring-white/10"
+              className="max-h-80 rounded-2xl object-cover shadow-2xl ring-1 ring-white/10"
             />
           </div>
         </div>
@@ -131,12 +131,11 @@ export default function Home() {
                   <div className="skeleton h-2.5 w-10 rounded" />
                 </div>
               ))
-            : categories.map((c, i) => (
+            : categories.map((c) => (
             <Link
               key={c.id}
               to={`/shop?category=${c.slug}`}
-              style={{ animationDelay: `${i * 50}ms` }}
-              className="group flex animate-fade-up flex-col items-center gap-3 rounded-xl border bg-card p-5 text-center transition-all duration-300 hover-lift hover:border-accent hover:bg-accent/5 hover:shadow-md"
+              className="group flex flex-col items-center gap-3 rounded-xl border bg-card p-5 text-center transition-colors hover:border-accent hover:bg-accent/5"
             >
               <span className="grid h-14 w-14 place-items-center rounded-full bg-secondary text-primary transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                 <CategoryIcon name={c.icon} />
@@ -179,15 +178,7 @@ export default function Home() {
                     </div>
                   </div>
                 ))
-              : featured.map((p, i) => (
-              <div
-                key={p.id}
-                className="animate-fade-up"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <ProductCard product={p} />
-              </div>
-            ))}
+              : featured.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>

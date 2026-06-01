@@ -247,14 +247,8 @@ export default function Shop() {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {products.map((p, i) => (
-                  <div
-                    key={p.id}
-                    className="animate-fade-up"
-                    style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
-                  >
-                    <ProductCard product={p} />
-                  </div>
+                {products.map((p) => (
+                  <ProductCard key={p.id} product={p} />
                 ))}
               </div>
 
