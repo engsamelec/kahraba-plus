@@ -1,23 +1,26 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Tag, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Coupon } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+const EMPTY = {
+  code: "",
+  discount_type: "percent",
+  value: "",
+  min_subtotal: "",
+  max_uses: "",
+  expires_at: "",
+};
+
 export function CouponsAdmin() {
   const { t } = useI18n();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [draft, setDraft] = useState({
-    code: "",
-    discount_type: "percent",
-    value: "",
-    min_subtotal: "",
-    max_uses: "",
-    expires_at: "",
-  });
+  const [draft, setDraft] = useState({ ...EMPTY });
+  const [editId, setEditId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
   function load() {
@@ -25,33 +28,45 @@ export function CouponsAdmin() {
     api
       .get("/admin/coupons")
       .then((r) => setCoupons(r.data))
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")))
       .finally(() => setLoading(false));
   }
-
   useEffect(load, []);
 
-  async function create() {
+  function startEdit(c: Coupon) {
+    setEditId(c.id);
+    setDraft({
+      code: c.code,
+      discount_type: c.discount_type,
+      value: String(c.value),
+      min_subtotal: c.min_subtotal ? String(c.min_subtotal) : "",
+      max_uses: c.max_uses ? String(c.max_uses) : "",
+      expires_at: c.expires_at ? c.expires_at.slice(0, 10) : "",
+    });
+  }
+
+  function cancelEdit() {
+    setEditId(null);
+    setDraft({ ...EMPTY });
+  }
+
+  async function save() {
     if (!draft.code.trim() || !draft.value) {
       toast.error(t("coupon_need_fields"));
       return;
     }
     setSaving(true);
+    const payload = {
+      ...draft,
+      value: Number(draft.value),
+      min_subtotal: Number(draft.min_subtotal || 0),
+      max_uses: draft.max_uses ? Number(draft.max_uses) : null,
+      expires_at: draft.expires_at || null,
+    };
     try {
-      await api.post("/admin/coupons", {
-        ...draft,
-        value: Number(draft.value),
-        min_subtotal: Number(draft.min_subtotal || 0),
-        max_uses: draft.max_uses ? Number(draft.max_uses) : null,
-        expires_at: draft.expires_at || null,
-      });
-      setDraft({
-        code: "",
-        discount_type: "percent",
-        value: "",
-        min_subtotal: "",
-        max_uses: "",
-        expires_at: "",
-      });
+      if (editId) await api.put(`/admin/coupons/${editId}`, payload);
+      else await api.post("/admin/coupons", payload);
+      cancelEdit();
       load();
       toast.success(t("save"));
     } catch (err) {
@@ -91,15 +106,17 @@ export function CouponsAdmin() {
         <p className="text-sm text-muted-foreground">{t("coupons_hint")}</p>
       </div>
 
-      {/* create */}
+      {/* create / edit */}
       <div className="grid grid-cols-2 gap-2 rounded-xl border bg-secondary/30 p-4 sm:grid-cols-3">
         <input
           placeholder={t("coupon_placeholder")}
+          aria-label={t("coupon_placeholder")}
           className={`${cell} uppercase`}
           value={draft.code}
           onChange={(e) => setDraft({ ...draft, code: e.target.value })}
         />
         <select
+          aria-label={t("discount")}
           className={cell}
           value={draft.discount_type}
           onChange={(e) => setDraft({ ...draft, discount_type: e.target.value })}
@@ -135,18 +152,25 @@ export function CouponsAdmin() {
           value={draft.expires_at}
           onChange={(e) => setDraft({ ...draft, expires_at: e.target.value })}
         />
-        <Button
-          onClick={create}
-          disabled={saving}
-          className="col-span-2 gap-1 bg-accent text-accent-foreground hover:bg-accent/90 sm:col-span-3"
-        >
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
+        <div className="col-span-2 flex gap-2 sm:col-span-3">
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="flex-1 gap-1 bg-accent text-accent-foreground hover:bg-accent/90"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            {editId ? t("save") : t("add")}
+          </Button>
+          {editId && (
+            <Button variant="outline" onClick={cancelEdit} className="gap-1">
+              <X className="h-4 w-4" /> {t("cancel")}
+            </Button>
           )}
-          {t("add")}
-        </Button>
+        </div>
       </div>
 
       {/* list */}
@@ -185,7 +209,15 @@ export function CouponsAdmin() {
                   {c.is_active ? t("active") : t("inactive")}
                 </button>
                 <button
+                  onClick={() => startEdit(c)}
+                  aria-label={t("edit")}
+                  className="text-muted-foreground hover:text-accent"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => remove(c.id)}
+                  aria-label={t("delete")}
                   className="text-destructive hover:opacity-70"
                 >
                   <Trash2 className="h-4 w-4" />
