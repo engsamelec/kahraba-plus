@@ -1,0 +1,4 @@
+# Force a Python-only build on Railway/Nixpacks. The repo also contains a
+# Node frontend, but its build output (frontend/dist) is committed and served
+# by Flask, so we skip Node entirely to keep deploys fast and deterministic.
+providers = ["python"]

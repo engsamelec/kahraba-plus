@@ -53,6 +53,9 @@ def create_app():
     if not db_url:
         db_path = os.path.join(os.path.dirname(__file__), "kahraba_plus.db")
         db_url = f"sqlite:///{db_path}"
+    # Railway/Heroku hand out "postgres://" but SQLAlchemy needs "postgresql://".
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 

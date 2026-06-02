@@ -1,0 +1,4 @@
+# Root requirements so Railway/Nixpacks detects a Python app and installs the
+# backend deps. The Flask backend serves the pre-built frontend (frontend/dist
+# is committed), so no Node build is needed at deploy time.
+-r backend/requirements.txt

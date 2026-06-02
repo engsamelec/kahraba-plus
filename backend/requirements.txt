@@ -6,4 +6,6 @@ PyMySQL==1.1.1
 SQLAlchemy==2.0.40
 cryptography==44.0.0
 Pillow==12.2.0
+gunicorn==23.0.0
+psycopg2-binary==2.9.10
 pytest>=8.0
