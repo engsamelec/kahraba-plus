@@ -46,8 +46,9 @@ class Coupon(db.Model):
             return 0.0
         if self.discount_type == "fixed":
             return round(min(self.value, subtotal), 2)
-        # percent
-        return round(subtotal * (self.value / 100.0), 2)
+        # percent — never exceed the subtotal even if value is mis-set > 100
+        pct = min(max(self.value, 0.0), 100.0)
+        return round(subtotal * (pct / 100.0), 2)
 
     def to_dict(self):
         return {

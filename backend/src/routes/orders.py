@@ -421,7 +421,7 @@ def admin_export_orders():
             [
                 safe(o.order_number),
                 o.created_at.strftime("%Y-%m-%d %H:%M") if o.created_at else "",
-                o.status, o.payment_status, o.payment_method,
+                o.status, o.payment_status, safe(o.payment_method),
                 safe(o.customer_name), safe(o.customer_email),
                 safe(o.customer_phone),
                 safe(o.shipping_address), safe(o.shipping_city),
@@ -568,6 +568,7 @@ def admin_stats():
             func.sum(Order.total_amount),
         )
         .filter(func.date(Order.created_at) >= start.isoformat())
+        .filter(Order.status != "cancelled")
         .group_by("day")
         .all()
     )

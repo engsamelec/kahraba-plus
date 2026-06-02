@@ -28,9 +28,24 @@ export function SettingsAdmin() {
 
   async function save() {
     if (!cfg) return;
+    // Reject blank/invalid numbers so a cleared field can't silently save 0
+    // (which would, e.g., turn free shipping on for everything or zero the tax).
+    const nums = {
+      free_shipping_threshold: cfg.free_shipping_threshold,
+      domestic_shipping: cfg.domestic_shipping,
+      international_shipping: cfg.international_shipping,
+      tax_rate: cfg.tax_rate,
+    };
+    for (const v of Object.values(nums)) {
+      if (v === "" || isNaN(Number(v))) {
+        toast.error(t("cfg_invalid_number"));
+        return;
+      }
+    }
     setSaving(true);
     try {
-      await api.put("/admin/config", {
+      const { data } = await api.put("/admin/config", {
+        ...nums,
         free_shipping_threshold: Number(cfg.free_shipping_threshold),
         domestic_shipping: Number(cfg.domestic_shipping),
         international_shipping: Number(cfg.international_shipping),
@@ -40,6 +55,7 @@ export function SettingsAdmin() {
         store_email: cfg.store_email,
         store_address: cfg.store_address,
       });
+      setCfg(data); // reflect the server's clamped values
       toast.success(t("save"));
     } catch (err) {
       toast.error(getErrorMessage(err) ?? t("error_generic"));

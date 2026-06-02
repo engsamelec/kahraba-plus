@@ -282,7 +282,9 @@ def get_product(slug):
         product = db.session.get(Product, int(slug))
     else:
         product = Product.query.filter_by(slug=slug).first()
-    if not product:
+    # Inactive/archived products are admin-only — the public must not reach
+    # them by guessing a slug/id.
+    if not product or (not product.is_active and not is_admin_request()):
         return jsonify({"error": "Product not found"}), 404
 
     related = (
@@ -498,7 +500,7 @@ def _apply_variant(variant, data):
 @products_bp.route("/products/<int:product_id>/variants", methods=["GET"])
 def list_variants(product_id):
     product = db.session.get(Product, product_id)
-    if not product:
+    if not product or (not product.is_active and not is_admin_request()):
         return jsonify({"error": "Product not found"}), 404
     return jsonify([v.to_dict() for v in product.variants])
 

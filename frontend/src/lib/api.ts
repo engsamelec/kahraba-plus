@@ -34,6 +34,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// If a token expires/gets revoked mid-session, clear it and bounce to login so
+// the UI doesn't keep pretending the user is signed in.
+api.interceptors.response.use(
+  (resp) => resp,
+  (error) => {
+    if (error?.response?.status === 401 && getToken()) {
+      setToken(null);
+      const path = window.location.pathname;
+      // Only redirect away from pages that actually require auth.
+      if (/^\/(account|admin|checkout)/.test(path)) {
+        window.location.assign("/login");
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 export default api;
 
 // ---------- Types ----------

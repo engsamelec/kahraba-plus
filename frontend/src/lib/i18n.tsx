@@ -116,6 +116,11 @@ const translations: Dict = {
   cfg_intl: { ar: "الشحن الدولي", en: "International shipping", he: "משלוח בינלאומי" },
   cfg_tax: { ar: "نسبة الضريبة", en: "Tax rate", he: "שיעור מס" },
   cfg_home_country: { ar: "الدولة المحلية", en: "Home country", he: "מדינת בית" },
+  cfg_invalid_number: {
+    ar: "أدخل أرقاماً صحيحة للشحن والضريبة",
+    en: "Enter valid numbers for shipping and tax",
+    he: "הזן מספרים תקינים למשלוח ומס",
+  },
   cfg_phone: { ar: "هاتف المتجر", en: "Store phone", he: "טלפון החנות" },
   cfg_email: { ar: "بريد المتجر", en: "Store email", he: "אימייל החנות" },
   cfg_address: { ar: "عنوان المتجر", en: "Store address", he: "כתובת החנות" },
@@ -222,6 +227,7 @@ const translations: Dict = {
   // Shop / filters
   filters: { ar: "تصفية", en: "Filters", he: "סינון" },
   all_categories: { ar: "كل الأقسام", en: "All Categories", he: "כל הקטגוריות" },
+  price: { ar: "السعر", en: "Price", he: "מחיר" },
   price_range: { ar: "نطاق السعر", en: "Price Range", he: "טווח מחירים" },
   in_stock_only: { ar: "المتوفر فقط", en: "In stock only", he: "במלאי בלבד" },
   sort_by: { ar: "ترتيب", en: "Sort by", he: "מיון" },

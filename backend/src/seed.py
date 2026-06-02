@@ -367,8 +367,14 @@ PRODUCTS = [
 ]
 
 
-def seed_database(admin_email="admin@kahrabaplus.com", admin_password="admin123"):
-    """Idempotent seed: only inserts data when the products table is empty."""
+def seed_database(admin_email=None, admin_password=None):
+    """Idempotent seed: only inserts data when the products table is empty.
+    The first admin's credentials come from ADMIN_EMAIL / ADMIN_PASSWORD so a
+    production deploy never ships the public demo password."""
+    import os
+
+    admin_email = admin_email or os.getenv("ADMIN_EMAIL", "admin@kahrabaplus.com")
+    admin_password = admin_password or os.getenv("ADMIN_PASSWORD", "admin123")
     if Product.query.first():
         return False  # already seeded
 

@@ -67,6 +67,10 @@ def serve_upload(filename):
         return jsonify({"error": "Invalid filename"}), 400
     resp = send_from_directory(_uploads_dir(), filename)
     resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    # Stop browsers MIME-sniffing an uploaded file into HTML/JS (stored XSS),
+    # since these are served from the app origin.
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["Content-Security-Policy"] = "default-src 'none'; sandbox"
     return resp
 
 

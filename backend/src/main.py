@@ -59,14 +59,20 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Restrict CORS in production to the configured origin(s); allow all in dev.
+    # Restrict CORS in production to the configured origin(s). In prod a missing
+    # CORS_ORIGINS must NOT silently fall back to "*" — fail closed.
     cors_origins = os.getenv("CORS_ORIGINS")
-    origins = (
-        [o.strip() for o in cors_origins.split(",") if o.strip()]
-        if cors_origins
-        else "*"
-    )
+    if cors_origins:
+        origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
+    elif is_prod:
+        raise RuntimeError("CORS_ORIGINS must be set in production")
+    else:
+        origins = "*"
     CORS(app, resources={r"/api/*": {"origins": origins}})
+
+    # Cap request bodies so a huge upload/import can't exhaust memory.
+    app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32 MB
+
     JWTManager(app)
     db.init_app(app)
 

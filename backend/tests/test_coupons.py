@@ -16,6 +16,24 @@ def _make(client, auth, **kw):
     return client.post("/api/admin/coupons", json=body, headers=auth)
 
 
+def test_update_type_switch_cannot_exceed_100_percent(client, auth):
+    # create a fixed coupon worth 500, then flip it to percent without resending
+    # value — it must be re-clamped to <= 100%, not stay 500%.
+    cid = client.post(
+        "/api/admin/coupons",
+        json={"code": "FLIP", "discount_type": "fixed", "value": 500},
+        headers=auth,
+    ).get_json()["id"]
+    client.put(
+        f"/api/admin/coupons/{cid}", json={"discount_type": "percent"}, headers=auth
+    )
+    res = client.post(
+        "/api/coupons/validate", json={"code": "FLIP", "subtotal": 100}
+    ).get_json()
+    # discount can never exceed the subtotal
+    assert res["discount"] <= 100
+
+
 def test_percent_coupon_validation(client, auth):
     _make(client, auth, code="SAVE10", value=10, min_subtotal=20)
     res = client.post("/api/coupons/validate", json={"code": "SAVE10", "subtotal": 50})

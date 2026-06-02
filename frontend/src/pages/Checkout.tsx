@@ -54,6 +54,7 @@ export default function Checkout() {
     payment_method: "cod",
   });
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteError, setQuoteError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
@@ -98,9 +99,17 @@ export default function Checkout() {
     };
     api
       .post("/orders/quote", payload)
-      .then((r) => setQuote(r.data))
-      .catch(() => setQuote(null));
-  }, [items, form.shipping_country, appliedCoupon]);
+      .then((r) => {
+        setQuote(r.data);
+        setQuoteError("");
+      })
+      .catch((err) => {
+        setQuote(null);
+        // Surface a stale-cart problem (out of stock / unavailable) up front
+        // instead of letting the user fill the form and fail at submit.
+        setQuoteError(getErrorMessage(err) ?? t("error_generic"));
+      });
+  }, [items, form.shipping_country, appliedCoupon, t]);
 
   if (items.length === 0) {
     navigate("/cart");
@@ -400,10 +409,15 @@ export default function Checkout() {
                 {money(quote?.total_amount ?? subtotal)}
               </span>
             </div>
+            {quoteError && (
+              <p className="mt-3 rounded-lg bg-destructive/10 p-2 text-center text-xs text-destructive">
+                {quoteError}
+              </p>
+            )}
             <Button
               type="submit"
-              disabled={submitting}
-              className="mt-4 w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+              disabled={submitting || !quote}
+              className="mt-4 w-full gap-2 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("place_order")}

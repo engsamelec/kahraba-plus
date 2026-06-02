@@ -82,6 +82,8 @@ def update_me():
 @jwt_required()
 def list_addresses():
     user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
     return jsonify([a.to_dict() for a in user.addresses])
 
 
@@ -89,6 +91,8 @@ def list_addresses():
 @jwt_required()
 def add_address():
     user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
     data = request.get_json(silent=True) or {}
     required = ["full_name", "address_line1", "city", "country"]
     missing = [f for f in required if not data.get(f)]

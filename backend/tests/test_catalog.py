@@ -141,6 +141,19 @@ def test_inactive_products_hidden_publicly_visible_to_admin(client, auth):
     assert any(p["id"] == pid for p in admin)
 
 
+def test_inactive_product_detail_hidden_from_public(client, auth):
+    pid = client.post(
+        "/api/products",
+        json={"name": "SecretDraft", "price": 9, "is_active": False},
+        headers=auth,
+    ).get_json()["id"]
+    # public detail + variants must 404
+    assert client.get(f"/api/products/{pid}").status_code == 404
+    assert client.get(f"/api/products/{pid}/variants").status_code == 404
+    # admin can still see it
+    assert client.get(f"/api/products/{pid}", headers=auth).status_code == 200
+
+
 def test_invalid_category_id_dropped(client, auth):
     res = client.post(
         "/api/products",

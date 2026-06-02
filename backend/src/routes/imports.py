@@ -82,10 +82,14 @@ def _parse_csv(text: str):
 
 
 def _to_float(v, default=None):
+    import math
+
     try:
-        return float(str(v).replace(",", "").strip())
+        f = float(str(v).replace(",", "").strip())
     except (ValueError, TypeError):
         return default
+    # Reject inf/nan so they never reach int()/_clamp_money and corrupt data.
+    return f if math.isfinite(f) else default
 
 
 def _clamp_money(v):

@@ -192,6 +192,7 @@ interface ProductForm {
   category_id: number | string;
   description: string;
   description_ar: string;
+  description_he: string;
   image_urls: string[];
   image_hashes: (number | string)[];
   is_featured: boolean;
@@ -214,6 +215,7 @@ const EMPTY_PRODUCT: ProductForm = {
   category_id: "",
   description: "",
   description_ar: "",
+  description_he: "",
   image_urls: [],
   image_hashes: [],
   is_featured: false,
@@ -281,7 +283,17 @@ function ProductsAdmin() {
     setEditing({ ...EMPTY_PRODUCT });
   }
 
-  function openEdit(p: Product) {
+  async function openEdit(listProduct: Product) {
+    // The list response omits full-only fields (description*, video_url,
+    // technical_specs). Fetch the full product first so saving the form can't
+    // silently wipe them.
+    let p = listProduct;
+    try {
+      const { data } = await api.get(`/products/${listProduct.id}`);
+      p = data;
+    } catch {
+      /* fall back to the list row */
+    }
     setEditing({
       id: p.id,
       name: p.name,
@@ -299,8 +311,9 @@ function ProductsAdmin() {
       category_id: p.category_id || "",
       description: p.description || "",
       description_ar: p.description_ar || "",
+      description_he: p.description_he || "",
       image_urls: p.image_urls || [],
-      image_hashes: p.image_hashes || [],
+      image_hashes: [],
       is_featured: p.is_featured,
       is_active: p.is_active ?? true,
     });
@@ -327,8 +340,10 @@ function ProductsAdmin() {
       category_id: editing.category_id ? Number(editing.category_id) : null,
       description: editing.description,
       description_ar: editing.description_ar,
+      description_he: editing.description_he,
       image_urls: editing.image_urls,
-      image_hashes: editing.image_hashes,
+      // image_hashes are derived (computed on upload / reindex) — never send
+      // them from the edit form, which would wipe them.
       is_featured: editing.is_featured,
       is_active: editing.is_active,
     };
@@ -336,7 +351,11 @@ function ProductsAdmin() {
       if (editing.id) {
         await api.put(`/products/${editing.id}`, payload);
       } else {
-        await api.post("/products", payload);
+        // New product: include the uploader-computed image hashes.
+        await api.post("/products", {
+          ...payload,
+          image_hashes: editing.image_hashes,
+        });
       }
       toast.success(t("save_product"));
       setEditing(null);
@@ -350,9 +369,13 @@ function ProductsAdmin() {
 
   async function del(id: number) {
     if (!confirm(t("delete") + "?")) return;
-    await api.delete(`/products/${id}`);
-    toast.success(t("delete"));
-    load();
+    try {
+      await api.delete(`/products/${id}`);
+      toast.success(t("delete"));
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   const inputCls =
@@ -661,6 +684,16 @@ function ProductsAdmin() {
                   setEditing({ ...editing, description_ar: e.target.value })
                 }
               />
+              <textarea
+                placeholder="תיאור (he)"
+                dir="rtl"
+                rows={2}
+                className={`${inputCls} sm:col-span-2`}
+                value={editing.description_he}
+                onChange={(e) =>
+                  setEditing({ ...editing, description_he: e.target.value })
+                }
+              />
               <label className="flex items-center gap-2 text-sm sm:col-span-2">
                 <input
                   type="checkbox"
@@ -723,23 +756,32 @@ function OrdersAdmin() {
   useEffect(load, []);
 
   async function updateStatus(id: number, field: string, value: string) {
-    await api.put(`/admin/orders/${id}`, { [field]: value });
-    toast.success(t("save"));
-    load();
+    try {
+      await api.put(`/admin/orders/${id}`, { [field]: value });
+      toast.success(t("save"));
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+      load(); // resync the UI with the server's actual state
+    }
   }
 
   async function exportCsv() {
-    // Fetch through the api client so the admin auth header is attached, then
-    // download the returned CSV as a file.
-    const { data } = await api.get("/admin/orders/export", {
-      responseType: "blob",
-    });
-    const url = URL.createObjectURL(data as Blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "kahraba-orders.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      // Fetch through the api client so the admin auth header is attached, then
+      // download the returned CSV as a file.
+      const { data } = await api.get("/admin/orders/export", {
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(data as Blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "kahraba-orders.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
   }
 
   return (

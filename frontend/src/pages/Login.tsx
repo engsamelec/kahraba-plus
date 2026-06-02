@@ -113,7 +113,8 @@ export default function Login() {
           </button>
         </p>
 
-        {mode === "login" && (
+        {/* Demo hint only in local dev — never expose credentials in prod. */}
+        {mode === "login" && import.meta.env.DEV && (
           <p className="mt-4 rounded-lg bg-secondary/60 p-3 text-center text-xs text-muted-foreground">
             Demo admin: admin@kahrabaplus.com / admin123
           </p>
