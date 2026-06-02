@@ -37,7 +37,10 @@ def _parse_expiry(value):
 def validate_coupon():
     data = request.get_json(silent=True) or {}
     code = (data.get("code") or "").strip()
-    subtotal = float(data.get("subtotal") or 0)
+    try:
+        subtotal = float(data.get("subtotal") or 0)
+    except (TypeError, ValueError):
+        subtotal = 0.0
     if not code:
         return jsonify({"valid": False, "reason": "empty"}), 400
 

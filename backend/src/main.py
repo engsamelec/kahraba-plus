@@ -25,6 +25,42 @@ from src.routes.uploads import uploads_bp
 from src.routes.visual_search import visual_bp
 
 
+def _reconcile_schema(engine):
+    """db.create_all() never adds NEW columns to a table that already exists, so
+    a redeploy against an existing DB would 500 on the missing column. On
+    Postgres we additively ALTER ... ADD COLUMN IF NOT EXISTS for any model
+    column the live table is missing (idempotent), guarded by an advisory lock
+    so concurrent gunicorn workers don't race. SQLite (dev) is disposable, so
+    it's skipped."""
+    from sqlalchemy import inspect as sa_inspect
+    from sqlalchemy import text
+
+    if engine.dialect.name != "postgresql":
+        return
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("SELECT pg_advisory_xact_lock(91823744)"))
+            insp = sa_inspect(conn)
+            for table in db.metadata.sorted_tables:
+                if not insp.has_table(table.name):
+                    continue
+                existing = {c["name"] for c in insp.get_columns(table.name)}
+                for col in table.columns:
+                    if col.name in existing:
+                        continue
+                    coltype = col.type.compile(dialect=engine.dialect)
+                    conn.execute(
+                        text(
+                            f'ALTER TABLE "{table.name}" '
+                            f'ADD COLUMN IF NOT EXISTS "{col.name}" {coltype}'
+                        )
+                    )
+    except Exception:  # never let a reconcile attempt block startup
+        import logging
+
+        logging.getLogger(__name__).exception("schema reconcile skipped")
+
+
 def create_app():
     # The built frontend (Vite) lives in frontend/dist; Flask serves it as the
     # SPA. Capacitor uses the same dist/ as its webDir for the mobile apps.
@@ -118,7 +154,11 @@ def create_app():
         return jsonify({"error": "A record with these details already exists"}), 409
 
     @app.errorhandler(ValueError)
+    @app.errorhandler(TypeError)
+    @app.errorhandler(OverflowError)
     def _handle_value_error(e):
+        # Bad JSON body shapes (array/object where a scalar is expected, inf…)
+        # should be a clean 400, not a 500.
         db.session.rollback()
         return jsonify({"error": "Invalid input"}), 400
 
@@ -151,6 +191,7 @@ def create_app():
         )
 
         db.create_all()
+        _reconcile_schema(db.engine)
         from src.seed import seed_database
 
         if seed_database():

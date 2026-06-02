@@ -23,8 +23,11 @@ export function SettingsAdmin() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get("/config").then((r) => setCfg(r.data));
-  }, []);
+    api
+      .get("/config")
+      .then((r) => setCfg(r.data))
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")));
+  }, [t]);
 
   async function save() {
     if (!cfg) return;

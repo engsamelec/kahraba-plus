@@ -128,6 +128,17 @@ def test_bad_quantity_does_not_500(client):
     assert res.status_code == 400  # global handler turns ValueError into 400
 
 
+def test_hostile_body_shapes_return_400_not_500(client):
+    # items not a list, quantity an array, subtotal an object — all clean 400s
+    assert client.post("/api/orders", json={**GUEST, "items": "x"}).status_code == 400
+    assert (
+        client.post("/api/orders", json={**GUEST, "items": [{"product_id": 1, "quantity": [1, 2]}]}).status_code
+        == 400
+    )
+    # a hostile subtotal must not 500 (coerced to 0, then normal validation)
+    assert client.post("/api/coupons/validate", json={"code": "X", "subtotal": []}).status_code != 500
+
+
 def test_admin_orders_csv_export(client, auth):
     _order(client, [{"product_id": 1, "quantity": 2}])
     # admin-gated

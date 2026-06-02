@@ -61,14 +61,14 @@ class Product(db.Model):
     compare_at_price = db.Column(db.Float, nullable=True)  # original price for discounts
     currency = db.Column(db.String(8), nullable=False, default="USD")
     stock_quantity = db.Column(db.Integer, nullable=False, default=0)
-    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=True, index=True)
     _image_urls = db.Column("image_urls", db.Text, nullable=True)  # JSON array
     _technical_specs = db.Column("technical_specs", db.Text, nullable=True)  # JSON object
     # JSON array of perceptual (dHash) values, one per product image, used for
     # visual search (match a customer photo to a product).
     _image_hashes = db.Column("image_hashes", db.Text, nullable=True)
     is_featured = db.Column(db.Boolean, default=False)
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
     rating_avg = db.Column(db.Float, default=0.0)
     rating_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=utcnow)

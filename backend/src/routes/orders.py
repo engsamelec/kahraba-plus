@@ -122,7 +122,11 @@ def _compute_totals(items, country, coupon_code=None):
 
     subtotal = 0.0
     resolved = []
+    if not isinstance(items, list):
+        return {"error": "Invalid items"}
     for item in items:
+        if not isinstance(item, dict):
+            return {"error": "Invalid item"}
         product = db.session.get(Product, item.get("product_id"))
         if not product or not product.is_active:
             return {"error": f"Product {item.get('product_id')} unavailable"}
@@ -160,7 +164,7 @@ def _compute_totals(items, country, coupon_code=None):
                 "error": f"Insufficient stock for {product.name}",
                 "product_id": product.id,
             }
-        line = unit_price * qty
+        line = round(unit_price * qty, 2)  # round per line so sums reconcile
         subtotal += line
         resolved.append((product, variant, qty, unit_price, line))
 
@@ -336,12 +340,16 @@ def create_order():
             synchronize_session=False,
         )
         if not bumped and coupon.max_uses is not None:
-            # Coupon got exhausted between quote and commit — drop the discount.
+            # Coupon got exhausted between quote and commit. Recompute the order
+            # WITHOUT the coupon so shipping/tax are correct (don't just add the
+            # discount back, which would mis-handle tax on the new subtotal).
+            fresh = _compute_totals(items, data.get("shipping_country"), None)
             order.discount = 0.0
             order.coupon_code = None
-            order.total_amount = round(
-                order.total_amount + (totals.get("discount") or 0), 2
-            )
+            order.subtotal = fresh["subtotal"]
+            order.shipping_cost = fresh["shipping_cost"]
+            order.tax = fresh["tax"]
+            order.total_amount = fresh["total_amount"]
 
     db.session.commit()
     return jsonify(order.to_dict()), 201

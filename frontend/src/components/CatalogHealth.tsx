@@ -68,6 +68,7 @@ export function CatalogHealth() {
     api
       .get("/admin/catalog-health")
       .then((r) => setData(r.data))
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")))
       .finally(() => setLoading(false));
     api
       .get("/admin/stock-notifications")

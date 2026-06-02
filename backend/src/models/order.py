@@ -10,7 +10,7 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_number = db.Column(db.String(40), unique=True, nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    status = db.Column(db.String(20), nullable=False, default="pending")
+    status = db.Column(db.String(20), nullable=False, default="pending", index=True)
     payment_status = db.Column(db.String(20), nullable=False, default="unpaid")
     payment_method = db.Column(db.String(40), nullable=False, default="cod")
 
@@ -72,7 +72,7 @@ class OrderItem(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=True, index=True)
     product_name = db.Column(db.String(200), nullable=False)
     # Localized name snapshots so historical orders render in the customer's
     # language even if the product is later renamed or deleted.

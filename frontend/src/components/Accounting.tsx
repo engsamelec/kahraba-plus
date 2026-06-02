@@ -6,8 +6,10 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import { toast } from "sonner";
 import api from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { getErrorMessage } from "@/lib/utils";
 // Admin sees the store's base currency (USD), like the rest of the panel.
 import { formatPrice } from "@/lib/format";
 
@@ -42,6 +44,7 @@ export function Accounting() {
     api
       .get("/admin/accounting")
       .then((r) => setData(r.data))
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")))
       .finally(() => setLoading(false));
   }, []);
 
