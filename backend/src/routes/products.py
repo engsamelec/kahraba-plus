@@ -549,6 +549,7 @@ def catalog_health():
     total = len(products)
 
     no_image, no_price, no_desc, no_category, no_stock = [], [], [], [], []
+    low_stock = []  # in stock but running low — an inventory alert, not a gap
     for p in products:
         brief = {"id": p.id, "name": p.name, "slug": p.slug}
         if not p.image_urls:
@@ -561,6 +562,8 @@ def catalog_health():
             no_category.append(brief)
         if p.stock_quantity <= 0:
             no_stock.append(brief)
+        elif p.stock_quantity <= 5:
+            low_stock.append({**brief, "stock": p.stock_quantity})
 
     issues = (
         len(no_image) + len(no_price) + len(no_desc)
@@ -586,6 +589,7 @@ def catalog_health():
             "missing_description": no_desc,
             "missing_category": no_category,
             "out_of_stock": no_stock,
+            "low_stock": low_stock,
         }
     )
 

@@ -104,6 +104,7 @@ const translations: Dict = {
   bulk_show: { ar: "إظهار", en: "Show", he: "הצג" },
   bulk_hide: { ar: "إخفاء", en: "Hide", he: "הסתר" },
   bulk_done: { ar: "تم التعديل الجماعي", en: "Bulk update applied", he: "עודכן בכמות" },
+  health_low_stock: { ar: "مخزون منخفض", en: "Low stock", he: "מלאי נמוך" },
   admin_users: { ar: "المستخدمون", en: "Users", he: "משתמשים" },
   admin_subscribers: { ar: "المشتركون", en: "Subscribers", he: "מנויים" },
   no_subscribers: {

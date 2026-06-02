@@ -31,6 +31,7 @@ interface Health {
   missing_description: Brief[];
   missing_category: Brief[];
   out_of_stock: Brief[];
+  low_stock?: Brief[];
 }
 
 interface Demand {
@@ -99,6 +100,7 @@ export function CatalogHealth() {
     { key: "missing_description", icon: FileText, items: data.missing_description, label: t("health_no_desc") },
     { key: "missing_category", icon: Tag, items: data.missing_category, label: t("health_no_category") },
     { key: "out_of_stock", icon: PackageX, items: data.out_of_stock, label: t("health_out_of_stock") },
+    { key: "low_stock", icon: PackageX, items: data.low_stock ?? [], label: t("health_low_stock") },
   ];
 
   const scoreColor =
