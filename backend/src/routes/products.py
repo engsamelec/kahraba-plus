@@ -1,7 +1,8 @@
 import re
 
 from flask import Blueprint, jsonify, request
-from sqlalchemy import or_
+from sqlalchemy import func, or_
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.models.catalog import Category, Product, ProductVariant, Review
 from src.models.user import User, db
@@ -95,7 +96,18 @@ def _bestseller_ids(limit=6):
 @products_bp.route("/categories", methods=["GET"])
 def get_categories():
     cats = Category.query.order_by(Category.name).all()
-    return jsonify([c.to_dict(with_count=True) for c in cats])
+    # One grouped query for all counts instead of len(c.products) per row (N+1).
+    counts = dict(
+        db.session.query(Product.category_id, func.count(Product.id))
+        .group_by(Product.category_id)
+        .all()
+    )
+    out = []
+    for c in cats:
+        d = c.to_dict()
+        d["product_count"] = counts.get(c.id, 0)
+        out.append(d)
+    return jsonify(out)
 
 
 @products_bp.route("/categories", methods=["POST"])
@@ -251,6 +263,11 @@ def get_products():
     # pagination
     page = request.args.get("page", 1, type=int)
     per_page = min(request.args.get("per_page", 12, type=int), 60)
+    # Eager-load category + variants so to_dict() (which reads .category and
+    # len(.variants)) doesn't fire a query per row (N+1).
+    query = query.options(
+        joinedload(Product.category), selectinload(Product.variants)
+    )
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
     bestseller_ids = _bestseller_ids()
@@ -549,9 +566,22 @@ def update_variant(variant_id):
 @products_bp.route("/variants/<int:variant_id>", methods=["DELETE"])
 @admin_required
 def delete_variant(variant_id):
+    from src.models.order import OrderItem
+
     variant = db.session.get(ProductVariant, variant_id)
     if not variant:
         return jsonify({"error": "Variant not found"}), 404
+    # If the variant has order history, hard-deleting it would orphan order
+    # items (no FK) and break cancel-restock. Archive it instead so history,
+    # reorders and restock stay intact.
+    has_sales = (
+        db.session.query(OrderItem.id).filter_by(variant_id=variant_id).first()
+        is not None
+    )
+    if has_sales:
+        variant.is_available = False
+        db.session.commit()
+        return jsonify({"archived": True}), 200
     db.session.delete(variant)
     db.session.commit()
     return "", 204

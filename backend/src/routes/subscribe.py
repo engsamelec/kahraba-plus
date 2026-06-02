@@ -23,10 +23,16 @@ def subscribe():
     email = (data.get("email") or "").strip().lower()
     if not _EMAIL_RE.match(email):
         return jsonify({"error": "invalid_email"}), 400
-    # Idempotent: re-subscribing the same email is a no-op success.
+    # Idempotent: re-subscribing the same email is a no-op success, even if a
+    # concurrent request inserts it first (catch the unique-constraint race).
     if not Subscriber.query.filter_by(email=email).first():
+        from sqlalchemy.exc import IntegrityError
+
         db.session.add(Subscriber(email=email))
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
     return jsonify({"ok": True}), 201
 
 

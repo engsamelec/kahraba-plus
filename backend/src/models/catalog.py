@@ -200,6 +200,10 @@ class Product(db.Model):
 
 class Review(db.Model):
     __tablename__ = "reviews"
+    # One review per user per product, so a double-submit can't inflate counts.
+    __table_args__ = (
+        db.UniqueConstraint("product_id", "user_id", name="uq_review_user_product"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)

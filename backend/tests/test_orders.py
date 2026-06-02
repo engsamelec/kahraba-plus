@@ -172,6 +172,20 @@ def test_invalid_order_status_rejected(client, auth):
     assert res.status_code == 400
 
 
+def test_deleting_sold_variant_archives_it(client, auth):
+    base = client.get("/api/products?ids=1").get_json()["products"][0]
+    v = client.post(
+        f"/api/products/{base['id']}/variants",
+        json={"name": "Blue / M", "additional_price": 2, "stock_quantity": 5},
+        headers=auth,
+    ).get_json()
+    # order the variant so it has sales history
+    _order(client, [{"product_id": base["id"], "variant_id": v["id"], "quantity": 1}])
+    # deleting must archive (preserve restock/history), not hard-delete
+    res = client.delete(f"/api/variants/{v['id']}", headers=auth)
+    assert res.status_code == 200 and res.get_json().get("archived") is True
+
+
 def test_variant_checkout_uses_variant_price_and_stock(client, auth):
     # Give product 1 a variant priced +5 with its own stock.
     base = client.get("/api/products?ids=1").get_json()["products"][0]

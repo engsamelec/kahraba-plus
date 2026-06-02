@@ -39,8 +39,15 @@ def request_notify(product_id):
     if existing:
         return jsonify({"ok": True, "already": True})
 
+    from sqlalchemy.exc import IntegrityError
+
     db.session.add(StockNotification(product_id=product_id, email=email))
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        # Lost a race against an identical concurrent request — that's fine.
+        db.session.rollback()
+        return jsonify({"ok": True, "already": True})
     return jsonify({"ok": True}), 201
 
 
