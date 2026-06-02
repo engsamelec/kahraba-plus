@@ -111,7 +111,7 @@ export default function Invoice() {
             <tr className="border-b text-muted-foreground">
               <th className="py-2 text-start font-medium">{t("nav_shop")}</th>
               <th className="py-2 text-center font-medium">{t("quantity")}</th>
-              <th className="py-2 text-end font-medium ltr-nums">$</th>
+              <th className="py-2 text-end font-medium">{t("subtotal")}</th>
             </tr>
           </thead>
           <tbody>

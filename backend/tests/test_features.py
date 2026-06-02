@@ -176,3 +176,27 @@ def test_promotion_lifecycle_and_public_live(client, auth):
     live = client.get("/api/promotions").get_json()
     titles = {p["title"] for p in live}
     assert "Eid" in titles and "Old" not in titles
+
+
+def test_promo_cta_and_product_video_url_sanitized(client, auth):
+    # a javascript: cta_link is forced to a safe relative path
+    p = client.post(
+        "/api/admin/promotions",
+        json={"title": "X", "cta_link": "javascript:alert(1)"},
+        headers=auth,
+    ).get_json()
+    assert p["cta_link"].startswith("/")
+    # an absolute external cta_link is also rejected
+    p2 = client.post(
+        "/api/admin/promotions",
+        json={"title": "Y", "cta_link": "https://evil.com"},
+        headers=auth,
+    ).get_json()
+    assert p2["cta_link"].startswith("/")
+    # product video_url keeps only http(s)
+    prod = client.post(
+        "/api/products",
+        json={"name": "V", "price": 5, "video_url": "javascript:alert(1)"},
+        headers=auth,
+    ).get_json()
+    assert prod["video_url"] is None

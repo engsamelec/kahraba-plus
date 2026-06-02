@@ -228,6 +228,13 @@ const translations: Dict = {
   filters: { ar: "تصفية", en: "Filters", he: "סינון" },
   all_categories: { ar: "كل الأقسام", en: "All Categories", he: "כל הקטגוריות" },
   price: { ar: "السعر", en: "Price", he: "מחיר" },
+  load_error: {
+    ar: "تعذّر تحميل البيانات. تحقّق من اتصالك.",
+    en: "Couldn't load. Check your connection.",
+    he: "טעינה נכשלה. בדוק את החיבור.",
+  },
+  retry: { ar: "إعادة المحاولة", en: "Retry", he: "נסה שוב" },
+  promo_live: { ar: "ظاهر الآن", en: "Live", he: "פעיל עכשיו" },
   price_range: { ar: "نطاق السعر", en: "Price Range", he: "טווח מחירים" },
   in_stock_only: { ar: "المتوفر فقط", en: "In stock only", he: "במלאי בלבד" },
   sort_by: { ar: "ترتيب", en: "Sort by", he: "מיון" },

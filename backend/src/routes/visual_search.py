@@ -14,6 +14,7 @@ from __future__ import annotations
 import base64
 import ipaddress
 import socket
+import urllib.request
 from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, request
@@ -136,35 +137,42 @@ _MAX_FETCH_BYTES = 8 * 1024 * 1024  # 8MB cap on remote image fetches
 
 
 def _url_is_public(url: str) -> bool:
-    """Block SSRF: only http(s) to hosts that resolve to public IPs."""
+    """Block SSRF: only http(s) to hosts that resolve to public (global) IPs.
+    Uses is_global (allow-list) and unwraps IPv4-mapped IPv6 to avoid bypass."""
     try:
         parsed = urlparse(url)
         if parsed.scheme not in ("http", "https") or not parsed.hostname:
             return False
         for info in socket.getaddrinfo(parsed.hostname, None):
             ip = ipaddress.ip_address(info[4][0])
-            if (
-                ip.is_private
-                or ip.is_loopback
-                or ip.is_link_local
-                or ip.is_reserved
-                or ip.is_multicast
-                or ip.is_unspecified
-            ):
+            if ip.version == 6 and ip.ipv4_mapped:
+                ip = ip.ipv4_mapped
+            if not ip.is_global:
                 return False
         return True
     except Exception:
         return False
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow redirects so an attacker can't bounce a validated
+    public URL to an internal one."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
 def _fetch(url: str, urllib, timeout: int = 6):
     try:
         if url.startswith("data:") and "," in url:
-            return base64.b64decode(url.split(",", 1)[1])
+            # Cap the encoded payload before decoding (no SSRF, but bound memory).
+            encoded = url.split(",", 1)[1][: _MAX_FETCH_BYTES * 4 // 3]
+            return base64.b64decode(encoded)
         if not _url_is_public(url):
             return None
+        opener = urllib.request.build_opener(_NoRedirect)
         req = urllib.request.Request(url, headers={"User-Agent": "kahraba-plus"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             # Cap the read so a huge/again-internal response can't be slurped.
             return resp.read(_MAX_FETCH_BYTES + 1)[:_MAX_FETCH_BYTES]
     except Exception:

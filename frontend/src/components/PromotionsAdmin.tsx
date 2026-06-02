@@ -168,15 +168,22 @@ export function PromotionsAdmin() {
                 )}
               </span>
               <span className="flex items-center gap-3 text-xs">
+                {/* "live" (shown on the storefront now) is informational */}
+                {p.live && (
+                  <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-green-600 dark:text-green-400">
+                    {t("promo_live")}
+                  </span>
+                )}
+                {/* the toggle reflects/controls is_active */}
                 <button
                   onClick={() => toggle(p)}
                   className={`rounded-full px-2 py-0.5 ${
-                    p.live
-                      ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                    p.is_active
+                      ? "bg-accent/15 text-accent"
                       : "bg-secondary text-muted-foreground"
                   }`}
                 >
-                  {p.live ? t("active") : t("inactive")}
+                  {p.is_active ? t("active") : t("inactive")}
                 </button>
                 <button onClick={() => remove(p.id)} className="text-destructive hover:opacity-70">
                   <Trash2 className="h-4 w-4" />

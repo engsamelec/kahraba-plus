@@ -21,7 +21,11 @@ export function FrequentlyBought({ items }: { items: Product[] }) {
     Object.fromEntries(items.map((p) => [p.id, true]))
   );
 
-  const chosen = items.filter((p) => selected[p.id] && p.in_stock);
+  // Products with variants need a size/color chosen on their own page, so they
+  // can't be added straight from here (the server requires a variant).
+  const chosen = items.filter(
+    (p) => selected[p.id] && p.in_stock && !p.has_variants,
+  );
   const total = chosen.reduce((sum, p) => sum + p.price, 0);
 
   function addAll() {

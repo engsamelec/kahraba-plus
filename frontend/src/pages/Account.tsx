@@ -87,9 +87,12 @@ export default function Account() {
         last_name: user.last_name,
         phone: user.phone || "",
       });
-      api.get("/orders/mine").then((r) => setOrders(r.data));
+      api
+        .get("/orders/mine")
+        .then((r) => setOrders(r.data))
+        .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")));
     }
-  }, [user]);
+  }, [user, t]);
 
   if (authLoading) {
     return (

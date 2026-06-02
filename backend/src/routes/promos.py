@@ -37,10 +37,23 @@ def _parse_dt(value):
         return None
 
 
+def _safe_cta(value):
+    """A promo CTA must be an in-app relative path — never an absolute URL or a
+    javascript:/data: scheme (which would be a click-XSS / open-redirect)."""
+    v = (value or "").strip()
+    if not v:
+        return None
+    if v.startswith("/") and not v.startswith("//"):
+        return v
+    return "/offers"
+
+
 def _apply(promo, data):
     for f in _FIELDS:
         if f in data:
             setattr(promo, f, (data[f] or None))
+    if "cta_link" in data:
+        promo.cta_link = _safe_cta(data["cta_link"])
     if "starts_at" in data:
         promo.starts_at = _parse_dt(data["starts_at"])
     if "ends_at" in data:

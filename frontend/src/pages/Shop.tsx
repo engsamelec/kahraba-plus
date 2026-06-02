@@ -20,6 +20,7 @@ export default function Shop() {
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
   const category = searchParams.get("category") || "";
@@ -54,7 +55,9 @@ export default function Shop() {
         setProducts(r.data.products);
         setTotal(r.data.total);
         setPages(r.data.pages);
+        setLoadError(false);
       })
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, [category, search, sort, inStock, maxPrice, brand, page]);
 
@@ -266,6 +269,13 @@ export default function Shop() {
                   </div>
                 </div>
               ))}
+            </div>
+          ) : loadError ? (
+            <div className="grid place-items-center rounded-xl border border-dashed py-24 text-center">
+              <p className="mb-3 text-muted-foreground">{t("load_error")}</p>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                {t("retry")}
+              </Button>
             </div>
           ) : products.length === 0 ? (
             <div className="grid place-items-center rounded-xl border border-dashed py-24 text-center">

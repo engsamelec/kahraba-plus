@@ -12,6 +12,7 @@ export interface StoreConfig {
   free_shipping_threshold: number; // USD
   domestic_shipping: number;
   international_shipping: number;
+  tax_rate: number; // 0..1
   home_country: string;
   store_phone: string;
   store_email: string;
@@ -22,6 +23,7 @@ const DEFAULTS: StoreConfig = {
   free_shipping_threshold: 100,
   domestic_shipping: 3,
   international_shipping: 25,
+  tax_rate: 0,
   home_country: "Syria",
   store_phone: BRAND.phone,
   store_email: BRAND.email,

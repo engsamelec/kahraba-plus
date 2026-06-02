@@ -28,6 +28,15 @@ def _unique_slug(base, model, exclude_id=None):
         i += 1
 
 
+def _safe_http_url(value):
+    """Keep only http(s) URLs — reject javascript:/data:/other schemes that
+    would be an XSS sink when rendered as a link."""
+    v = (value or "").strip()
+    if v and (v.startswith("http://") or v.startswith("https://")):
+        return v
+    return None
+
+
 def _validate_parent(cat_id, parent_id):
     """Return an error string if parent_id is missing or would create a cycle,
     else None. Walks the ancestor chain so deeper cycles are caught too."""
@@ -324,7 +333,7 @@ def create_product():
         slug=_unique_slug(slugify(name), Product),
         sku=data.get("sku"),
         barcode=(data.get("barcode") or "").strip() or None,
-        video_url=(data.get("video_url") or "").strip() or None,
+        video_url=_safe_http_url(data.get("video_url")),
         brand=data.get("brand"),
         description=data.get("description"),
         description_ar=data.get("description_ar"),
@@ -375,9 +384,14 @@ def bulk_update_products():
             p.is_active = action == "activate"
             updated += 1
     else:
+        import math
+
         try:
             value = float(data.get("value"))
         except (TypeError, ValueError):
+            return jsonify({"error": "Invalid value"}), 400
+        # Reject inf/nan so a typo can't silently zero every selected price.
+        if not math.isfinite(value):
             return jsonify({"error": "Invalid value"}), 400
         for p in products:
             base = p.price or 0
@@ -398,11 +412,13 @@ def update_product(product_id):
     data = request.get_json(silent=True) or {}
 
     for field in [
-        "name", "name_ar", "name_he", "sku", "barcode", "video_url", "brand",
+        "name", "name_ar", "name_he", "sku", "barcode", "brand",
         "description", "description_ar", "description_he", "currency",
     ]:
         if field in data:
             setattr(product, field, data[field])
+    if "video_url" in data:
+        product.video_url = _safe_http_url(data["video_url"])
     if "tags" in data:
         product.tags = data["tags"]
     # Admin may correct the human-friendly product number or the URL slug.
