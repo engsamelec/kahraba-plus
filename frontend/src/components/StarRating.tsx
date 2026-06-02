@@ -13,7 +13,13 @@ export function StarRating({
 }) {
   return (
     <div className="flex items-center gap-1">
-      <div className="flex">
+      <div
+        className="flex"
+        role={onChange ? "radiogroup" : "img"}
+        aria-label={
+          onChange ? "Rating" : `${Math.round(value)} out of 5 stars`
+        }
+      >
         {[1, 2, 3, 4, 5].map((i) => {
           const filled = i <= Math.round(value);
           return (
@@ -22,6 +28,9 @@ export function StarRating({
               type="button"
               disabled={!onChange}
               onClick={() => onChange?.(i)}
+              role={onChange ? "radio" : undefined}
+              aria-checked={onChange ? i === Math.round(value) : undefined}
+              aria-label={onChange ? `${i} stars` : undefined}
               className={onChange ? "cursor-pointer" : "cursor-default"}
             >
               <Star
