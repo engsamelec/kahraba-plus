@@ -56,6 +56,8 @@ const translations: Dict = {
   promo_link: { ar: "رابط الزر", en: "CTA link", he: "קישור כפתור" },
   promo_starts: { ar: "يبدأ", en: "Starts", he: "מתחיל" },
   promo_ends: { ar: "ينتهي", en: "Ends", he: "מסתיים" },
+  promo_image: { ar: "رابط صورة (اختياري)", en: "Image URL (optional)", he: "קישור תמונה" },
+  promo_sort: { ar: "الترتيب", en: "Sort order", he: "סדר" },
   solar_title: {
     ar: "حاسبة نظام الطاقة الشمسية",
     en: "Solar System Calculator",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Tag, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Tag, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import api, { type Promotion } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
@@ -10,11 +10,15 @@ const EMPTY = {
   title: "",
   title_ar: "",
   title_he: "",
+  subtitle: "",
   subtitle_ar: "",
+  subtitle_he: "",
+  image_url: "",
   coupon_code: "",
   cta_link: "/offers",
   starts_at: "",
   ends_at: "",
+  sort_order: "",
 };
 
 export function PromotionsAdmin() {
@@ -22,6 +26,7 @@ export function PromotionsAdmin() {
   const [items, setItems] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState({ ...EMPTY });
+  const [editId, setEditId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
   function load() {
@@ -29,22 +34,49 @@ export function PromotionsAdmin() {
     api
       .get("/admin/promotions")
       .then((r) => setItems(r.data))
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")))
       .finally(() => setLoading(false));
   }
   useEffect(load, []);
 
-  async function create() {
+  function startEdit(p: Promotion) {
+    setEditId(p.id);
+    setDraft({
+      title: p.title || "",
+      title_ar: p.title_ar || "",
+      title_he: p.title_he || "",
+      subtitle: p.subtitle || "",
+      subtitle_ar: p.subtitle_ar || "",
+      subtitle_he: p.subtitle_he || "",
+      image_url: p.image_url || "",
+      coupon_code: p.coupon_code || "",
+      cta_link: p.cta_link || "/offers",
+      starts_at: p.starts_at ? p.starts_at.slice(0, 10) : "",
+      ends_at: p.ends_at ? p.ends_at.slice(0, 10) : "",
+      sort_order: p.sort_order != null ? String(p.sort_order) : "",
+    });
+  }
+
+  function cancelEdit() {
+    setEditId(null);
+    setDraft({ ...EMPTY });
+  }
+
+  async function save() {
     if (!draft.title_ar.trim() && !draft.title.trim()) {
       toast.error(t("promo_need_title"));
       return;
     }
     setSaving(true);
+    const payload = {
+      ...draft,
+      title: draft.title || draft.title_ar,
+      sort_order: draft.sort_order ? Number(draft.sort_order) : 0,
+    };
     try {
-      await api.post("/admin/promotions", {
-        ...draft,
-        title: draft.title || draft.title_ar,
-      });
-      setDraft({ ...EMPTY });
+      if (editId) await api.put(`/admin/promotions/${editId}`, payload);
+      else await api.post("/admin/promotions", payload);
+      cancelEdit();
       load();
       toast.success(t("save"));
     } catch (err) {
@@ -83,7 +115,7 @@ export function PromotionsAdmin() {
         <p className="text-sm text-muted-foreground">{t("promos_hint")}</p>
       </div>
 
-      {/* create */}
+      {/* create / edit */}
       <div className="grid grid-cols-2 gap-2 rounded-xl border bg-secondary/30 p-4">
         <input
           placeholder={t("promo_title_ar")}
@@ -99,11 +131,24 @@ export function PromotionsAdmin() {
           onChange={(e) => setDraft({ ...draft, title: e.target.value })}
         />
         <input
-          placeholder={t("promo_subtitle")}
+          placeholder={`${t("promo_subtitle")} (ar)`}
           dir="rtl"
           className={`${cell} col-span-2`}
           value={draft.subtitle_ar}
           onChange={(e) => setDraft({ ...draft, subtitle_ar: e.target.value })}
+        />
+        <input
+          placeholder={`${t("promo_subtitle")} (en)`}
+          className={cell}
+          value={draft.subtitle}
+          onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
+        />
+        <input
+          placeholder={`${t("promo_subtitle")} (he)`}
+          dir="rtl"
+          className={cell}
+          value={draft.subtitle_he}
+          onChange={(e) => setDraft({ ...draft, subtitle_he: e.target.value })}
         />
         <input
           placeholder={t("promo_coupon")}
@@ -117,6 +162,20 @@ export function PromotionsAdmin() {
           className={cell}
           value={draft.cta_link}
           onChange={(e) => setDraft({ ...draft, cta_link: e.target.value })}
+        />
+        <input
+          placeholder={t("promo_image")}
+          dir="ltr"
+          className={cell}
+          value={draft.image_url}
+          onChange={(e) => setDraft({ ...draft, image_url: e.target.value })}
+        />
+        <input
+          placeholder={t("promo_sort")}
+          inputMode="numeric"
+          className={cell}
+          value={draft.sort_order}
+          onChange={(e) => setDraft({ ...draft, sort_order: e.target.value })}
         />
         <label className="text-xs text-muted-foreground">
           {t("promo_starts")}
@@ -136,14 +195,21 @@ export function PromotionsAdmin() {
             onChange={(e) => setDraft({ ...draft, ends_at: e.target.value })}
           />
         </label>
-        <Button
-          onClick={create}
-          disabled={saving}
-          className="col-span-2 gap-1 bg-accent text-accent-foreground hover:bg-accent/90"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          {t("add")}
-        </Button>
+        <div className="col-span-2 flex gap-2">
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="flex-1 gap-1 bg-accent text-accent-foreground hover:bg-accent/90"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {editId ? t("save") : t("add")}
+          </Button>
+          {editId && (
+            <Button variant="outline" onClick={cancelEdit} className="gap-1">
+              <X className="h-4 w-4" /> {t("cancel")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* list */}
@@ -168,13 +234,11 @@ export function PromotionsAdmin() {
                 )}
               </span>
               <span className="flex items-center gap-3 text-xs">
-                {/* "live" (shown on the storefront now) is informational */}
                 {p.live && (
                   <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-green-600 dark:text-green-400">
                     {t("promo_live")}
                   </span>
                 )}
-                {/* the toggle reflects/controls is_active */}
                 <button
                   onClick={() => toggle(p)}
                   className={`rounded-full px-2 py-0.5 ${
@@ -185,7 +249,18 @@ export function PromotionsAdmin() {
                 >
                   {p.is_active ? t("active") : t("inactive")}
                 </button>
-                <button onClick={() => remove(p.id)} className="text-destructive hover:opacity-70">
+                <button
+                  onClick={() => startEdit(p)}
+                  aria-label={t("edit")}
+                  className="text-muted-foreground hover:text-accent"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => remove(p.id)}
+                  aria-label={t("delete")}
+                  className="text-destructive hover:opacity-70"
+                >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </span>
