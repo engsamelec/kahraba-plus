@@ -1,38 +1,58 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api, { type ProductVariant } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { getErrorMessage } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+const EMPTY = {
+  size: "",
+  color: "",
+  color_hex: "#000000",
+  material: "",
+  additional_price: "",
+  stock_quantity: "0",
+  sku: "",
+};
+
 /**
  * Manage a product's variants (size / color / material / surcharge / stock).
- * Only shown for already-saved products since variants need a product id.
+ * Each existing variant's stock, surcharge and availability are editable inline;
+ * only shown for already-saved products since variants need a product id.
  */
 export function VariantsEditor({ productId }: { productId: number }) {
   const { t } = useI18n();
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [draft, setDraft] = useState({
-    size: "",
-    color: "",
-    color_hex: "#000000",
-    material: "",
-    additional_price: "",
-    stock_quantity: "0",
-    sku: "",
-  });
+  const [draft, setDraft] = useState({ ...EMPTY });
   const [adding, setAdding] = useState(false);
+  // per-variant inline edits
+  const [edits, setEdits] = useState<
+    Record<number, { stock_quantity: string; additional_price: string }>
+  >({});
 
   function load() {
     setLoading(true);
     api
       .get(`/products/${productId}/variants`)
-      .then((r) => setVariants(r.data))
+      .then((r) => {
+        setVariants(r.data);
+        setEdits(
+          Object.fromEntries(
+            r.data.map((v: ProductVariant) => [
+              v.id,
+              {
+                stock_quantity: String(v.stock_quantity),
+                additional_price: String(v.additional_price),
+              },
+            ]),
+          ),
+        );
+      })
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")))
       .finally(() => setLoading(false));
   }
-
   useEffect(load, [productId]);
 
   async function add() {
@@ -47,15 +67,7 @@ export function VariantsEditor({ productId }: { productId: number }) {
         additional_price: Number(draft.additional_price || 0),
         stock_quantity: Number(draft.stock_quantity || 0),
       });
-      setDraft({
-        size: "",
-        color: "",
-        color_hex: "#000000",
-        material: "",
-        additional_price: "",
-        stock_quantity: "0",
-        sku: "",
-      });
+      setDraft({ ...EMPTY });
       load();
     } catch (err) {
       toast.error(getErrorMessage(err) ?? t("error_generic"));
@@ -64,16 +76,41 @@ export function VariantsEditor({ productId }: { productId: number }) {
     }
   }
 
-  async function remove(id: number) {
+  async function saveVariant(v: ProductVariant) {
+    const e = edits[v.id];
+    if (!e) return;
     try {
-      await api.delete(`/variants/${id}`);
-      setVariants((v) => v.filter((x) => x.id !== id));
+      await api.put(`/variants/${v.id}`, {
+        stock_quantity: Number(e.stock_quantity || 0),
+        additional_price: Number(e.additional_price || 0),
+      });
+      toast.success(t("save"));
+      load();
     } catch (err) {
       toast.error(getErrorMessage(err) ?? t("error_generic"));
     }
   }
 
-  const cell = "rounded-lg border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-accent";
+  async function toggleAvail(v: ProductVariant) {
+    try {
+      await api.put(`/variants/${v.id}`, { is_available: !v.is_available });
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
+  }
+
+  async function remove(id: number) {
+    try {
+      await api.delete(`/variants/${id}`);
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
+  }
+
+  const cell =
+    "rounded-lg border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-accent";
 
   return (
     <div className="sm:col-span-2 rounded-lg border bg-secondary/30 p-4">
@@ -88,39 +125,83 @@ export function VariantsEditor({ productId }: { productId: number }) {
           {variants.map((v) => (
             <div
               key={v.id}
-              className="flex items-center justify-between gap-2 rounded-lg border bg-card px-3 py-2 text-sm"
+              className="flex flex-wrap items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex min-w-28 items-center gap-2">
                 {v.color_hex && (
                   <span
-                    className="h-4 w-4 rounded-full border"
+                    className="h-4 w-4 shrink-0 rounded-full border"
                     style={{ backgroundColor: v.color_hex }}
                   />
                 )}
                 <span className="font-medium">{v.label}</span>
-                {v.additional_price > 0 && (
-                  <span className="text-xs text-muted-foreground ltr-nums">
-                    +${v.additional_price}
-                  </span>
-                )}
-                <span className="text-xs text-muted-foreground ltr-nums">
-                  · {t("in_stock")}: {v.stock_quantity}
-                </span>
               </span>
+              <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                +$
+                <input
+                  inputMode="decimal"
+                  aria-label={t("price")}
+                  className={`${cell} w-16`}
+                  value={edits[v.id]?.additional_price ?? ""}
+                  onChange={(e) =>
+                    setEdits((s) => ({
+                      ...s,
+                      [v.id]: { ...s[v.id], additional_price: e.target.value },
+                    }))
+                  }
+                />
+              </label>
+              <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                {t("in_stock")}
+                <input
+                  inputMode="numeric"
+                  aria-label={t("in_stock")}
+                  className={`${cell} w-16`}
+                  value={edits[v.id]?.stock_quantity ?? ""}
+                  onChange={(e) =>
+                    setEdits((s) => ({
+                      ...s,
+                      [v.id]: { ...s[v.id], stock_quantity: e.target.value },
+                    }))
+                  }
+                />
+              </label>
               <button
                 type="button"
-                onClick={() => remove(v.id)}
-                className="text-destructive hover:opacity-70"
+                onClick={() => toggleAvail(v)}
+                className={`rounded-full px-2 py-0.5 text-xs ${
+                  v.is_available
+                    ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                    : "bg-secondary text-muted-foreground"
+                }`}
               >
-                <Trash2 className="h-4 w-4" />
+                {v.is_available ? t("active") : t("inactive")}
               </button>
+              <span className="ltr:ml-auto rtl:mr-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => saveVariant(v)}
+                  aria-label={t("save")}
+                  className="text-accent hover:opacity-70"
+                >
+                  <Check className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(v.id)}
+                  aria-label={t("delete")}
+                  className="text-destructive hover:opacity-70"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </span>
             </div>
           ))}
         </div>
       )}
 
       {/* add row */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-7">
         <input
           placeholder={t("size")}
           className={cell}
@@ -139,6 +220,12 @@ export function VariantsEditor({ productId }: { productId: number }) {
           className="h-9 w-full rounded-lg border bg-background"
           value={draft.color_hex}
           onChange={(e) => setDraft({ ...draft, color_hex: e.target.value })}
+        />
+        <input
+          placeholder={t("material")}
+          className={cell}
+          value={draft.material}
+          onChange={(e) => setDraft({ ...draft, material: e.target.value })}
         />
         <input
           placeholder={`+${t("price")}`}
@@ -172,6 +259,12 @@ export function VariantsEditor({ productId }: { productId: number }) {
           )}
         </Button>
       </div>
+      <input
+        placeholder={`SKU (${t("optional")})`}
+        className={`${cell} mt-2 w-full`}
+        value={draft.sku}
+        onChange={(e) => setDraft({ ...draft, sku: e.target.value })}
+      />
     </div>
   );
 }

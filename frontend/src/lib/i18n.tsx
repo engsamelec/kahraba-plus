@@ -236,6 +236,7 @@ const translations: Dict = {
   retry: { ar: "إعادة المحاولة", en: "Retry", he: "נסה שוב" },
   prev: { ar: "السابق", en: "Previous", he: "הקודם" },
   next: { ar: "التالي", en: "Next", he: "הבא" },
+  optional: { ar: "اختياري", en: "optional", he: "אופציונלי" },
   promo_live: { ar: "ظاهر الآن", en: "Live", he: "פעיל עכשיו" },
   first_name: { ar: "الاسم الأول", en: "First name", he: "שם פרטי" },
   password_hint: {
