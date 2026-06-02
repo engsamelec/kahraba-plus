@@ -13,9 +13,18 @@ interface Draft {
   name_ar: string;
   name_he: string;
   icon: string;
+  description: string;
+  parent_id: string;
 }
 
-const EMPTY: Draft = { name: "", name_ar: "", name_he: "", icon: "" };
+const EMPTY: Draft = {
+  name: "",
+  name_ar: "",
+  name_he: "",
+  icon: "",
+  description: "",
+  parent_id: "",
+};
 
 export function CategoriesAdmin() {
   const { t } = useI18n();
@@ -29,6 +38,7 @@ export function CategoriesAdmin() {
     api
       .get("/categories")
       .then((r) => setItems(r.data))
+      .catch((err) => toast.error(getErrorMessage(err) ?? t("error_generic")))
       .finally(() => setLoading(false));
   }
   useEffect(load, []);
@@ -41,7 +51,11 @@ export function CategoriesAdmin() {
     }
     setSaving(true);
     try {
-      const payload = { ...draft, name: draft.name || draft.name_ar };
+      const payload = {
+        ...draft,
+        name: draft.name || draft.name_ar,
+        parent_id: draft.parent_id ? Number(draft.parent_id) : null,
+      };
       if (draft.id) await api.put(`/categories/${draft.id}`, payload);
       else await api.post("/categories", payload);
       setDraft(null);
@@ -111,6 +125,27 @@ export function CategoriesAdmin() {
             value={draft.icon}
             onChange={(e) => setDraft({ ...draft, icon: e.target.value })}
           />
+          <select
+            aria-label={t("cat_parent")}
+            className={cell}
+            value={draft.parent_id}
+            onChange={(e) => setDraft({ ...draft, parent_id: e.target.value })}
+          >
+            <option value="">{t("cat_no_parent")}</option>
+            {items
+              .filter((c) => c.id !== draft.id)
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name_ar || c.name}
+                </option>
+              ))}
+          </select>
+          <input
+            placeholder={t("cat_description")}
+            className={`${cell} col-span-2`}
+            value={draft.description}
+            onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+          />
           <div className="col-span-2 flex gap-2">
             <Button
               onClick={save}
@@ -156,6 +191,8 @@ export function CategoriesAdmin() {
                       name_ar: c.name_ar || "",
                       name_he: c.name_he || "",
                       icon: c.icon || "",
+                      description: c.description || "",
+                      parent_id: c.parent_id != null ? String(c.parent_id) : "",
                     })
                   }
                   className="text-muted-foreground hover:text-accent"
