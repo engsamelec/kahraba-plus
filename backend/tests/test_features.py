@@ -67,6 +67,27 @@ def test_notify_stock(client, auth):
 
 
 # ---- visual search ----
+def test_store_config_editable_and_affects_quote(client, auth):
+    # admin updates shipping + free-shipping threshold + tax
+    res = client.put(
+        "/api/admin/config",
+        json={"free_shipping_threshold": 50, "domestic_shipping": 5, "tax_rate": 0.1},
+        headers=auth,
+    )
+    assert res.status_code == 200 and res.get_json()["domestic_shipping"] == 5.0
+    # public config reflects it
+    assert client.get("/api/config").get_json()["free_shipping_threshold"] == 50.0
+    # a small order now gets the new shipping + tax
+    q = client.post(
+        "/api/orders/quote",
+        json={"items": [{"product_id": 1, "quantity": 1}], "country": "Syria"},
+    ).get_json()
+    assert q["shipping_cost"] == 5.0 and q["tax"] > 0
+    # guards
+    assert client.put("/api/admin/config", json={"domestic_shipping": "x"}, headers=auth).status_code == 400
+    assert client.put("/api/admin/config", json={"tax_rate": 0.2}).status_code in (401, 422)
+
+
 def test_newsletter_subscribe_persists(client, auth):
     assert client.post("/api/subscribe", json={"email": "bad"}).status_code == 400
     assert client.post("/api/subscribe", json={"email": "Fan@X.com"}).status_code == 201

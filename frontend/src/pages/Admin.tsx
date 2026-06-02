@@ -29,6 +29,7 @@ import { PromotionsAdmin } from "@/components/PromotionsAdmin";
 import { CategoriesAdmin } from "@/components/CategoriesAdmin";
 import { UsersAdmin } from "@/components/UsersAdmin";
 import { SubscribersAdmin } from "@/components/SubscribersAdmin";
+import { SettingsAdmin } from "@/components/SettingsAdmin";
 import { Button } from "@/components/ui/button";
 
 interface Stats {
@@ -61,6 +62,7 @@ export default function Admin() {
     | "categories"
     | "users"
     | "subscribers"
+    | "settings"
   >("dashboard");
   useDocumentTitle(t("admin_dashboard"));
 
@@ -79,6 +81,7 @@ export default function Admin() {
           { id: "promos", label: t("promos_title") },
           { id: "users", label: t("admin_users") },
           { id: "subscribers", label: t("admin_subscribers") },
+          { id: "settings", label: t("admin_settings") },
         ].map((tb) => (
           <button
             key={tb.id}
@@ -105,6 +108,7 @@ export default function Admin() {
       {tab === "categories" && <CategoriesAdmin />}
       {tab === "users" && <UsersAdmin />}
       {tab === "subscribers" && <SubscribersAdmin />}
+      {tab === "settings" && <SettingsAdmin />}
     </div>
   );
 }

@@ -79,14 +79,38 @@ def quote_order():
 def store_config():
     """Public store config used by the storefront (free-shipping bar etc.).
     Amounts are the canonical USD values; the client converts for display."""
-    return jsonify(
-        {
-            "free_shipping_threshold": FREE_SHIPPING_THRESHOLD,
-            "domestic_shipping": SHIPPING_RATES["domestic"],
-            "international_shipping": SHIPPING_RATES["international"],
-            "home_country": HOME_COUNTRY,
-        }
-    )
+    from src.models.store_config import get_config
+
+    return jsonify(get_config().to_dict())
+
+
+@orders_bp.route("/admin/config", methods=["PUT"])
+@admin_required
+def update_store_config():
+    """Merchant-editable shipping / free-shipping / tax settings."""
+    from src.models.store_config import get_config
+
+    cfg = get_config()
+    data = request.get_json(silent=True) or {}
+    for field in (
+        "free_shipping_threshold",
+        "domestic_shipping",
+        "international_shipping",
+    ):
+        if field in data:
+            try:
+                setattr(cfg, field, max(0.0, float(data[field])))
+            except (TypeError, ValueError):
+                return jsonify({"error": f"Invalid {field}"}), 400
+    if "tax_rate" in data:
+        try:
+            cfg.tax_rate = min(1.0, max(0.0, float(data["tax_rate"])))
+        except (TypeError, ValueError):
+            return jsonify({"error": "Invalid tax_rate"}), 400
+    if "home_country" in data and str(data["home_country"]).strip():
+        cfg.home_country = str(data["home_country"]).strip()
+    db.session.commit()
+    return jsonify(cfg.to_dict())
 
 
 
@@ -154,13 +178,16 @@ def _compute_totals(items, country, coupon_code=None):
 
     discounted_subtotal = max(0.0, subtotal - discount)
 
-    is_domestic = (not country) or country.lower() == HOME_COUNTRY.lower()
+    # Shipping/free-shipping/tax come from the merchant-editable store config.
+    from src.models.store_config import get_config
+
+    cfg = get_config()
+    is_domestic = (not country) or country.lower() == cfg.home_country.lower()
     scope = "domestic" if is_domestic else "international"
+    rate = cfg.domestic_shipping if is_domestic else cfg.international_shipping
     # Free-shipping threshold applies to the discounted subtotal.
-    shipping = (
-        0.0 if discounted_subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_RATES[scope]
-    )
-    tax = round(discounted_subtotal * TAX_RATE, 2)
+    shipping = 0.0 if discounted_subtotal >= cfg.free_shipping_threshold else rate
+    tax = round(discounted_subtotal * cfg.tax_rate, 2)
     total = round(discounted_subtotal + shipping + tax, 2)
     return {
         "subtotal": round(subtotal, 2),

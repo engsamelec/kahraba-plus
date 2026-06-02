@@ -140,6 +140,7 @@ def create_app():
             order,
             promo,
             question,
+            store_config,
             subscriber,
         )
 

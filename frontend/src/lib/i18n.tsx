@@ -105,6 +105,17 @@ const translations: Dict = {
   bulk_hide: { ar: "إخفاء", en: "Hide", he: "הסתר" },
   bulk_done: { ar: "تم التعديل الجماعي", en: "Bulk update applied", he: "עודכן בכמות" },
   health_low_stock: { ar: "مخزون منخفض", en: "Low stock", he: "מלאי נמוך" },
+  admin_settings: { ar: "الإعدادات", en: "Settings", he: "הגדרות" },
+  cfg_hint: {
+    ar: "إعدادات الشحن والضريبة (بالدولار، عملة الأساس).",
+    en: "Shipping & tax settings (in USD, the base currency).",
+    he: "הגדרות משלוח ומס (בדולר, מטבע הבסיס).",
+  },
+  cfg_free_shipping: { ar: "حدّ الشحن المجاني", en: "Free shipping over", he: "משלוח חינם מעל" },
+  cfg_domestic: { ar: "الشحن المحلي", en: "Domestic shipping", he: "משלוח מקומי" },
+  cfg_intl: { ar: "الشحن الدولي", en: "International shipping", he: "משלוח בינלאומי" },
+  cfg_tax: { ar: "نسبة الضريبة", en: "Tax rate", he: "שיעור מס" },
+  cfg_home_country: { ar: "الدولة المحلية", en: "Home country", he: "מדינת בית" },
   admin_users: { ar: "المستخدمون", en: "Users", he: "משתמשים" },
   admin_subscribers: { ar: "المشتركون", en: "Subscribers", he: "מנויים" },
   no_subscribers: {
