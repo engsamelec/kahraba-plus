@@ -88,6 +88,16 @@ def _to_float(v, default=None):
         return default
 
 
+def _clamp_money(v):
+    """Same guard the JSON product routes use: non-negative, capped at 1M.
+    Returns None only when v is None (so optional fields stay unset)."""
+    if v is None:
+        return None
+    if v != v or v < 0:  # NaN or negative
+        return 0.0
+    return min(v, 1_000_000.0)
+
+
 def _read_text():
     if "file" in request.files:
         return request.files["file"].read().decode("utf-8-sig", errors="replace")
@@ -152,7 +162,8 @@ def import_preview():
         if not row.get("name"):
             errors.append({"row": i + 2, "error": "missing name"})
             continue
-        if _to_float(row.get("price")) is None:
+        price = _to_float(row.get("price"))
+        if price is None or price < 0:
             errors.append({"row": i + 2, "error": "invalid/missing price"})
             continue
         valid += 1
@@ -236,13 +247,17 @@ def import_commit():
             product.name_he = row["name_he"]
         if row.get("brand"):
             product.brand = row["brand"]
-        product.price = price
-        cap = _to_float(row.get("compare_at_price"))
+        product.price = _clamp_money(price) or 0.0
+        cap = _clamp_money(_to_float(row.get("compare_at_price")))
         if cap is not None:
             product.compare_at_price = cap
+        # Keep the sale invariant: a compare-at price must be above the price,
+        # otherwise it's not a discount — clear it so no bogus strikethrough.
+        if product.compare_at_price and product.compare_at_price <= product.price:
+            product.compare_at_price = None
         stock = row.get("stock")
         if stock not in (None, ""):
-            product.stock_quantity = int(_to_float(stock, 0) or 0)
+            product.stock_quantity = max(0, int(_to_float(stock, 0) or 0))
         if row.get("description"):
             product.description = row["description"]
         if row.get("description_ar"):

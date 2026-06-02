@@ -28,6 +28,30 @@ def _unique_slug(base, model, exclude_id=None):
         i += 1
 
 
+def _validate_parent(cat_id, parent_id):
+    """Return an error string if parent_id is missing or would create a cycle,
+    else None. Walks the ancestor chain so deeper cycles are caught too."""
+    parent = db.session.get(Category, parent_id)
+    if not parent:
+        return "Parent category not found"
+    seen = set()
+    node = parent
+    while node is not None:
+        if node.id == cat_id or node.id in seen:
+            return "Invalid parent (would create a cycle)"
+        seen.add(node.id)
+        node = db.session.get(Category, node.parent_id) if node.parent_id else None
+    return None
+
+
+def _valid_category_id(cid):
+    """Coerce a category id from request input: keep it only if it exists."""
+    if cid in (None, "", 0):
+        return None
+    cat = db.session.get(Category, cid)
+    return cat.id if cat else None
+
+
 def _money(value, default=0.0):
     """Parse a non-negative monetary value, capped to a sane maximum."""
     try:
@@ -72,6 +96,9 @@ def create_category():
     name = (data.get("name") or "").strip()
     if not name:
         return jsonify({"error": "Name is required"}), 400
+    parent_id = data.get("parent_id") or None
+    if parent_id is not None and not db.session.get(Category, parent_id):
+        return jsonify({"error": "Parent category not found"}), 400
     cat = Category(
         name=name,
         name_ar=data.get("name_ar"),
@@ -79,7 +106,7 @@ def create_category():
         slug=_unique_slug(slugify(name), Category),
         description=data.get("description"),
         icon=data.get("icon"),
-        parent_id=data.get("parent_id") or None,
+        parent_id=parent_id,
     )
     db.session.add(cat)
     db.session.commit()
@@ -97,9 +124,12 @@ def update_category(category_id):
         if field in data:
             setattr(cat, field, data[field])
     if "parent_id" in data:
-        # Prevent a category being its own parent (a trivial cycle).
         pid = data["parent_id"] or None
-        cat.parent_id = pid if pid != cat.id else None
+        if pid is not None:
+            err = _validate_parent(cat.id, pid)
+            if err:
+                return jsonify({"error": err}), 400
+        cat.parent_id = pid
     db.session.commit()
     return jsonify(cat.to_dict(with_count=True))
 
@@ -306,7 +336,7 @@ def create_product():
         ),
         currency=data.get("currency", "USD"),
         stock_quantity=max(0, int(data.get("stock_quantity") or 0)),
-        category_id=data.get("category_id"),
+        category_id=_valid_category_id(data.get("category_id")),
         is_featured=bool(data.get("is_featured")),
         is_active=data.get("is_active", True),
     )
@@ -393,7 +423,7 @@ def update_product(product_id):
     if "stock_quantity" in data:
         product.stock_quantity = max(0, int(data["stock_quantity"] or 0))
     if "category_id" in data:
-        product.category_id = data["category_id"]
+        product.category_id = _valid_category_id(data["category_id"])
     if "is_featured" in data:
         product.is_featured = bool(data["is_featured"])
     if "is_active" in data:

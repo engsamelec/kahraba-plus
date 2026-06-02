@@ -141,6 +141,39 @@ def test_inactive_products_hidden_publicly_visible_to_admin(client, auth):
     assert any(p["id"] == pid for p in admin)
 
 
+def test_invalid_category_id_dropped(client, auth):
+    res = client.post(
+        "/api/products",
+        json={"name": "Orphan", "price": 5, "category_id": 99999},
+        headers=auth,
+    )
+    assert res.status_code == 201 and res.get_json()["category_id"] is None
+
+
+def test_category_parent_must_exist_and_no_cycle(client, auth):
+    a = client.post("/api/categories", json={"name": "A"}, headers=auth).get_json()["id"]
+    b = client.post("/api/categories", json={"name": "B"}, headers=auth).get_json()["id"]
+    # non-existent parent rejected
+    assert client.post("/api/categories", json={"name": "C", "parent_id": 99999}, headers=auth).status_code == 400
+    # B under A is fine
+    assert client.put(f"/api/categories/{b}", json={"parent_id": a}, headers=auth).status_code == 200
+    # A under B would cycle -> rejected
+    assert client.put(f"/api/categories/{a}", json={"parent_id": b}, headers=auth).status_code == 400
+    # self-parent rejected
+    assert client.put(f"/api/categories/{a}", json={"parent_id": a}, headers=auth).status_code == 400
+
+
+def test_import_rejects_negative_price_and_clamps_stock(client, auth):
+    bad = "name,price,stock\nNeg,-5,10"
+    prev = client.post("/api/admin/import/preview", json={"csv": bad}, headers=auth).get_json()
+    assert prev["valid"] == 0 and len(prev["errors"]) == 1
+    # a negative stock is clamped to 0 on commit
+    csv = "name,price,stock\nClampMe,7,-3"
+    client.post("/api/admin/import/commit", json={"csv": csv}, headers=auth)
+    p = [x for x in client.get("/api/products?per_page=100&include_inactive=true", headers=auth).get_json()["products"] if x["name"] == "ClampMe"][0]
+    assert p["stock_quantity"] == 0
+
+
 def test_bulk_price_and_visibility(client, auth):
     before = {
         p["id"]: p["price"]

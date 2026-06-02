@@ -224,6 +224,7 @@ function ProductsAdmin() {
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [pct, setPct] = useState("");
+  const [search, setSearch] = useState("");
 
   function toggleSel(id: number) {
     setSelected((s) => {
@@ -253,13 +254,22 @@ function ProductsAdmin() {
 
   function load() {
     // include_inactive so the admin sees archived/hidden products too.
-    api
-      .get("/products", { params: { per_page: 100, include_inactive: "true" } })
-      .then((r) => setProducts(r.data.products));
+    const params: Record<string, string | number> = {
+      per_page: 100,
+      include_inactive: "true",
+    };
+    if (search.trim()) params.search = search.trim();
+    api.get("/products", { params }).then((r) => setProducts(r.data.products));
   }
 
+  // Debounced reload as the admin types in the product search.
   useEffect(() => {
-    load();
+    const id = setTimeout(load, 300);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  useEffect(() => {
     api.get("/categories").then((r) => setCategories(r.data));
   }, []);
 
@@ -346,7 +356,13 @@ function ProductsAdmin() {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t("search_placeholder")}
+          className="min-w-0 flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-accent"
+        />
         <Button
           onClick={openNew}
           className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
