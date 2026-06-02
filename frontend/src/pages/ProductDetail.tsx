@@ -317,10 +317,12 @@ export default function ProductDetail() {
             <span className="text-3xl font-extrabold text-foreground">
               {money(effectivePrice)}
             </span>
-            {product.compare_at_price && !variant && (
+            {!!product.discount_percent &&
+              product.discount_percent > 0 &&
+              !variant && (
               <>
                 <span className="text-lg text-muted-foreground line-through">
-                  {money(product.compare_at_price)}
+                  {money(product.compare_at_price!)}
                 </span>
                 <span className="rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground">
                   -{product.discount_percent}% {t("off")}

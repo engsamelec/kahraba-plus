@@ -133,9 +133,9 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="text-lg font-bold text-foreground">
               {money(product.price)}
             </span>
-            {product.compare_at_price && (
+            {!!product.discount_percent && product.discount_percent > 0 && (
               <span className="ms-1.5 text-xs text-muted-foreground line-through">
-                {money(product.compare_at_price)}
+                {money(product.compare_at_price!)}
               </span>
             )}
           </div>
