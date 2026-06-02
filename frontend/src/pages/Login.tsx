@@ -61,21 +61,29 @@ export default function Login() {
 
         <form onSubmit={submit} className="space-y-4">
           {mode === "register" && (
-            <div className="grid grid-cols-2 gap-3">
-              <input
-                required
-                placeholder={t("full_name")}
-                className={inputCls}
-                value={form.first_name}
-                onChange={(e) => set("first_name", e.target.value)}
-              />
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  required
+                  placeholder={t("first_name")}
+                  className={inputCls}
+                  value={form.first_name}
+                  onChange={(e) => set("first_name", e.target.value)}
+                />
+                <input
+                  placeholder={t("last_name")}
+                  className={inputCls}
+                  value={form.last_name}
+                  onChange={(e) => set("last_name", e.target.value)}
+                />
+              </div>
               <input
                 placeholder={t("phone")}
                 className={inputCls}
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
               />
-            </div>
+            </>
           )}
           <input
             type="email"
@@ -88,11 +96,17 @@ export default function Login() {
           <input
             type="password"
             required
+            minLength={mode === "register" ? 6 : undefined}
             placeholder={t("password")}
             className={inputCls}
             value={form.password}
             onChange={(e) => set("password", e.target.value)}
           />
+          {mode === "register" && (
+            <p className="-mt-2 text-xs text-muted-foreground">
+              {t("password_hint")}
+            </p>
+          )}
           <Button
             type="submit"
             disabled={loading}

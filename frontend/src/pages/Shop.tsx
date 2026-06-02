@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 const PER_PAGE = 12;
 
 export default function Shop() {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
   const money = useMoney();
   const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -291,21 +291,50 @@ export default function Shop() {
 
               {pages > 1 && (
                 <div className="mt-8 flex items-center justify-center gap-1">
-                  {Array.from({ length: pages }).map((_, i) => (
-                    <Button
-                      key={i}
-                      variant={page === i + 1 ? "default" : "outline"}
-                      size="icon"
-                      className={
-                        page === i + 1
-                          ? "h-9 w-9 bg-accent text-accent-foreground hover:bg-accent/90"
-                          : "h-9 w-9"
-                      }
-                      onClick={() => update("page", String(i + 1))}
-                    >
-                      {i + 1}
-                    </Button>
-                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    disabled={page <= 1}
+                    onClick={() => update("page", String(page - 1))}
+                    aria-label={t("prev")}
+                  >
+                    {dir === "rtl" ? "›" : "‹"}
+                  </Button>
+                  {/* windowed: current ±1, with first/last and ellipses */}
+                  {Array.from({ length: pages }, (_, i) => i + 1)
+                    .filter(
+                      (n) => n === 1 || n === pages || Math.abs(n - page) <= 1,
+                    )
+                    .map((n, idx, arr) => (
+                      <span key={n} className="flex items-center gap-1">
+                        {idx > 0 && n - arr[idx - 1] > 1 && (
+                          <span className="px-1 text-muted-foreground">…</span>
+                        )}
+                        <Button
+                          variant={page === n ? "default" : "outline"}
+                          size="icon"
+                          className={
+                            page === n
+                              ? "h-9 w-9 bg-accent text-accent-foreground hover:bg-accent/90"
+                              : "h-9 w-9"
+                          }
+                          onClick={() => update("page", String(n))}
+                        >
+                          {n}
+                        </Button>
+                      </span>
+                    ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    disabled={page >= pages}
+                    onClick={() => update("page", String(page + 1))}
+                    aria-label={t("next")}
+                  >
+                    {dir === "rtl" ? "‹" : "›"}
+                  </Button>
                 </div>
               )}
             </>

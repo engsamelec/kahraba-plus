@@ -13,11 +13,15 @@ No numpy / ML dependencies — works fully offline.
 
 from __future__ import annotations
 
+import warnings
+
 from PIL import Image, ImageFilter
 
 # Guard against decompression-bomb images: a small file that decodes to an
-# enormous bitmap. PIL raises DecompressionBombError above this pixel count.
+# enormous bitmap. PIL only *errors* above 2x this; between 1x and 2x it merely
+# warns and still decodes, so we promote the warning to an error to cap memory.
 Image.MAX_IMAGE_PIXELS = 24_000_000  # ~24 MP
+warnings.simplefilter("error", Image.DecompressionBombWarning)
 
 HASH_SIZE = 8  # produces a 64-bit hash (HASH_SIZE x HASH_SIZE)
 
