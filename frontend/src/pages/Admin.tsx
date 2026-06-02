@@ -222,6 +222,34 @@ function ProductsAdmin() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [editing, setEditing] = useState<ProductForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [pct, setPct] = useState("");
+
+  function toggleSel(id: number) {
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
+
+  async function bulk(action: string, value?: number) {
+    if (selected.size === 0) return;
+    try {
+      const { data } = await api.post("/products/bulk", {
+        product_ids: [...selected],
+        action,
+        value,
+      });
+      toast.success(`${t("bulk_done")} (${data.updated})`);
+      setSelected(new Set());
+      setPct("");
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err) ?? t("error_generic"));
+    }
+  }
 
   function load() {
     // include_inactive so the admin sees archived/hidden products too.
@@ -327,10 +355,65 @@ function ProductsAdmin() {
         </Button>
       </div>
 
+      {/* Bulk actions on the selected rows */}
+      {selected.size > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border bg-accent/5 p-3 text-sm">
+          <span className="font-semibold ltr-nums">
+            {selected.size} {t("bulk_selected")}
+          </span>
+          <span className="mx-1 h-4 w-px bg-border" />
+          <input
+            type="number"
+            value={pct}
+            onChange={(e) => setPct(e.target.value)}
+            placeholder="%"
+            className="w-20 rounded-lg border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-accent"
+          />
+          <button
+            onClick={() => pct && bulk("price_percent", Number(pct))}
+            className="rounded-lg border px-3 py-1.5 font-medium hover:bg-secondary"
+          >
+            {t("bulk_apply_pct")}
+          </button>
+          <span className="mx-1 h-4 w-px bg-border" />
+          <button
+            onClick={() => bulk("activate")}
+            className="rounded-lg border px-3 py-1.5 font-medium hover:bg-secondary"
+          >
+            {t("bulk_show")}
+          </button>
+          <button
+            onClick={() => bulk("deactivate")}
+            className="rounded-lg border px-3 py-1.5 font-medium hover:bg-secondary"
+          >
+            {t("bulk_hide")}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ltr:ml-auto rtl:mr-auto text-xs text-muted-foreground hover:underline"
+          >
+            {t("cancel")}
+          </button>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead className="border-b bg-secondary/40 text-start">
             <tr>
+              <th className="p-3 w-10">
+                <input
+                  type="checkbox"
+                  aria-label="select all"
+                  checked={products.length > 0 && selected.size === products.length}
+                  onChange={(e) =>
+                    setSelected(
+                      e.target.checked ? new Set(products.map((p) => p.id)) : new Set(),
+                    )
+                  }
+                  className="h-4 w-4 accent-[hsl(var(--accent))]"
+                />
+              </th>
               <th className="p-3 text-start font-medium">{t("admin_products")}</th>
               <th className="p-3 text-start font-medium">{t("brand_label")}</th>
               <th className="p-3 text-start font-medium ltr-nums">$</th>
@@ -341,6 +424,15 @@ function ProductsAdmin() {
           <tbody>
             {products.map((p) => (
               <tr key={p.id} className="border-b last:border-0">
+                <td className="p-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`select ${p.name}`}
+                    checked={selected.has(p.id)}
+                    onChange={() => toggleSel(p.id)}
+                    className="h-4 w-4 accent-[hsl(var(--accent))]"
+                  />
+                </td>
                 <td className="p-3">
                   <div className="flex items-center gap-2">
                     <div className="h-9 w-9 shrink-0 overflow-hidden rounded bg-secondary">

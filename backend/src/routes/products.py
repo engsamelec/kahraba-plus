@@ -323,6 +323,40 @@ def create_product():
     return jsonify(product.to_dict(full=True, include_cost=True)), 201
 
 
+@products_bp.route("/products/bulk", methods=["POST"])
+@admin_required
+def bulk_update_products():
+    """Apply one action to many products at once: adjust price by percent or a
+    fixed amount, or activate/deactivate. Server-authoritative & clamped."""
+    data = request.get_json(silent=True) or {}
+    ids = data.get("product_ids") or []
+    action = data.get("action")
+    if not isinstance(ids, list) or not ids:
+        return jsonify({"error": "No products selected"}), 400
+    if action not in ("price_percent", "price_fixed", "activate", "deactivate"):
+        return jsonify({"error": "Invalid action"}), 400
+
+    products = Product.query.filter(Product.id.in_(ids)).all()
+    updated = 0
+    if action in ("activate", "deactivate"):
+        for p in products:
+            p.is_active = action == "activate"
+            updated += 1
+    else:
+        try:
+            value = float(data.get("value"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "Invalid value"}), 400
+        for p in products:
+            base = p.price or 0
+            new = base * (1 + value / 100) if action == "price_percent" else base + value
+            p.price = _money(round(new, 2))  # never negative
+            updated += 1
+
+    db.session.commit()
+    return jsonify({"updated": updated})
+
+
 @products_bp.route("/products/<int:product_id>", methods=["PUT"])
 @admin_required
 def update_product(product_id):

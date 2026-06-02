@@ -141,6 +141,39 @@ def test_inactive_products_hidden_publicly_visible_to_admin(client, auth):
     assert any(p["id"] == pid for p in admin)
 
 
+def test_bulk_price_and_visibility(client, auth):
+    before = {
+        p["id"]: p["price"]
+        for p in client.get("/api/products?ids=1,2").get_json()["products"]
+    }
+    # +10% on two products
+    res = client.post(
+        "/api/products/bulk",
+        json={"product_ids": [1, 2], "action": "price_percent", "value": 10},
+        headers=auth,
+    )
+    assert res.status_code == 200 and res.get_json()["updated"] == 2
+    after = {
+        p["id"]: p["price"]
+        for p in client.get("/api/products?ids=1,2").get_json()["products"]
+    }
+    assert after[1] == round(before[1] * 1.1, 2)
+
+    # bulk hide → gone from public, still visible to admin
+    client.post(
+        "/api/products/bulk",
+        json={"product_ids": [1], "action": "deactivate"},
+        headers=auth,
+    )
+    pub = client.get("/api/products?ids=1,2").get_json()["products"]
+    assert all(p["id"] != 1 for p in pub)
+
+    # guards
+    assert client.post("/api/products/bulk", json={"product_ids": [], "action": "activate"}, headers=auth).status_code == 400
+    assert client.post("/api/products/bulk", json={"product_ids": [1], "action": "x"}, headers=auth).status_code == 400
+    assert client.post("/api/products/bulk", json={"product_ids": [1], "action": "activate"}).status_code in (401, 422)
+
+
 def test_admin_can_edit_product_number_and_slug(client, auth):
     pid = client.post(
         "/api/products", json={"name": "Editable", "price": 4}, headers=auth

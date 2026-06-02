@@ -99,6 +99,11 @@ const translations: Dict = {
   cancel: { ar: "إلغاء", en: "Cancel", he: "ביטול" },
   active_visible: { ar: "ظاهر في المتجر", en: "Visible in store", he: "מוצג בחנות" },
   hidden_label: { ar: "مخفي", en: "Hidden", he: "מוסתר" },
+  bulk_selected: { ar: "محدّد", en: "selected", he: "נבחרו" },
+  bulk_apply_pct: { ar: "تعديل السعر %", en: "Adjust price %", he: "שנה מחיר %" },
+  bulk_show: { ar: "إظهار", en: "Show", he: "הצג" },
+  bulk_hide: { ar: "إخفاء", en: "Hide", he: "הסתר" },
+  bulk_done: { ar: "تم التعديل الجماعي", en: "Bulk update applied", he: "עודכן בכמות" },
   admin_users: { ar: "المستخدمون", en: "Users", he: "משתמשים" },
   admin_subscribers: { ar: "المشتركون", en: "Subscribers", he: "מנויים" },
   no_subscribers: {
