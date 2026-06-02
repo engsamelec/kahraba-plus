@@ -14,6 +14,10 @@ class StoreConfig(db.Model):
     international_shipping = db.Column(db.Float, nullable=False, default=25.0)
     tax_rate = db.Column(db.Float, nullable=False, default=0.0)  # 0..1
     home_country = db.Column(db.String(80), nullable=False, default="Syria")
+    # Contact details shown in the footer / about / invoice.
+    store_phone = db.Column(db.String(40), nullable=False, default="+963 900 000 000")
+    store_email = db.Column(db.String(120), nullable=False, default="info@kahrabaplus.com")
+    store_address = db.Column(db.String(200), nullable=False, default="Damascus, Syria")
 
     def to_dict(self):
         return {
@@ -22,6 +26,9 @@ class StoreConfig(db.Model):
             "international_shipping": self.international_shipping,
             "tax_rate": self.tax_rate,
             "home_country": self.home_country,
+            "store_phone": self.store_phone,
+            "store_email": self.store_email,
+            "store_address": self.store_address,
         }
 
 

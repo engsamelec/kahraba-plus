@@ -6,12 +6,16 @@ import {
   type ReactNode,
 } from "react";
 import api from "./api";
+import { BRAND } from "./brand";
 
 export interface StoreConfig {
   free_shipping_threshold: number; // USD
   domestic_shipping: number;
   international_shipping: number;
   home_country: string;
+  store_phone: string;
+  store_email: string;
+  store_address: string;
 }
 
 const DEFAULTS: StoreConfig = {
@@ -19,6 +23,9 @@ const DEFAULTS: StoreConfig = {
   domestic_shipping: 3,
   international_shipping: 25,
   home_country: "Syria",
+  store_phone: BRAND.phone,
+  store_email: BRAND.email,
+  store_address: BRAND.address,
 };
 
 const ConfigContext = createContext<StoreConfig>(DEFAULTS);

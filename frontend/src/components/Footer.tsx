@@ -17,9 +17,11 @@ import api from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { getErrorMessage } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
+import { useConfig } from "@/lib/config";
 
 export function Footer() {
   const { t } = useI18n();
+  const cfg = useConfig();
   const year = new Date().getFullYear();
   const [email, setEmail] = useState("");
   const [subscribing, setSubscribing] = useState(false);
@@ -122,18 +124,22 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-sidebar-foreground/70">
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-accent" />
-                <a href={`tel:${BRAND.phoneHref}`} dir="ltr" className="hover:text-accent">
-                  {BRAND.phone}
+                <a
+                  href={`tel:${cfg.store_phone.replace(/[^\d+]/g, "")}`}
+                  dir="ltr"
+                  className="hover:text-accent"
+                >
+                  {cfg.store_phone}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-accent" />
-                <a href={`mailto:${BRAND.email}`} className="hover:text-accent">
-                  {BRAND.email}
+                <a href={`mailto:${cfg.store_email}`} className="hover:text-accent">
+                  {cfg.store_email}
                 </a>
               </li>
               <li className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 shrink-0 text-accent" /> {BRAND.address}
+                <MapPin className="h-4 w-4 shrink-0 text-accent" /> {cfg.store_address}
               </li>
             </ul>
           </div>

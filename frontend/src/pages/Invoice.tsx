@@ -5,7 +5,7 @@ import api, { type Order } from "@/lib/api";
 import { useI18n, localizedOrderItem } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useMoney } from "@/lib/currency";
-import { BRAND } from "@/lib/brand";
+import { useConfig } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -17,6 +17,7 @@ export default function Invoice() {
   const { orderNumber } = useParams();
   const { t, lang } = useI18n();
   const money = useMoney();
+  const cfg = useConfig();
   useDocumentTitle(`${t("invoice")} ${orderNumber ?? ""}`);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +69,7 @@ export default function Invoice() {
               <span className="text-xl font-extrabold">{t("brand")}</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {BRAND.email} · {BRAND.address}
+              {cfg.store_email} · {cfg.store_address}
             </p>
           </div>
           <div className="text-end">

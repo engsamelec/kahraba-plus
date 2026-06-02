@@ -10,11 +10,12 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { BRAND } from "@/lib/brand";
+import { useConfig } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 
 export default function About() {
   const { t } = useI18n();
+  const cfg = useConfig();
   useDocumentTitle(t("about_title"));
 
   const stats = [
@@ -32,9 +33,14 @@ export default function About() {
   ];
 
   const contacts = [
-    { icon: Phone, value: BRAND.phone, href: `tel:${BRAND.phoneHref}`, ltr: true },
-    { icon: Mail, value: BRAND.email, href: `mailto:${BRAND.email}` },
-    { icon: MapPin, value: BRAND.address },
+    {
+      icon: Phone,
+      value: cfg.store_phone,
+      href: `tel:${cfg.store_phone.replace(/[^\d+]/g, "")}`,
+      ltr: true,
+    },
+    { icon: Mail, value: cfg.store_email, href: `mailto:${cfg.store_email}` },
+    { icon: MapPin, value: cfg.store_address },
   ];
 
   return (

@@ -116,6 +116,9 @@ const translations: Dict = {
   cfg_intl: { ar: "الشحن الدولي", en: "International shipping", he: "משלוח בינלאומי" },
   cfg_tax: { ar: "نسبة الضريبة", en: "Tax rate", he: "שיעור מס" },
   cfg_home_country: { ar: "الدولة المحلية", en: "Home country", he: "מדינת בית" },
+  cfg_phone: { ar: "هاتف المتجر", en: "Store phone", he: "טלפון החנות" },
+  cfg_email: { ar: "بريد المتجر", en: "Store email", he: "אימייל החנות" },
+  cfg_address: { ar: "عنوان المتجر", en: "Store address", he: "כתובת החנות" },
   admin_users: { ar: "المستخدمون", en: "Users", he: "משתמשים" },
   admin_subscribers: { ar: "المشتركون", en: "Subscribers", he: "מנויים" },
   no_subscribers: {

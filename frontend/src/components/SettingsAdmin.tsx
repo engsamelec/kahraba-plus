@@ -12,6 +12,9 @@ interface Config {
   international_shipping: number | string;
   tax_rate: number | string;
   home_country: string;
+  store_phone: string;
+  store_email: string;
+  store_address: string;
 }
 
 export function SettingsAdmin() {
@@ -33,6 +36,9 @@ export function SettingsAdmin() {
         international_shipping: Number(cfg.international_shipping),
         tax_rate: Number(cfg.tax_rate),
         home_country: cfg.home_country,
+        store_phone: cfg.store_phone,
+        store_email: cfg.store_email,
+        store_address: cfg.store_address,
       });
       toast.success(t("save"));
     } catch (err) {
@@ -51,12 +57,16 @@ export function SettingsAdmin() {
     label: string;
     hint?: string;
     step?: string;
+    num?: boolean;
   }[] = [
-    { key: "free_shipping_threshold", label: t("cfg_free_shipping"), hint: "$", step: "0.5" },
-    { key: "domestic_shipping", label: t("cfg_domestic"), hint: "$", step: "0.5" },
-    { key: "international_shipping", label: t("cfg_intl"), hint: "$", step: "0.5" },
-    { key: "tax_rate", label: t("cfg_tax"), hint: "0–1", step: "0.01" },
+    { key: "free_shipping_threshold", label: t("cfg_free_shipping"), hint: "$", step: "0.5", num: true },
+    { key: "domestic_shipping", label: t("cfg_domestic"), hint: "$", step: "0.5", num: true },
+    { key: "international_shipping", label: t("cfg_intl"), hint: "$", step: "0.5", num: true },
+    { key: "tax_rate", label: t("cfg_tax"), hint: "0–1", step: "0.01", num: true },
     { key: "home_country", label: t("cfg_home_country") },
+    { key: "store_phone", label: t("cfg_phone") },
+    { key: "store_email", label: t("cfg_email") },
+    { key: "store_address", label: t("cfg_address") },
   ];
 
   return (
@@ -77,9 +87,9 @@ export function SettingsAdmin() {
               )}
             </span>
             <input
-              type={f.key === "home_country" ? "text" : "number"}
+              type={f.num ? "number" : "text"}
               step={f.step}
-              dir={f.key === "home_country" ? undefined : "ltr"}
+              dir={f.num ? "ltr" : undefined}
               className={cell}
               value={cfg[f.key]}
               onChange={(e) => setCfg({ ...cfg, [f.key]: e.target.value })}

@@ -109,6 +109,9 @@ def update_store_config():
             return jsonify({"error": "Invalid tax_rate"}), 400
     if "home_country" in data and str(data["home_country"]).strip():
         cfg.home_country = str(data["home_country"]).strip()
+    for field in ("store_phone", "store_email", "store_address"):
+        if field in data and str(data[field]).strip():
+            setattr(cfg, field, str(data[field]).strip()[:200])
     db.session.commit()
     return jsonify(cfg.to_dict())
 
