@@ -1,0 +1,7 @@
+venv/
+.env
+machine.db
+feed.csv
+__pycache__/
+*.pyc
+rules.log

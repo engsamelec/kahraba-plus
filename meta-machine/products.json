@@ -1,0 +1,36 @@
+[
+  {
+    "id": "BLZ01",
+    "title": "بلوزة كلاسيك",
+    "description": "بلوزة قطن نسائية بقصة مريحة",
+    "price": 89,
+    "link": "https://wa.me/9725XXXXXXXX?text=BLZ01",
+    "brand": "YourBrand",
+    "product_type": "نساء > بلايز",
+    "gender": "female",
+    "colors": [
+      {"code": "NVY", "name": "Navy", "image": "https://cdn.example.com/blz01-navy.jpg",
+       "sizes": {"S": true, "M": true, "L": true}},
+      {"code": "BLK", "name": "Black", "image": "https://cdn.example.com/blz01-black.jpg",
+       "sizes": {"S": true, "M": true, "L": false}},
+      {"code": "RED", "name": "Red", "image": "https://cdn.example.com/blz01-red.jpg",
+       "sizes": {"S": false, "M": true, "L": true}}
+    ]
+  },
+  {
+    "id": "SHT01",
+    "title": "قميص نسائي كلاسيك",
+    "description": "قميص قطن نسائي",
+    "price": 99,
+    "link": "https://wa.me/9725XXXXXXXX?text=SHT01",
+    "brand": "YourBrand",
+    "product_type": "نساء > قمصان",
+    "gender": "female",
+    "colors": [
+      {"code": "WHT", "name": "White", "image": "https://cdn.example.com/sht01-white.jpg",
+       "sizes": {"S": true, "M": true, "L": true}},
+      {"code": "BLU", "name": "Blue", "image": "https://cdn.example.com/sht01-blue.jpg",
+       "sizes": {"S": true, "M": true, "L": true}}
+    ]
+  }
+]
